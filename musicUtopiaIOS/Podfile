@@ -1,0 +1,12 @@
+platform :ios, '7.0'
+use_frameworks!
+target 'musicUtopiaIOS' do
+pod 'AFNetworking', '~> 3.1'
+pod 'MJRefresh', '~> 3.1.12'
+pod 'Masonry', '~> 1.0.1'
+pod 'FMDB', '~> 2.6.2'
+pod 'MBProgressHUD', '~> 1.0.0'
+pod 'RegexKitLite', '~> 4.0'
+pod 'RongCloudIM', '~> 2.8.4'
+pod 'SDWebImage', '~> 3.8.1'
+end

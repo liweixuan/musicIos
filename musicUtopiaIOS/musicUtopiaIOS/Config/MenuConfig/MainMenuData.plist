@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>controller</key>
+		<string>InteractionViewController</string>
+		<key>itemName</key>
+		<string>互动</string>
+		<key>itemIconName</key>
+		<string>interaction</string>
+		<key>itemIconHLName</key>
+		<string>interactionHL</string>
+	</dict>
+	<dict>
+		<key>controller</key>
+		<string>TeachViewController</string>
+		<key>itemName</key>
+		<string>教学</string>
+		<key>itemIconName</key>
+		<string>teach</string>
+		<key>itemIconHLName</key>
+		<string>teachHL</string>
+	</dict>
+	<dict>
+		<key>controller</key>
+		<string>MessageViewController</string>
+		<key>itemName</key>
+		<string>消息</string>
+		<key>itemIconName</key>
+		<string>message</string>
+		<key>itemIconHLName</key>
+		<string>messageHL</string>
+	</dict>
+	<dict>
+		<key>controller</key>
+		<string>FriendViewController</string>
+		<key>itemName</key>
+		<string>好友</string>
+		<key>itemIconName</key>
+		<string>friend</string>
+		<key>itemIconHLName</key>
+		<string>friendHL</string>
+	</dict>
+	<dict>
+		<key>controller</key>
+		<string>MyViewController</string>
+		<key>itemName</key>
+		<string>我的</string>
+		<key>itemIconName</key>
+		<string>my</string>
+		<key>itemIconHLName</key>
+		<string>myHL</string>
+	</dict>
+</array>
+</plist>
