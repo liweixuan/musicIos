@@ -11,6 +11,7 @@
 @interface OrganizationModel : NSObject
 
 @property(nonatomic,assign) NSInteger  organizationId;           //团体ID
+@property(nonatomic,copy)   NSString * organizationLogo;         //团体Logo
 @property(nonatomic,copy)   NSString * organizationCover;        //团体封面
 @property(nonatomic,copy)   NSString * organizationCreateTime;   //团体创建时间
 @property(nonatomic,copy)   NSString * organizationProvinceName; //省份名称

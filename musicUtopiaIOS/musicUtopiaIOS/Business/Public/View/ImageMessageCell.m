@@ -67,11 +67,16 @@
     
     //设置时间位置
     _messagetimeView.frame = frameData.messageTimeFrame;
-    _messagetimeView.L_Text(@"05-11 12:12");
+    _messagetimeView.L_Text(frameData.imageMessageModel.messageReceiveTime);
     
     //设置头像位置+数据
     _headerView.frame = frameData.headerFrame;
-    _headerView.L_ImageName(HEADER_DEFAULT);
+    [MemberInfoData getMemberInfo:frameData.imageMessageModel.messageSendUser MemberEnd:^(NSDictionary *memberInfo) {
+        
+        NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,memberInfo[@"m_headerUrl"]];
+        _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+        _headerView.L_Round();
+    }];
     
     //聊天气泡
     UIImage * bubbleImage = nil;
@@ -80,7 +85,7 @@
     _chatBubbleView.frame = frameData.chatBubbleFrame;
     
     
-    if(frameData.imageMessageModel.tempMessageDirection == 1){
+    if(frameData.imageMessageModel.messageDirection == 1){
         bubbleImage = [UIImage imageNamed:@"right_bubble"];
         _chatBubbleView.image = [bubbleImage stretchableImageWithLeftCapWidth:bubbleImage.size.width*0.2 topCapHeight:bubbleImage.size.height * 0.8];
     }else{
@@ -91,10 +96,10 @@
     
     _contentImageView.frame = frameData.chatContentFrame;
     _contentImageView.L_Click(self,@selector(imageContentClick:));
-    if(frameData.imageMessageModel.tempMessageImage!=nil){
-        _contentImageView.L_Image(frameData.imageMessageModel.tempMessageImage);
+    if(frameData.imageMessageModel.messageImage!=nil){
+        _contentImageView.L_Image(frameData.imageMessageModel.messageImage);
     }else{
-       _contentImageView.L_ImageUrlName(frameData.imageMessageModel.tempMessageUrl,IMAGE_DEFAULT);
+       _contentImageView.L_ImageUrlName(frameData.imageMessageModel.messageUrl,IMAGE_DEFAULT);
     }
 
     

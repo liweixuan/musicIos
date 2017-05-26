@@ -226,6 +226,7 @@
     //操作按钮
     _matchActionView.frame = matchFrame.matchActionFrame;
     _matchActionView.L_BgColor(HEX_COLOR(APP_MAIN_COLOR));
+    _matchActionView.L_TargetAction(self,@selector(matchActionClick:),UIControlEventTouchUpInside);
     
     if(matchFrame.matchModel.nowStatus == 2){
         _matchActionView.L_TitleColor(HEX_COLOR(APP_MAIN_COLOR),UIControlStateNormal);
@@ -243,6 +244,11 @@
     
     NSLog(@"去投票按钮点击...");
     [self.delegate voteClick:self];
+}
+
+//操作按钮
+-(void)matchActionClick:(UIButton *)sender {
+    
 }
 
 @end

@@ -21,7 +21,7 @@
         self.imageMessageModel = model;
         
         //判断是回复消息还是发送消息 1-发送 2-接收
-        NSInteger messageDirection = self.imageMessageModel.tempMessageDirection;
+        NSInteger messageDirection = self.imageMessageModel.messageDirection;
         
         //发送或接收时间
         self.messageTimeFrame = CGRectMake(0,20,D_WIDTH,ATTR_FONT_SIZE);

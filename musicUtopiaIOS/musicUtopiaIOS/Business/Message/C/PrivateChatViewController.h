@@ -9,5 +9,5 @@
 #import "Base_UIViewController.h"
 
 @interface PrivateChatViewController : Base_UIViewController
-
+@property(nonatomic,strong)RCConversation * conversation; //会话数据
 @end

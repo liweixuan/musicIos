@@ -1,5 +1,6 @@
 #import "DynamicCell.h"
 #import "TagLabel.h"
+#import "DynamicImagePreviewViewController.h"
 
 @interface DynamicCell()
 {
@@ -26,6 +27,8 @@
     UILabel     * _zanCountView;
     UIImageView * _concernIconView;
     UILabel     * _concernTextView;
+    
+    NSArray     * _imageArr; //图片数组
 }
 @end
 
@@ -37,6 +40,8 @@
         
         //设置CELL背景
         self.contentView.backgroundColor = HEX_COLOR(VC_BG);
+        
+        _imageArr = [NSArray array];
 
         _cellBox = [UIView ViewInitWith:^(UIView *view) {
             
@@ -52,7 +57,6 @@
         
         _headerUrlView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(HEADER_DEFAULT)
             .L_Event(YES)
             .L_Click(self,@selector(userHeaderClick))
             .L_AddView(_cellBox);
@@ -84,7 +88,7 @@
         
         _locationIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"weizhi")
             .L_AddView(_cellBox);
         }];
         
@@ -120,6 +124,7 @@
         
         _zanBoxView = [UIView ViewInitWith:^(UIView *view) {
             view
+            .L_Click(self,@selector(zanClick))
             .L_AddView(_actionBoxView);
         }];
         
@@ -131,12 +136,13 @@
         
         _concernBoxView = [UIView ViewInitWith:^(UIView *view) {
             view
+            .L_Click(self,@selector(concernClick))
             .L_AddView(_actionBoxView);
         }];
         
         _commentIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"pinglun")
             .L_AddView(_commentBoxView);
         }];
         
@@ -149,7 +155,7 @@
         
         _zanIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"dianzan")
             .L_AddView(_zanBoxView);
         }];
         
@@ -162,7 +168,7 @@
         
         _concernIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"guanzhu")
             .L_AddView(_concernBoxView);
         }];
         
@@ -205,6 +211,8 @@
 
     //头像
     _headerUrlView.frame = dynamicFrame.headerUrlFrame;
+    NSString * headerImageStr = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dynamicFrame.dynamicModel.headerUrl];
+    [_headerUrlView sd_setImageWithURL:[NSURL URLWithString:headerImageStr] placeholderImage:[UIImage imageNamed:HEADER_DEFAULT]];
     _headerUrlView.L_Round();
     
     //性别图标
@@ -228,7 +236,13 @@
     
     //地理位置信息
     _locationView.frame = dynamicFrame.locationFrame;
-    _locationView.L_Text(dataModel.location);
+    NSString * locationStr = @"";
+    if([dynamicFrame.dynamicModel.location isEqualToString:@""]||dynamicFrame.dynamicModel.location == nil){
+        locationStr = @"未获取到该用户位置信息";
+    }else{
+        locationStr = dynamicFrame.dynamicModel.location;
+    }
+    _locationView.L_Text(locationStr);
     
     //内容
     _contentView.frame = dynamicFrame.contentFrame;
@@ -240,6 +254,8 @@
     
     //在容器中创建图片视图
     if(dynamicFrame.dynamicModel.dynamicType == 1 && dynamicFrame.dynamicModel.images.count > 0){
+        
+        _imageArr = dynamicFrame.dynamicModel.images;
         
         for(int i = 0;i<dynamicFrame.dynamicModel.images.count;i++){
             
@@ -261,7 +277,7 @@
             CGFloat row = i / 3;
             
             if(row > 0){
-                marginTop = 5;
+                marginTop = row * 5;
             }
             
             
@@ -269,6 +285,9 @@
             
             //图片数据
             NSDictionary * imageData = dynamicFrame.dynamicModel.images[i];
+            
+            //图片
+            NSString * imageUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,imageData[@"di_img_url"]];
 
             //创建图片视图项
             [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
@@ -276,8 +295,10 @@
                 imgv
                 .L_Frame(CGRectMake(ix,iy,dynamicFrame.imagesSize.width,dynamicFrame.imagesSize.height))
                 .L_BgColor([UIColor grayColor])
-                .L_ImageUrlName(imageData[@"di_img_url"],IMAGE_DEFAULT)
-                .L_Click(self,@selector(imageClick))
+                .L_Event(YES)
+                .L_ImageUrlName(imageUrl,IMAGE_DEFAULT)
+                .L_Click(self,@selector(imageClick:))
+                .L_tag(i)
                 .L_AddView(_imageBoxView);
                 
             }];
@@ -398,8 +419,20 @@
 }
 
 //图片点击
--(void)imageClick {
+-(void)imageClick:(UITapGestureRecognizer *)tap {
     NSLog(@"click_image......");
+    UIImageView * imageView =  (UIImageView *)tap.view;
+    
+    NSInteger tagv = tap.view.tag;
+    
+    DynamicImagePreviewViewController *photoVC = [[DynamicImagePreviewViewController alloc] init];
+    photoVC.imageType = 2;
+    photoVC.imageData = imageView.image;
+    photoVC.imageArr  = _imageArr;
+    photoVC.imageIdx  = tagv;
+    
+    photoVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    [[self viewController] presentViewController:photoVC animated:YES completion:nil];
 }
 
 //评论点击
@@ -407,9 +440,33 @@
    [self.delegate commentClick:self];
 }
 
+//赞点击
+-(void)zanClick {
+    [self.delegate zanClick:self NowView:_zanCountView];
+}
+
+//关注
+-(void)concernClick  {
+    [self.delegate concernClick:self];
+}
+
 //头像点击
 -(void)userHeaderClick {
     [self.delegate userHeaderClick:self];
+}
+
+- (UIViewController *)viewController
+{
+    //获取当前view的superView对应的控制器
+    UIResponder *next = [self nextResponder];
+    do {
+        if ([next isKindOfClass:[UIViewController class]]) {
+            return (UIViewController *)next;
+        }
+        next = [next nextResponder];
+    } while (next != nil);
+    return nil;
+    
 }
 
 @end

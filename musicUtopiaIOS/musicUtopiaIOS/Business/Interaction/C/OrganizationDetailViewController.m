@@ -47,7 +47,7 @@
     NSLog(@"请求团体详情数据...");
     
     //构建restful参数
-    NSArray  * params = @[@{@"key":@"o_id",@"value":@(1)}];
+    NSArray  * params = @[@{@"key":@"o_id",@"value":@(self.organizationId)}];
     NSString * URL    = [G formatRestful:API_ORGANIZATION_INFO Params:params];
  
     //请求动态数据
@@ -115,6 +115,8 @@
         make.edges.equalTo(self.view).with.insets(UIEdgeInsetsMake(15,0,0,0));
     }];
     
+    _tableview.marginBottom = 10;
+    
 }
 
 //行数
@@ -130,11 +132,13 @@
     //LOGO+名称+封面
     if(indexPath.row == 0){
         
+        NSString * logoUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,_organizationDetail[@"o_logo"]];
+        
         //创建LOGO
         UIImageView * logoImageView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,INLINE_CELL_PADDING_TOP,50,50))
-            .L_ImageName(IMAGE_DEFAULT)
+            .L_ImageUrlName(logoUrl,IMAGE_DEFAULT)
             .L_radius(25)
             .L_AddView(cell.contentView);
         }];
@@ -149,11 +153,13 @@
             .L_AddView(cell.contentView);
         }];
         
+        NSString * coverUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,_organizationDetail[@"o_cover"]];
+        
         //封面图
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT, [logoImageView bottom] + CONTENT_MARGIN_TOP,D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT * 2, 230))
-            .L_ImageName(@"test3.jpg")
+            .L_ImageUrlName(coverUrl,RECTANGLE_IMAGE_DEFAULT)
             .L_radius(5)
             .L_AddView(cell.contentView);
         }];

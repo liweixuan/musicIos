@@ -92,7 +92,7 @@
     UIImageView * hintImageView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
        imgv
         .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,10,120,[headerBox height] - 20))
-        .L_ImageName(RECTANGLE_IMAGE_DEFAULT)
+        .L_ImageName(@"test_faxian.jpeg")
         .L_AddView(headerBox);
     }];
     
@@ -138,7 +138,7 @@
            
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT+2,70/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"tiaojianshaixuan")
             .L_AddView(cell.contentView);
         }];
         
@@ -165,8 +165,8 @@
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             
             imgv
-            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-MIDDLE_ICON_SIZE/2,70/2 - MIDDLE_ICON_SIZE /2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-SMALL_ICON_SIZE/2,70/2 - SMALL_ICON_SIZE /2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_ImageName(@"fanhui")
             .L_AddView(cell.contentView);
         }];
         
@@ -176,7 +176,7 @@
             
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT+2,70/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"fujinderen")
             .L_AddView(cell.contentView);
         }];
         
@@ -194,7 +194,7 @@
         [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([leftIcon right]+CONTENT_PADDING_LEFT,[hintTitle bottom]+5,[cell.contentView width] - [leftIcon right] - CONTENT_PADDING_LEFT,ATTR_FONT_SIZE))
-            .L_Text(@"根据不同条件筛选更精确哟")
+            .L_Text(@"看看附近有谁")
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
             .L_Font(ATTR_FONT_SIZE)
             .L_AddView(cell.contentView);
@@ -203,8 +203,8 @@
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             
             imgv
-            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-MIDDLE_ICON_SIZE/2,70/2 - MIDDLE_ICON_SIZE /2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-SMALL_ICON_SIZE/2,70/2 - SMALL_ICON_SIZE /2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_ImageName(@"fanhui")
             .L_AddView(cell.contentView);
         }];
 
@@ -215,7 +215,7 @@
             
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT+2,70/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"ditufaxian")
             .L_AddView(cell.contentView);
         }];
         
@@ -233,7 +233,7 @@
         [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([leftIcon right]+CONTENT_PADDING_LEFT,[hintTitle bottom]+5,[cell.contentView width] - [leftIcon right] - CONTENT_PADDING_LEFT,ATTR_FONT_SIZE))
-            .L_Text(@"根据不同条件筛选更精确哟")
+            .L_Text(@"用地图发现您身边的人")
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
             .L_Font(ATTR_FONT_SIZE)
             .L_AddView(cell.contentView);
@@ -242,8 +242,8 @@
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             
             imgv
-            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-MIDDLE_ICON_SIZE/2,70/2 - MIDDLE_ICON_SIZE /2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-SMALL_ICON_SIZE/2,70/2 - SMALL_ICON_SIZE /2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_ImageName(@"fanhui")
             .L_AddView(cell.contentView);
         }];
 
@@ -254,7 +254,7 @@
             
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT+2,70/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"suijifaxian")
             .L_AddView(cell.contentView);
         }];
         
@@ -272,7 +272,7 @@
         [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([leftIcon right]+CONTENT_PADDING_LEFT,[hintTitle bottom]+5,[cell.contentView width] - [leftIcon right] - CONTENT_PADDING_LEFT,ATTR_FONT_SIZE))
-            .L_Text(@"根据不同条件筛选更精确哟")
+            .L_Text(@"来一场随机交友之旅")
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
             .L_Font(ATTR_FONT_SIZE)
             .L_AddView(cell.contentView);
@@ -281,8 +281,8 @@
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             
             imgv
-            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-MIDDLE_ICON_SIZE/2,70/2 - MIDDLE_ICON_SIZE /2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-SMALL_ICON_SIZE/2,70/2 - SMALL_ICON_SIZE /2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_ImageName(@"fanhui")
             .L_AddView(cell.contentView);
         }];
 
@@ -293,7 +293,7 @@
             
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT+2,70/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"tingpengyou")
             .L_AddView(cell.contentView);
         }];
         
@@ -311,7 +311,7 @@
         [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([leftIcon right]+CONTENT_PADDING_LEFT,[hintTitle bottom]+5,[cell.contentView width] - [leftIcon right] - CONTENT_PADDING_LEFT,ATTR_FONT_SIZE))
-            .L_Text(@"根据不同条件筛选更精确哟")
+            .L_Text(@"用耳朵去发现你的朋友")
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
             .L_Font(ATTR_FONT_SIZE)
             .L_AddView(cell.contentView);
@@ -320,8 +320,8 @@
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             
             imgv
-            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-MIDDLE_ICON_SIZE/2,70/2 - MIDDLE_ICON_SIZE /2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-SMALL_ICON_SIZE/2,70/2 - SMALL_ICON_SIZE /2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_ImageName(@"fanhui")
             .L_AddView(cell.contentView);
         }];
 

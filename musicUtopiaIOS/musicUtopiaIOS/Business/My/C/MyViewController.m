@@ -3,6 +3,7 @@
 #import "GONMarkupParser_All.h"
 #import "MyCell.h"
 #import "MyEditViewController.h"
+#import "SettingViewController.h"
 
 @interface MyViewController()<UITableViewDelegate,UITableViewDataSource>
 {
@@ -15,10 +16,13 @@
 @implementation MyViewController
 -(void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"我的";
+    self.title = @"会员中心";
 
     //创建表视图
     [self createTableview];
+    
+    //创建导航按钮
+    R_NAV_TITLE_BTN(@"R",@"编辑",editInfoClick)
     
     //创建头部视图
     [self createHeaderview];
@@ -26,11 +30,13 @@
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    [super viewWillDisappear:animated];
+    self.navigationController.navigationBar.layer.shadowOpacity = 0.1;
 }
 
 -(void)viewWillAppear:(BOOL)animated {
-    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBar.layer.shadowOpacity = 0.0;
 }
 
 //创建表视图
@@ -56,6 +62,8 @@
         make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(-15,0,0,0));
     }];
     
+    _tableview.marginBottom = 10;
+    
 }
 //创建头部视图
 -(void)createHeaderview {
@@ -77,33 +85,33 @@
     }];
     
      //背景
-    UIImageView * bgImageview = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-        imgv
-        .L_Frame(CGRectMake(0,-55,D_WIDTH,190))
-        .L_ImageName(@"my_header_bg")
-        .L_ImageMode(UIViewContentModeScaleAspectFit)
-        .L_AddView(headerBox);
-    }];
+//    UIImageView * bgImageview = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+//        imgv
+//        .L_Frame(CGRectMake(0,-55,D_WIDTH,190))
+//        .L_ImageName(@"my_header_bg")
+//        .L_ImageMode(UIViewContentModeScaleAspectFit)
+//        .L_AddView(headerBox);
+//    }];
     
     //头像
     UIImageView * headerImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
        imgv
-        .L_Frame(CGRectMake(D_WIDTH/2 - 70/2,[bgImageview bottom] - 55 - 70/2,70,70))
+        .L_Frame(CGRectMake(D_WIDTH/2 - 70/2,70/2,70,70))
         .L_ImageName(HEADER_DEFAULT)
         .L_AddView(headerBox);
     }];
     
     //右侧编辑按钮
-    [UILabel LabelinitWith:^(UILabel *la) {
-        la
-        .L_Frame(CGRectMake(D_WIDTH - 40 ,40,40,SUBTITLE_FONT_SIZE))
-        .L_Font(SUBTITLE_FONT_SIZE)
-        .L_Text(@"编辑")
-        .L_isEvent(YES)
-        .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
-        .L_Click(self,@selector(editInfoClick))
-        .L_AddView(headerBox);
-    }];
+//    [UILabel LabelinitWith:^(UILabel *la) {
+//        la
+//        .L_Frame(CGRectMake(D_WIDTH - 40 ,40,40,SUBTITLE_FONT_SIZE))
+//        .L_Font(SUBTITLE_FONT_SIZE)
+//        .L_Text(@"编辑")
+//        .L_isEvent(YES)
+//        .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
+//        .L_Click(self,@selector(editInfoClick))
+//        .L_AddView(headerBox);
+//    }];
     
 
     
@@ -247,80 +255,83 @@
     }];
     
     //身份容器
-    UIView * identityView = [UIView ViewInitWith:^(UIView *view) {
-       view
-        .L_Frame(CGRectMake(0,[userMiddleLine bottom]+CONTENT_PADDING_TOP,[userInfoBox width],60))
-        .L_AddView(userInfoBox);
-    }];
+//    UIView * identityView = [UIView ViewInitWith:^(UIView *view) {
+//       view
+//        .L_Frame(CGRectMake(0,[userMiddleLine bottom]+CONTENT_PADDING_TOP,[userInfoBox width],0))
+//        .L_AddView(userInfoBox);
+//    }];
     
-    NSArray * identityArr = @[
-                              @{@"text":@"普通会员",@"icon":ICON_DEFAULT,@"isOpen":@(1)},
-                              @{@"text":@"VIP会员",@"icon":ICON_DEFAULT,@"isOpen":@(1)},
-                              @{@"text":@"官方教师",@"icon":ICON_DEFAULT,@"isOpen":@(0)},
-                              @{@"text":@"独立教师",@"icon":ICON_DEFAULT,@"isOpen":@(0)},
-                              @{@"text":@"主播",@"icon":ICON_DEFAULT,@"isOpen":@(0)},
-                              @{@"text":@"赞助商",@"icon":@"zanzhushang",@"isOpen":@(1)},
-                              ];
+    /*
+     @{@"text":@"官方教师",@"icon":ICON_DEFAULT,@"isOpen":@(0)},
+     @{@"text":@"独立教师",@"icon":ICON_DEFAULT,@"isOpen":@(0)},
+     @{@"text":@"主播",@"icon":ICON_DEFAULT,@"isOpen":@(0)},
+     @{@"text":@"赞助商",@"icon":@"zanzhushang",@"isOpen":@(1)}
+     */
+    
+//    NSArray * identityArr = @[
+//                              @{@"text":@"普通会员",@"icon":ICON_DEFAULT,@"isOpen":@(1)},
+//                              @{@"text":@"VIP会员",@"icon":ICON_DEFAULT,@"isOpen":@(1)},
+//                              ];
     //创建身份容器项
-    CGFloat identityItemW = [identityView width]/3;
-    CGFloat identityItemH = 30;
-    
-    for(int i=0;i<identityArr.count;i++){
-        
-        NSDictionary * dictData = identityArr[i];
-        
-        CGFloat col = i % 3;
-
-        CGFloat ix = col * identityItemW;
-
-        CGFloat row = i / 3;
-        
-        //上间距
-        CGFloat marginTop = 0.0;
-        
-        if(row > 0){
-            marginTop = 5;
-        }
-
-        CGFloat iy  = row * identityItemH + marginTop;
-        
-        //创建身份视图项
-        UIView * identityItem = [UIView ViewInitWith:^(UIView *view) {
-            
-            view
-            .L_Frame(CGRectMake(ix,iy,identityItemW, identityItemH))
-            .L_AddView(identityView);
-            
-        }];
-        
-        NSInteger isOpen = [dictData[@"isOpen"] integerValue];
-        
-        //身份图标
-        UIImageView * iconImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-           imgv
-            .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,identityItemH/2- MIDDLE_ICON_SIZE/2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
-            .L_ImageMode(UIViewContentModeScaleAspectFit)
-            .L_ImageName(dictData[@"icon"])
-            .L_AddView(identityItem);
-        }];
-        
-        //身份名称
-        UIColor * textColor = nil;
-        if(isOpen == 0){
-            textColor = HEX_COLOR(@"#CCCCCC");
-        }else{
-            textColor = HEX_COLOR(APP_MAIN_COLOR);
-        }
-        [UILabel LabelinitWith:^(UILabel *la) {
-            la
-            .L_Frame(CGRectMake([iconImage right]+CONTENT_PADDING_LEFT, 0,identityItemW, identityItemH))
-            .L_Font(SUBTITLE_FONT_SIZE)
-            .L_Text(dictData[@"text"])
-            .L_TextColor(textColor)
-            .L_AddView(identityItem);
-        }];
-     
-    }
+//    CGFloat identityItemW = [identityView width]/3;
+//    CGFloat identityItemH = 30;
+//    
+//    for(int i=0;i<identityArr.count;i++){
+//        
+//        NSDictionary * dictData = identityArr[i];
+//        
+//        CGFloat col = i % 3;
+//
+//        CGFloat ix = col * identityItemW;
+//
+//        CGFloat row = i / 3;
+//        
+//        //上间距
+//        CGFloat marginTop = 0.0;
+//        
+//        if(row > 0){
+//            marginTop = 5;
+//        }
+//
+//        CGFloat iy  = row * identityItemH + marginTop;
+//        
+//        //创建身份视图项
+//        UIView * identityItem = [UIView ViewInitWith:^(UIView *view) {
+//            
+//            view
+//            .L_Frame(CGRectMake(ix,iy,identityItemW, identityItemH))
+//            .L_AddView(identityView);
+//            
+//        }];
+//        
+//        NSInteger isOpen = [dictData[@"isOpen"] integerValue];
+//        
+//        //身份图标
+//        UIImageView * iconImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+//           imgv
+//            .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,identityItemH/2- MIDDLE_ICON_SIZE/2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
+//            .L_ImageMode(UIViewContentModeScaleAspectFit)
+//            .L_ImageName(dictData[@"icon"])
+//            .L_AddView(identityItem);
+//        }];
+//        
+//        //身份名称
+//        UIColor * textColor = nil;
+//        if(isOpen == 0){
+//            textColor = HEX_COLOR(@"#CCCCCC");
+//        }else{
+//            textColor = HEX_COLOR(APP_MAIN_COLOR);
+//        }
+//        [UILabel LabelinitWith:^(UILabel *la) {
+//            la
+//            .L_Frame(CGRectMake([iconImage right]+CONTENT_PADDING_LEFT, 0,identityItemW, identityItemH))
+//            .L_Font(SUBTITLE_FONT_SIZE)
+//            .L_Text(dictData[@"text"])
+//            .L_TextColor(textColor)
+//            .L_AddView(identityItem);
+//        }];
+//     
+//    }
     
     
     _tableview.tableHeaderView = headerView;
@@ -329,21 +340,15 @@
 }
 
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 6;
+    return 4;
 }
 
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if(section == 0){
-        return 4;
+        return 3;
     }else if(section == 1){
-        return 1;
-    }else if(section == 2){
         return 2;
-    }else if(section == 3){
-        return 1;
-    }else if(section == 4){
-        return 1;
     }else{
         return 1;
     }
@@ -361,31 +366,21 @@
     //判断相应列给予相应数据
     if(indexPath.section == 0){
         if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"我的课程"};
-        }else if(indexPath.row == 1){
             cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"我的动态"};
-        }else if(indexPath.row == 2){
+        }else if(indexPath.row == 1){
             cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"我的演奏集"};
         }else{
             cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"我的收藏"};
         }
     }else if(indexPath.section == 1){
         if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"申请成为独立教师"};
+            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"正在参与的比赛"};
+        }else if(indexPath.row == 1){
+            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"历史赛事"};
         }
     }else if(indexPath.section == 2){
         if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"正在参与的比赛"};
-        }else if(indexPath.row){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"历史赛事"};
-        }
-    }else if(indexPath.section == 3){
-        if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"购买视频课程"};
-        }
-    }else if(indexPath.section == 4){
-        if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"升阶考试"};
+             cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"升阶考试"};
         }
     }else{
         if(indexPath.row == 0){
@@ -402,24 +397,24 @@
 //行高
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    return 60;
+    return 50;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return @"管理";
+    return @"";
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     
     UIView * titleSectionView = [UIView ViewInitWith:^(UIView *view) {
         view
-        .L_Frame(CGRectMake(0, 0, D_WIDTH,30));
+        .L_Frame(CGRectMake(0, 0, D_WIDTH,40));
     }];
     
     //创建标题
     UILabel * titleSection = [UILabel LabelinitWith:^(UILabel *la) {
        la
-        .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,0, 100,30))
+        .L_Frame(CGRectMake(0,0,[titleSectionView width],40))
         .L_Font(TITLE_FONT_SIZE)
         .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
         .L_AddView(titleSectionView);
@@ -430,12 +425,8 @@
     if(section == 0){
         titleStr = @"管理";
     }else if(section == 1){
-        titleStr = @"申请";
-    }else if(section == 2){
         titleStr = @"周/月/季赛";
-    }else if(section == 3){
-        titleStr = @"购买";
-    }else if(section == 4){
+    }else if(section == 2){
         titleStr = @"升阶";
     }else{
         titleStr = @"设置";
@@ -447,6 +438,18 @@
     return titleSectionView;
 }
 
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if(indexPath.section == 3){
+        if(indexPath.row == 0){
+            
+            NSLog(@"设置");
+            PUSH_VC(SettingViewController, YES, @{});
+            
+        }
+    }
+}
+
+
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     CGFloat sectionHeaderHeight = 30;
@@ -455,6 +458,23 @@
     } else if (scrollView.contentOffset.y>=sectionHeaderHeight) {
         scrollView.contentInset = UIEdgeInsetsMake(-sectionHeaderHeight, 0, 0, 0);
     }
+    
+
+//    
+//    if(scrollView.contentOffset.y > 80){
+//        self.navigationController.navigationBar.hidden = NO;
+//        [UIView animateWithDuration:0.3 animations:^{
+//            self.navigationController.navigationBar.alpha = 1;
+//            
+//        }];
+//        
+//        
+//    }else{
+//        
+//        [UIView animateWithDuration:0.3 animations:^{
+//            self.navigationController.navigationBar.alpha = 0;
+//        }];
+//    }
 }
 
 #pragma mark - 事件

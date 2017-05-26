@@ -14,9 +14,9 @@
 	</dict>
 	<dict>
 		<key>controller</key>
-		<string>TeachViewController</string>
+		<string>MusicScoreViewController</string>
 		<key>itemName</key>
-		<string>教学</string>
+		<string>曲谱</string>
 		<key>itemIconName</key>
 		<string>teach</string>
 		<key>itemIconHLName</key>

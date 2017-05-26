@@ -122,30 +122,33 @@
 -(void)setDynamicCommentFrame:(DynamicCommentFrame *)dynamicCommentFrame {
  
     _headerView.frame = dynamicCommentFrame.headerFrame;
+    NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dynamicCommentFrame.dynamicCommentDict[@"u_header_url"]];
+    _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+    _headerView.L_Round();
     
     _nicknameView.frame = dynamicCommentFrame.nicknameFrame;
-    _nicknameView.L_Text(@"小雪");
+    _nicknameView.L_Text(dynamicCommentFrame.dynamicCommentDict[@"u1_nickname"]);
     
     _timeView.frame = dynamicCommentFrame.timeFrame;
-    _timeView.L_Text(@"2012-12-12");
+    _timeView.L_Text([G formatData:[dynamicCommentFrame.dynamicCommentDict[@"dc_create_time"] integerValue] Format:@"YYYY-MM-dd"]);
     
     _commentContent.frame = dynamicCommentFrame.contentFrame;
-    _commentContent.L_Text(dynamicCommentFrame.dynamicCommentDict[@"commentContent"]);
+    _commentContent.L_Text(dynamicCommentFrame.dynamicCommentDict[@"dc_content"]);
     _commentContent.L_lineHeight(CONTENT_LINE_HEIGHT);
     
     _actionView.frame = dynamicCommentFrame.actionFrame;
     
     _replyIconView.frame = dynamicCommentFrame.replyIconFrame;
-    _replyIconView.L_ImageName(ICON_DEFAULT);
+    _replyIconView.L_ImageName(@"huifu");
     
     _replyTitleView.frame = dynamicCommentFrame.replyTitleFrame;
     _replyTitleView.L_Text(@"回复");
     
     _zanIconView.frame = dynamicCommentFrame.zanIconFrame;
-    _zanIconView.L_ImageName(ICON_DEFAULT);
+    _zanIconView.L_ImageName(@"dianzan");
     
     _zanCountView.frame = dynamicCommentFrame.zanCountFrame;
-    _zanCountView.L_Text(@"1000");
+    _zanCountView.L_Text([NSString stringWithFormat:@"%@",dynamicCommentFrame.dynamicCommentDict[@"dc_zan_count"]]);
     
 }
 

@@ -9,4 +9,8 @@ pod 'MBProgressHUD', '~> 1.0.0'
 pod 'RegexKitLite', '~> 4.0'
 pod 'RongCloudIM', '~> 2.8.4'
 pod 'SDWebImage', '~> 3.8.1'
+pod 'AMapLocation', '~> 2.2.2'
+pod 'AMap3DMap','~> 4.6.0'
+pod 'TZImagePickerController', '~> 1.7.8'
+pod 'AliyunOSSiOS', '~> 2.6.0'
 end

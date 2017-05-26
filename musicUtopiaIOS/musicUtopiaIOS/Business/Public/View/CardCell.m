@@ -8,6 +8,8 @@
     UILabel     * _mustHint;
     UILabel     * _contentLabel;
     UIImageView * _rightIcon;
+    
+    BOOL  _isMust;
 }
 @end
 
@@ -79,23 +81,34 @@
     _leftIcon.frame = CGRectMake(CONTENT_PADDING_LEFT,[_cellBox height]/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
     
     _mustHint.frame = CGRectMake([_leftIcon right]+ICON_MARGIN_CONTENT, [_cellBox height]/2 - 15/2 + 2,10,15);
+    
+    if(_isMust){
+        _textLabel.frame = CGRectMake([_mustHint right]+ICON_MARGIN_CONTENT,0,100, [_cellBox height]);
+    }else{
+        _textLabel.frame = CGRectMake([_leftIcon right]+ICON_MARGIN_CONTENT,0,100, [_cellBox height]);
+    }
+    
 
-    _textLabel.frame = CGRectMake([_mustHint right]+ICON_MARGIN_CONTENT,0,100, [_cellBox height]);
-
-    _rightIcon.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - MIDDLE_ICON_SIZE, [_cellBox height]/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+    _rightIcon.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - SMALL_ICON_SIZE, [_cellBox height]/2 - SMALL_ICON_SIZE/2, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
     
     _contentLabel.frame = CGRectMake([_rightIcon left] - 150 - CONTENT_PADDING_LEFT,0,150,[_cellBox height]);
+
 }
 
 -(void)setDictData:(NSDictionary *)dictData {
-    
+
     _leftIcon.L_ImageName(dictData[@"icon"]);
     
     _textLabel.L_Text(dictData[@"text"]);
     
-    _rightIcon.L_ImageName(ICON_DEFAULT);
+    _rightIcon.L_ImageName(@"fanhui");
     
-    _mustHint.L_Text(@"*");
+    if([dictData[@"isMust"] boolValue]){
+        _mustHint.L_Text(@"*");
+        _isMust = YES;
+    }else{
+        _isMust = NO;
+    }
     
     _contentLabel.L_Text(dictData[@"content"]);
     

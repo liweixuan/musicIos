@@ -15,6 +15,9 @@
     //创建菜单
     [self createMainMenu];
     
+    //注册融云接收消息通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedMessage:) name:@"RECEIVED_RCMESSAGE" object:nil
+     ];
 }
 
 #pragma mark - 创建主菜单
@@ -81,6 +84,21 @@
         [_tabBarItemArr addObject:item];
     }
     
+}
+
+-(void)receivedMessage:(id)sender {
+    UITabBarItem * tabItem   = (UITabBarItem *)_tabBarItemArr[2];
+    NSInteger unmessageCount = [RongCloudData getUnMessageCount];
+
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        
+        if(unmessageCount > 0){
+            tabItem.badgeValue = [NSString stringWithFormat:@"%ld",(long)unmessageCount];
+        }else{
+            tabItem.badgeValue = nil;
+        }
+        
+    });
 }
 
 

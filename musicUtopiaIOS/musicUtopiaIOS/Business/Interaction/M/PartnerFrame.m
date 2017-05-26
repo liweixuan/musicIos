@@ -83,10 +83,9 @@
         self.askContentBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.askIconFrame) + CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT*2,askContentHeight);
         
         //操作容器
-        self.actionBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.askContentBoxFrame) + CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT*2, 50);
-
-        
-        self.cellHeight = CGRectGetMaxY(self.actionBoxFrame) + 40;
+//        self.actionBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.askContentBoxFrame) + CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT*2, 50);
+ 
+        self.cellHeight = CGRectGetMaxY(self.askContentBoxFrame) + 30;
         
         
     }

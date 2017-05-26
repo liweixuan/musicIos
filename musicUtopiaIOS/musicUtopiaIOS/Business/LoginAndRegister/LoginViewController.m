@@ -1,5 +1,8 @@
 #import "LoginViewController.h"
 #import "RegisterViewController.h"
+#import "AppDelegate.h"
+#import "MenuTabBarController.h"
+#import "AppDelegate+Expand.h"
 
 @interface LoginViewController ()
 {
@@ -65,7 +68,7 @@
        imgv
         .L_Frame(CGRectMake(0,0,40,SMALL_ICON_SIZE))
         .L_ImageMode(UIViewContentModeScaleAspectFit)
-        .L_ImageName(ICON_DEFAULT);
+        .L_ImageName(@"zhanghao");
     }];
     
     //输入框
@@ -88,7 +91,7 @@
         imgv
         .L_Frame(CGRectMake(0,0,40,SMALL_ICON_SIZE))
         .L_ImageMode(UIViewContentModeScaleAspectFit)
-        .L_ImageName(ICON_DEFAULT);
+        .L_ImageName(@"mima");
     }];
     
     //输入框
@@ -177,7 +180,9 @@
     
     CGFloat ty = [threeTitleLabel bottom] + 30;
     
-    for(int i =0;i<3;i++){
+    NSArray * iconArr = @[@"qq",@"weixin",@"weibo"];
+    
+    for(int i =0;i<iconArr.count;i++){
         
         CGFloat tx = i * tw;
         
@@ -190,7 +195,7 @@
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(tw/2 - 60/2, 0, 60,60))
-            .L_ImageName(IMAGE_DEFAULT)
+            .L_ImageName(iconArr[i])
             .L_Event(YES)
             .L_tag(i)
             .L_Click(self,@selector(threeIconClick:))
@@ -216,11 +221,84 @@
 //登录
 -(void)loginClick {
     NSLog(@"登录");
+    
+    if([_usernameInput.text isEqualToString:@""]){
+        SHOW_HINT(@"帐号不能为空");
+        return;
+    }
+    
+    if([_passwordInput.text isEqualToString:@""]){
+        SHOW_HINT(@"密码不能为空");
+        return;
+    }
+    
+    [self startActionLoading:@"登录中..."];
+    [NetWorkTools POST:API_USER_LOGIN params:@{@"u_username":_usernameInput.text,@"u_password":_passwordInput.text} successBlock:^(NSArray *array) {
+
+        NSDictionary * dictData = (NSDictionary *)array;
+        
+        [UserData saveUserInfo:dictData];
+  
+        //获取TOKEN所需参数
+        NSDictionary * params = @{
+                                  @"userId"      : dictData[@"u_username"],
+                                  @"name"        : dictData[@"u_nickname"],
+                                  @"portraitUri" : dictData[@"u_header_url"],
+                                  };
+        
+        //获取融云连接TOKEN
+        [NetWorkTools POST:API_RONGCLOUD_TOKEN params:params successBlock:^(NSArray *array) {
+            
+            NSLog(@"融云TOKEN获取成功");
+            
+            NSDictionary * dictData = (NSDictionary *)array;
+            
+            //融云TOKEN
+            NSString * rToken = dictData[@"rongCloudToken"];
+            
+            //保存在本地
+            [UserData saveRongCloudToken:rToken];
+            
+            //直接连接融云
+            [[RCIMClient sharedRCIMClient] connectWithToken:rToken
+                                                    success:^(NSString *userId) {
+                                                        NSLog(@"登陆成功。当前登录的用户ID：%@", userId);
+                                                        
+                                                        [self endActionLoading];
+                                                        
+                                                        MenuTabBarController *menuTabController = [[MenuTabBarController alloc] init];
+                                                        menuTabController.selectedIndex = DEFAULT_TAB_INDEX;
+                                                        
+                                                        AppDelegate * appDelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
+                                                        
+                                                        dispatch_sync(dispatch_get_main_queue(), ^{
+                                                            appDelegate.window.rootViewController = menuTabController;
+                                                        });
+                                                        
+                                                    } error:^(RCConnectErrorCode status) {
+                                                        NSLog(@"登陆的错误码为:%ld", (long)status);
+                                                    } tokenIncorrect:^{
+                                                        NSLog(@"token错误");
+                                                    }];
+            
+        } errorBlock:^(NSString *error) {
+            [self endActionLoading];
+            NSLog(@"%@",error);
+        }];
+
+        
+    } errorBlock:^(NSString *error) {
+        [self endActionLoading];
+        SHOW_HINT(error);
+    }];
+    
+    
 }
 
 //注册
 -(void)registerClick {
     NSLog(@"注册");
+    PUSH_VC(RegisterViewController, YES, @{});
     
 }
 

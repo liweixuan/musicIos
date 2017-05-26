@@ -80,7 +80,11 @@
             UIImageView *imageView = [[UIImageView alloc] init];
             imageView.frame = containerView.bounds;
             imageView.image = imgdata;
-            imageView.contentMode = UIViewContentModeScaleAspectFit;
+            
+            if([imageName isEqualToString:@""] || imageName == nil){
+                imageView.contentMode = UIViewContentModeScaleAspectFit;
+            }
+            
             [containerView addSubview:imageView];
             _imageView = imageView;
         }

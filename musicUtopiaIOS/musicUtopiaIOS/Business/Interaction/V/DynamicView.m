@@ -8,8 +8,9 @@
 {
     Base_UITableView * _tableview;
     UIView           * _loadView;
+    NSMutableArray   * _tableData;
     
-    NSArray          * _tableData;
+    NSInteger          _skip;
 }
 @end
 
@@ -26,9 +27,6 @@
         //创建表视图
         [self createTableView];
         
-        //创建加载中遮罩
-        _loadView = [LoadingView createDataLoadingView];
-        [self addSubview:_loadView];
         
         
     }
@@ -38,7 +36,8 @@
 //初始化变量
 -(void)initVar {
     
-    _tableData = [NSArray array];
+    _skip      = 0;
+    _tableData = [NSMutableArray array];
     
 }
 
@@ -47,11 +46,38 @@
     
     NSLog(@"请求动态列表数据...");
     
+    //创建加载中遮罩
+    if([type isEqualToString:@"init"]){
+        _loadView = [LoadingView createDataLoadingView];
+        [self addSubview:_loadView];
+    }
+
+    NSArray  * getParams = @[@{@"key":@"skip",@"value":@(_skip)},@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
+    NSString * url       = [G formatRestful:API_DYNAMIC_SEARCH Params:getParams];
+    
+  
     //请求动态数据
-    [NetWorkTools GET:API_DYNAMIC_SEARCH params:nil successBlock:^(NSArray *array) {
-        
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+
         NSMutableArray *tempArr = [NSMutableArray array];
         
+        //删除加载动画
+        if([type isEqualToString:@"init"]){
+            REMOVE_LOADVIEW
+        }
+        
+        
+        if([type isEqualToString:@"reload"]){
+            [_tableData removeAllObjects];
+            [_tableview headerEndRefreshing];
+            [_tableview resetNoMoreData];
+        }
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            return;
+        }
+
         //将数据转化为数据模型
         for(NSDictionary * dict in array){
             
@@ -62,14 +88,20 @@
             [tempArr addObject:frame];
         }
         
-        //更新数据数据
-        _tableData = tempArr;
         
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:tempArr];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = tempArr;
+            
+        }
+
         //更新表视图
         [_tableview reloadData];
         
-        //删除加载动画
-        REMOVE_LOADVIEW
         
         
     } errorBlock:^(NSString *error) {
@@ -128,11 +160,18 @@
 }
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    _skip = 0;
+    [self getData:nil Type:@"reload"];
+    
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    
+    _skip += PAGE_LIMIT;
+    [self getData:nil Type:@"more"];
+    
 }
 
 //行数
@@ -188,11 +227,37 @@
     NSIndexPath * indxPath = [_tableview indexPathForCell:cell];
     DynamicFrame * dynamicFrame = _tableData[indxPath.row];
     NSInteger userId = dynamicFrame.dynamicModel.userId;
+    NSString * username = dynamicFrame.dynamicModel.username;
     
     //向外传递
-    [self.delegate publicUserHeaderClick:userId];
+    [self.delegate publicUserHeaderClick:(NSInteger)userId UserName:username];
 
     
+}
+
+//赞点击
+-(void)zanClick:(DynamicCell *)cell NowView:(UILabel *)label {
+    
+    //获取当前动态ID
+    NSIndexPath  * indxPath     = [_tableview indexPathForCell:cell];
+    DynamicFrame * dynamicFrame = _tableData[indxPath.row];
+    NSInteger dynamicId         = dynamicFrame.dynamicModel.dynamicId;
+    NSInteger dynamicZanCount   = dynamicFrame.dynamicModel.zanCount;
+    
+    //向外传递
+    [self.delegate dynamicZanClick:dynamicId NowView:label NowZanCount:dynamicZanCount];
+    
+}
+
+//关注点击
+-(void)concernClick:(DynamicCell *)cell {
+    
+    //获取当前动态的发布人ID
+    NSIndexPath  * indxPath     = [_tableview indexPathForCell:cell];
+    DynamicFrame * dynamicFrame = _tableData[indxPath.row];
+    NSInteger      userId       = dynamicFrame.dynamicModel.userId;
+    
+    [self.delegate dynamicConcernClick:userId];
 }
 
 

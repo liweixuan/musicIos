@@ -24,6 +24,7 @@
     UIImageView * _askIconView;
     UILabel     * _askView;
     UIView      * _askBoxView;
+    UIView      * _actionTopLine;
     UIView      * _actionBoxView;
     UIButton    * _actionUserDetailView;
     UIButton    * _actionApplyView;
@@ -81,7 +82,7 @@
         
         _locationIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"location_icon")
             .L_AddView(_cellBox);
         }];
         
@@ -112,9 +113,10 @@
             .L_AddView(_cellBox);
         }];
         
+        
         _askIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"huobanyaoqiu")
             .L_AddView(_cellBox);
         }];
         
@@ -133,6 +135,13 @@
         _actionBoxView = [UIView ViewInitWith:^(UIView *view) {
             view
             .L_AddView(_cellBox);
+        }];
+        
+        
+        _actionTopLine = [UIView ViewInitWith:^(UIView *view) {
+            view
+            .L_BgColor(HEX_COLOR(MIDDLE_LINE_COLOR))
+            .L_AddView(_actionBoxView);
         }];
         
         _actionUserDetailView = [UIButton ButtonInitWith:^(UIButton *btn) {
@@ -299,9 +308,11 @@
     //要求容器
     _actionBoxView.frame = partnerFrame.actionBoxFrame;
     
+    _actionTopLine.frame = CGRectMake(0,0,[_actionBoxView width],1);
+    
     //创建操作按钮
-    _actionUserDetailView.frame = CGRectMake(([_actionBoxView width]/2)/2 - 100/2,[_actionBoxView height]/2 - 30/2,100,30);
-    _actionApplyView.frame = CGRectMake(([_actionBoxView width]/2)/2 + ([_actionBoxView width]/2 - 100/2),[_actionBoxView height]/2 - 30/2,100,30);
+//    _actionUserDetailView.frame = CGRectMake(([_actionBoxView width]/2)/2 - 100/2,[_actionBoxView height]/2 - 30/2 + 5,100,30);
+//    _actionApplyView.frame = CGRectMake(([_actionBoxView width]/2)/2 + ([_actionBoxView width]/2 - 100/2),[_actionBoxView height]/2 - 30/2 + 5,100,30);
     
     
     

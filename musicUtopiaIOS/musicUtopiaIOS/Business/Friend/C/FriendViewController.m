@@ -65,7 +65,7 @@
     if(_nowSelectViewIdx == 0){
         
         //好友
-        [_friendView getData:nil Type:@"init"];
+        [_friendView getData:@{@"u_username":[UserData getUsername]} Type:@"init"];
         
     }else if(_nowSelectViewIdx == 1){
         

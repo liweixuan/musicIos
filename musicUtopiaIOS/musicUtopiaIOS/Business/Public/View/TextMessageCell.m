@@ -27,7 +27,8 @@
         }];
         
         _headerView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-            imgv.L_AddView(self.contentView);
+            imgv
+            .L_AddView(self.contentView);
         }];
         
         _chatBubbleView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
@@ -53,11 +54,17 @@
     
     //设置时间位置
     _messagetimeView.frame = frameData.messageTimeFrame;
-    _messagetimeView.L_Text(@"05-11 12:12");
+    _messagetimeView.L_Text(frameData.textMessageModel.messageReceiveTime);
     
     //设置头像位置+数据
     _headerView.frame = frameData.headerFrame;
-    _headerView.L_ImageName(HEADER_DEFAULT);
+    
+    [MemberInfoData getMemberInfo:frameData.textMessageModel.messageSendUser MemberEnd:^(NSDictionary *memberInfo) {
+        
+        NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,memberInfo[@"m_headerUrl"]];
+        _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+        _headerView.L_Round();
+    }];
     
     //聊天气泡
     UIImage * bubbleImage = nil;
@@ -66,7 +73,7 @@
     _chatBubbleView.frame = frameData.chatBubbleFrame;
     
     
-    if(frameData.textMessageModel.tempMessageDirection == 1){
+    if(frameData.textMessageModel.messageDirection == 1){
         bubbleImage = [UIImage imageNamed:@"right_bubble"];
         _chatContentView.L_TextColor([UIColor whiteColor]);
         _chatBubbleView.image = [bubbleImage stretchableImageWithLeftCapWidth:bubbleImage.size.width*0.2 topCapHeight:bubbleImage.size.height * 0.8];
@@ -78,7 +85,7 @@
 
     
     _chatContentView.frame = frameData.chatContentFrame;
-    _chatContentView.L_Text(frameData.textMessageModel.tempMessageStr);
+    _chatContentView.L_Text(frameData.textMessageModel.messageStr);
     _chatContentView.L_lineHeight(CONTENT_LINE_HEIGHT);
     [_chatContentView sizeToFit];
     

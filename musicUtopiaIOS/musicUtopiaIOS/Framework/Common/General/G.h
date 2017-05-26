@@ -21,13 +21,12 @@
 
 + (NSString *)formatRestful:(NSString *)url Params:(NSArray *)params; //生成restful的请求地址
 + (CGSize)labelAutoCalculateRectWith:(NSString *)text FontSize:(CGFloat)fontSize MaxSize:(CGSize)maxSize; //根据内容获取字符串的大小
++ (NSDictionary *)dictionaryWithJsonString:(NSString *)jsonString;  //json字符串转字典
 
 /*
  * 日期处理相关通用方法
  */
 + (NSString *)formatData:(NSInteger)unixTime Format:(NSString *)format;
-
-
 
 
 

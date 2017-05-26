@@ -66,7 +66,7 @@
         
         _createTimeIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"tuantishijian")
             .L_AddView(_coverContentView);
         }];
         
@@ -79,7 +79,7 @@
         
         _locationIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"tuantididian")
             .L_AddView(_coverContentView);
         }];
         
@@ -92,7 +92,7 @@
         
         _nameIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"tuantimingcheng")
             .L_AddView(_organizationBoxView);
         }];
         
@@ -105,7 +105,7 @@
         
         _userCountIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"tuantiguanzhu")
             .L_AddView(_organizationBoxView);
         }];
         
@@ -152,6 +152,8 @@
     
     //封面
     _coverImageView.frame = organizationFrame.coverImageFrame;
+    NSString * coverImage = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dataModel.organizationCover];
+    _coverImageView.L_ImageUrlName(coverImage,RECTANGLE_IMAGE_DEFAULT);
     
     //封面下内容容器
     _coverContentView.frame = organizationFrame.coverContentFrame;

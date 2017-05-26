@@ -1,4 +1,5 @@
 #import "PrivateChatViewController.h"
+#import "VideoRecordingViewController.h"
 #import "ChatView.h"
 
 @interface PrivateChatViewController ()<ChatViewDelegate>
@@ -17,6 +18,7 @@
     //初始化变量
     [self initVar];
 
+    
     //创建导航按钮
     [self createNav];
     
@@ -26,67 +28,52 @@
     //初始化数据
     [self initData];
     
+    //监听接收消息通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedMessage:) name:@"RECEIVED_RCMESSAGE" object:nil];
+    
 }
 
 //初始化变量
 -(void)initVar {
-    
     _messageData = [NSMutableArray array];
-    
 }
+
 
 //初始化数据
 -(void)initData {
+
+    //获取当前会话的消息数据
+    NSArray * tempData = [[RongCloudData getCoversationMessage:self.conversation.targetId ConversationType:self.conversation.conversationType Count:20] mutableCopy];
     
-    NSArray * tempData = @[
-                          @{@"type":@"TEXT",@"tempMessageStr":@"你好啊！你在干啥",@"tempMessageDirection":@(1)},
-                        @{@"type":@"TEXT",@"tempMessageStr":@"4月20日，李克强总理在考察威海孙家疃医院时就强调了医",@"tempMessageDirection":@(1)},
-                        @{@"type":@"TEXT",@"tempMessageStr":@"4月20日，李克强总理在考察威海孙家疃医院时就强调了医联体的重要作用：中医讲通则不痛"},
-                        @{@"type":@"TEXT",@"tempMessageStr":@"此次指导意见所言明的医联体的重要性不言而喻，也对医联体的功能与目标进一步做了明确。医联体最重要的目的是要将优质医疗资源“下沉”，要求试点省份的三级公立医院要全部参与并发挥引领作用，每个地市以及分级诊疗试点城市至少建成一个有明显成效的医联体",@"tempMessageDirection":@(2)},
-                        @{@"type":@"TEXT",@"tempMessageStr":@"恩",@"tempMessageDirection":@(1)},
-                          @{@"type":@"TEXT",@"tempMessageStr":@"88",@"tempMessageDirection":@(1)},
-                        @{@"type":@"IMAGE",@"tempMessageUrl":@"https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1493893371514&di=9c2d63e27f3bbcf180f444465b96912a&imgtype=0&src=http%3A%2F%2Fc.hiphotos.baidu.com%2Fzhidao%2Fpic%2Fitem%2F0823dd54564e925833e00f0b9a82d158cdbf4e7b.jpg",@"tempMessageDirection":@(1)},
-                        @{@"type":@"IMAGE",@"tempMessageUrl":@"https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1493893404161&di=954dfc9cc0699b58453f1433872998ac&imgtype=0&src=http%3A%2F%2Fimg3.duitang.com%2Fuploads%2Fitem%2F201501%2F06%2F20150106081156_ziGRT.jpeg",@"tempMessageDirection":@(2)}
-                        ];
+    //修改消息状态为已读
+    [RongCloudData readConversationAllMessage:self.conversation.targetId ConversationType:self.conversation.conversationType];
     
     //模拟获取聊天数据
     for(int i = 0;i<tempData.count;i++){
         
-        NSDictionary * dictData = tempData[i];
-
-
-        if([dictData[@"type"] isEqualToString:@"TEXT"]){
-            
-            TextMessageModel * textMessageModel = [TextMessageModel textMessageWithDict:dictData];
-            TextMessageFrame * frame            = [[TextMessageFrame alloc] initWithTextMessage:textMessageModel];
-            [_messageData addObject:frame];
-            
-        }else if([dictData[@"type"] isEqualToString:@"IMAGE"]){
-            
-            ImageMessageModel * imageMessageModel = [ImageMessageModel ImageMessageWithDict:dictData];
-            ImageMessageFrame * frame             = [[ImageMessageFrame alloc] initWithImageMessage:imageMessageModel];
-            [_messageData addObject:frame];
-            
-            
-        }
+        RCMessage * message = tempData[i];
         
+        id frameData = [self formatMessageModel:message];
         
+        [_messageData insertObject:frameData atIndex:0];
         
     }
     
     _chatView.messageData = _messageData;
- 
 }
 
 
 //创建导航按钮
 -(void)createNav {
     
+    R_NAV_TITLE_BTN(@"R",@"清除消息",clearMessage)
+    
 }
 
 //创建聊天视图
 -(void)createChatView {
     
+
     _chatView = [[ChatView alloc] initWithFrame:CGRectMake(0,0,D_WIDTH,D_HEIGHT_NO_NAV)];
     _chatView.delegate = self;
     [self.view addSubview:_chatView];
@@ -95,15 +82,92 @@
 
 #pragma mark - 相关代理
 
+//获取历史消息
+-(void)getHistoryMessage {
+    NSLog(@"获取历史消息...");
+    
+    //截至的消息ID
+    id message = [_messageData firstObject];
+    
+    
+    NSMutableArray * historyArr = [NSMutableArray array];
+    
+    long messageId = 0;
+    
+    //获取历史消息ID
+    if([message isKindOfClass:[TextMessageFrame class]]){
+        TextMessageFrame * frame = (TextMessageFrame * )message;
+        messageId =  frame.textMessageModel.messageId;
+    }else if([message isKindOfClass:[ImageMessageFrame class]]){
+        ImageMessageFrame * frame = (ImageMessageFrame * )message;
+        messageId =  frame.imageMessageModel.messageId;
+    }else if([message isKindOfClass:[RadioMessageFrame class]]){
+        RadioMessageFrame * frame = (RadioMessageFrame * )message;
+        messageId =  frame.radioMessageModel.messageId;
+    }
+    
+    
+    NSArray * tempArr = [[RongCloudData getCoversationHistroyMessage:self.conversation.targetId ConversationType:self.conversation.conversationType oldestMessageId:messageId Count:20] mutableCopy];
+    
+    if(tempArr.count<=0){
+        SHOW_HINT(@"已无更多历史消息");
+        _chatView.historyData = @[];
+        return;
+    }
+    
+    for(int i=0;i<tempArr.count;i++){
+        
+       id frame =  [self formatMessageModel:tempArr[i]];
+        [_messageData insertObject:frame atIndex:0];
+        
+    }
+    
+    
+
+    _chatView.historyData = _messageData;
+}
+
 //发送文本消息消息
 -(void)sendTextMessage:(NSString *)messageStr {
-
-    NSDictionary * messageDict          = @{@"tempMessageStr":messageStr,@"tempMessageDirection":@(1)};
-    TextMessageModel * textMessageModel = [TextMessageModel textMessageWithDict:messageDict];
-    TextMessageFrame * frame            = [[TextMessageFrame alloc] initWithTextMessage:textMessageModel];
-    [_messageData addObject:frame];
     
-    _chatView.messageData = _messageData;
+    
+    //构建文本消息
+    RCTextMessage * textMessage = [[RCTextMessage alloc] init];
+    textMessage.content         = messageStr;
+    
+    //发送消息
+    [[RCIMClient sharedRCIMClient] sendMessage:self.conversation.conversationType targetId:self.conversation.targetId content:textMessage pushContent:nil pushData:nil success:^(long messageId) {
+       
+        NSLog(@"%ld",messageId);
+        
+        //创建本地UI
+        long nowTime = [[NSDate date] timeIntervalSince1970];
+        NSDictionary * messageDict  = @{
+                                        @"type"               : @"TEXT",
+                                        @"messageStr"         : messageStr,
+                                        @"messageDirection"   : @(1),
+                                        @"messageSendUser"    : [UserData getUsername],
+                                        @"messageReceiveTime" : @(nowTime),
+                                        @"rcMessage"          : @""
+                                        };
+        TextMessageModel * textMessageModel = [TextMessageModel textMessageWithDict:messageDict];
+        TextMessageFrame * frame            = [[TextMessageFrame alloc] initWithTextMessage:textMessageModel];
+        [_messageData addObject:frame];
+        
+        _chatView.messageData = _messageData;
+        
+        
+    } error:^(RCErrorCode nErrorCode, long messageId) {
+        NSLog(@"消息发送失败...");
+        NSLog(@"%ld",nErrorCode);
+        NSLog(@"%ld",messageId);
+    }];
+    
+    
+    
+    
+
+    
     
 }
 
@@ -111,18 +175,156 @@
 -(void)sendImageMessage:(NSArray *)images {
     NSLog(@"发送图片消息...");
     
+    
+    
     for(int i =0;i<images.count;i++){
         
-        NSDictionary * messageDict = @{@"tempMessageImage":images[i],@"tempMessageDirection":@(1)};
-        ImageMessageModel * imageMessageModel = [ImageMessageModel ImageMessageWithDict:messageDict];
-        ImageMessageFrame * frame            = [[ImageMessageFrame alloc] initWithImageMessage:imageMessageModel];
-        [_messageData addObject:frame];
+        RCImageMessage * imageMessage = [RCImageMessage messageWithImage:images[i]];
+        
+        //发送消息
+        [[RCIMClient sharedRCIMClient] sendMessage:self.conversation.conversationType targetId:self.conversation.targetId content:imageMessage pushContent:nil pushData:nil success:^(long messageId) {
+            
+            NSLog(@"%ld",messageId);
+            long nowTime = [[NSDate date] timeIntervalSince1970];
+            NSDictionary * messageDict = @{
+                                           @"type"               : @"IMAGE",
+                                           @"messageImage"       : images[i],
+                                           @"messageDirection"   : @(1),
+                                           @"messageSendUser"    : [UserData getUsername],
+                                           @"messageReceiveTime" : @(nowTime),
+                                           @"rcMessage"          : @""
+                                           };
+            ImageMessageModel * imageMessageModel = [ImageMessageModel ImageMessageWithDict:messageDict];
+            ImageMessageFrame * frame            = [[ImageMessageFrame alloc] initWithImageMessage:imageMessageModel];
+            [_messageData addObject:frame];
+            
+            _chatView.messageData = _messageData;
+            
+        } error:^(RCErrorCode nErrorCode, long messageId) {
+            NSLog(@"消息发送失败...");
+            NSLog(@"%ld",nErrorCode);
+            NSLog(@"%ld",messageId);
+        }];
+        
+        
         
     }
     
+    
+    
+    
+}
+
+//跳转至视频录制界面
+-(void)goVideoRecord {
+    VideoRecordingViewController * videoRecordVC = [[VideoRecordingViewController alloc] init];
+    [self presentViewController:videoRecordVC animated:YES completion:nil];
+}
+
+
+-(void)clearMessage {
+    NSLog(@"清除消息...");
+    [RongCloudData removeConversationAllMessage:self.conversation.targetId ConversationType:self.conversation.conversationType];
+    
+    [_messageData removeAllObjects];
     _chatView.messageData = _messageData;
+}
+
+#pragma mark - 融云消息接收
+-(void)receivedMessage:(NSNotification *)sender {
+ 
+    //获取消息
+    RCMessage * message = sender.userInfo[@"message"];
+
+    id frameData =  [self formatMessageModel:message];
+    
+    [_messageData addObject:frameData];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _chatView.messageData = _messageData;
+    });
+    
+    //修改消息状态为已读
+    [RongCloudData readMessage:message.messageId];
     
     
+}
+
+#pragma mark - 私有方法
+-(id)formatMessageModel:(RCMessage *)message {
+    
+    //构建消息数据源
+    if([message.objectName isEqualToString:@"RC:TxtMsg"]){
+        
+        RCTextMessage * textMessage = (RCTextMessage *)message.content;
+        
+        
+        //构建数据源
+        NSDictionary * dictData = @{
+                                    @"type"             : @"TEXT",
+                                    @"messageId"        : @(message.messageId),
+                                    @"messageSendUser"  : message.senderUserId,
+                                    @"messageStr"       : textMessage.content,
+                                    @"messageDirection" : @(message.messageDirection),
+                                    @"messageReceiveTime" : @(message.receivedTime/1000),
+                                    @"rcMessage"        : message
+                                    };
+        
+        
+        //取出当前信息
+        TextMessageModel * textMessageModel = [TextMessageModel textMessageWithDict:dictData];
+        TextMessageFrame * frame            = [[TextMessageFrame alloc] initWithTextMessage:textMessageModel];
+        
+        return frame;
+        
+    }else if([message.objectName isEqualToString:@"RC:ImgMsg"]) {
+        
+        
+        RCImageMessage * imageMessage = (RCImageMessage *)message.content;
+        
+        NSLog(@"!!!!!%@",imageMessage.thumbnailImage);
+        
+        //构建数据源
+        NSDictionary * dictData = @{
+                                    @"type"                 : @"IMAGE",
+                                    @"messageId"        : @(message.messageId),
+                                    @"messageImage"       : imageMessage.thumbnailImage,
+                                    @"messageSendUser"  : message.senderUserId,
+                                    @"messageDirection" : @(message.messageDirection),
+                                    @"messageReceiveTime" : @(message.receivedTime/1000),
+                                    @"rcMessage"        : message
+                                    };
+        
+        ImageMessageModel * imageMessageModel = [ImageMessageModel ImageMessageWithDict:dictData];
+        ImageMessageFrame * frame             = [[ImageMessageFrame alloc] initWithImageMessage:imageMessageModel];
+        
+        return frame;
+        
+        
+    }else if([message.objectName isEqualToString:@"RC:VcMsg"]){
+        
+        RCVoiceMessage * voiceMessage = (RCVoiceMessage *)message.content;
+        
+        //构建数据源
+        NSDictionary * dictData = @{
+                                    @"type"                 : @"RADIO",
+                                    @"messageId"        : @(message.messageId),
+                                    @"radioData"        : voiceMessage.wavAudioData,
+                                    @"messageSendUser"  : message.senderUserId,
+                                    @"radioLength"      : @(voiceMessage.duration),
+                                    @"messageDirection" : @(message.messageDirection),
+                                    @"messageReceiveTime" : @(message.receivedTime/1000),
+                                    @"rcMessage"            : message
+                                    };
+        
+        RadioMessageModel * radioMessageModel = [RadioMessageModel RadioMessageWithDict:dictData];
+        RadioMessageFrame * frame             = [[RadioMessageFrame alloc] initWithRadioMessage:radioMessageModel];
+        
+        return frame;
+    
+    }
+    
+    return nil;
 }
 
 

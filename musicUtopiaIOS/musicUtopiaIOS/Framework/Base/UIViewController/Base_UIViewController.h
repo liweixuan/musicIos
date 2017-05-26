@@ -5,6 +5,12 @@
 
 @interface Base_UIViewController : UIViewController<ViewEventDelegate>
 
+//开启操作加载请求
+-(void)startActionLoading:(NSString *)MSG;
+
+//关闭操作加载请求
+-(void)endActionLoading;
+
 //开启加载请求动画
 -(void)startLoading;
 

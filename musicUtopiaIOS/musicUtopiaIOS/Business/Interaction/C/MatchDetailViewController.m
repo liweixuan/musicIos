@@ -16,12 +16,24 @@
     self.title = @"比赛详细";
     
     //初始化数据
+    [self initVar];
     
     //创建表视图
     [self createTableview];
     
     //创建头部视图
     [self createHeaderView];
+    
+    //初始化数据
+    [self initData];
+}
+
+-(void)initVar {
+    
+}
+
+-(void)initData {
+    
 }
 
 //创建表视图
@@ -65,6 +77,8 @@
         [weakSelf loadMoreData];
         
     };
+    
+    _tableview.marginBottom = 10;
     
     
 }

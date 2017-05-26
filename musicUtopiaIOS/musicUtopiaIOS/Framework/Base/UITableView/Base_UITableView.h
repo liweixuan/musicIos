@@ -15,5 +15,6 @@ typedef void(^loadMoreData)();
 -(void)headerEndRefreshing;
 -(void)footerEndRefreshing;
 -(void)footerEndRefreshingNoData;
+-(void)resetNoMoreData;
 
 @end

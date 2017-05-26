@@ -196,8 +196,10 @@
     //_popView.hidden = !_popView.hidden;
     
     NSLog(@"单击.....");
-    self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    //self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     [self dismissViewControllerAnimated:YES completion:nil];
+    
+    
 }
 
 #pragma mark - 创建返回按钮

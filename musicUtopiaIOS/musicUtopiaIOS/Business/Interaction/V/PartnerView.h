@@ -11,7 +11,10 @@
 @protocol PartnerViewDelegate <NSObject>
 
 //向外传递动态头像点击事件
--(void)publicUserHeaderClick:(NSInteger)userId;
+-(void)publicUserHeaderClick:(NSInteger)userId UserName:(NSString *)username;
+
+//向外传递网络请求错误
+-(void)requestFaild:(NSInteger)menuIdx;
 
 @end
 

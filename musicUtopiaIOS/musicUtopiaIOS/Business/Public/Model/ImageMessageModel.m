@@ -3,11 +3,14 @@
 @implementation ImageMessageModel
 -(instancetype)   initWithDict    :(NSDictionary *)dict {
     if (self = [super init]) {
+        self.messageId          = [dict[@"messageId"] longValue];
+        self.rcMessage        = dict[@"rcMessage"];
+        self.messageSendUser    = dict[@"messageSendUser"];
+        self.messageUrl       = dict[@"messageUrl"];
+        self.messageDirection = [dict[@"messageDirection"] integerValue];
+        self.messageImage     = dict[@"messageImage"];
+        self.messageReceiveTime = [G formatData:[dict[@"messageReceiveTime"] integerValue] Format:@"MM-dd HH:mm"];
         
-        self.tempMessageUrl       = dict[@"tempMessageUrl"];
-        self.tempMessageDirection = [dict[@"tempMessageDirection"] integerValue];
-        self.tempMessageImage     = dict[@"tempMessageImage"];
-  
         
     }
     return self;

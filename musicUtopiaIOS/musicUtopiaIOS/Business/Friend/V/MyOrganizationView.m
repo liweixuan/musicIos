@@ -8,6 +8,7 @@
 
 #import "MyOrganizationView.h"
 #import "MyOrganizationCell.h"
+#import "LoadingView.h"
 
 @interface MyOrganizationView()<UITableViewDelegate,UITableViewDataSource>
 {
@@ -30,12 +31,33 @@
         //创建表视图
         [self createTableView];
         
+        _loadView = [LoadingView createDataLoadingView];
+        [self addSubview:_loadView];
+        
         
     }
     return self;
 }
 
 -(void)getData:(NSDictionary *)params Type:(NSString *)type {
+    
+    //获取当前用户的ID
+    NSInteger uid = [UserData getUserId];
+    
+    //获取好友列表
+    NSArray  * cParams = @[@{@"key":@"u_id",@"value":@(uid)}];
+    NSString * url     = [G formatRestful:API_USER_ORGANIZATION_SEARCH Params:cParams];
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        REMOVE_LOADVIEW
+        
+        _tableData = array;
+        
+        [_tableview reloadData];
+        
+    } errorBlock:^(NSString *error) {
+        NSLog(@"%@",error);
+    }];
     
 }
 
@@ -72,7 +94,7 @@
 
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 10;
+    return _tableData.count;
 }
 
 //行内容
@@ -84,7 +106,7 @@
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     
     //数据
-    NSDictionary * dictData = @{};
+    NSDictionary * dictData = _tableData[indexPath.row];
     
     cell.dictData = dictData;
     

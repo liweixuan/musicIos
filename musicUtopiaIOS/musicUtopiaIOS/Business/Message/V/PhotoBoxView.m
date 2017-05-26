@@ -10,11 +10,15 @@
 #import <Photos/Photos.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "SendImageViewController.h"
+#import "CameraViewController.h"
+#import <TZImagePickerController/TZImagePickerController.h>
+#import "GCD.h"
 
-@interface PhotoBoxView()<SendImageViewControllerDelegate>
+@interface PhotoBoxView()<SendImageViewControllerDelegate,TZImagePickerControllerDelegate,CameraDelegate>
 {
     NSMutableArray * _photoImages;
     UIScrollView   * _rightPhotoView;
+    NSMutableArray * _selectImageArr;
 }
 @end
 
@@ -43,7 +47,8 @@
 
 //初始化变量
 -(void)initVar {
-    _photoImages = [NSMutableArray array];
+    _photoImages    = [NSMutableArray array];
+    _selectImageArr = [NSMutableArray array];
 }
 
 //创建左侧相册，拍照选择按钮视图
@@ -60,6 +65,7 @@
         view
         .L_Frame(CGRectMake(0,0,[leftActionBox width],[leftActionBox height]/2))
         .L_BgColor(HEX_COLOR(@"#EEEEEE"))
+        .L_Click(self,@selector(photographClick))
         .L_AddView(leftActionBox);
     }];
     
@@ -95,6 +101,7 @@
         view
         .L_Frame(CGRectMake(0,[leftActionBox height]/2,[leftActionBox width],[leftActionBox height]/2))
         .L_BgColor(HEX_COLOR(@"#EEEEEE"))
+        .L_Click(self,@selector(albumClick))
         .L_AddView(leftActionBox);
     }];
     
@@ -123,34 +130,53 @@
 -(void)getSystemPhoto {
     
     //获取相册中的图片
-    _photoImages = [self getOriginalImages];
+    _photoImages = [self getOriginalImages] ;
     
+    NSLog(@"%@",_photoImages);
+
     //创建图片显示容器
     CGFloat photoItemW = 120.0;
     
-    //创建容器
-    for(int i=0;i<_photoImages.count;i++){
+    [[GCDQueue mainQueue] execute:^{
         
-        //每项图片
-        UIView * photoItemView = [UIView ViewInitWith:^(UIView *view) {
-            view
-            .L_Frame(CGRectMake(photoItemW * i,0,photoItemW,[self height]))
-            .L_BgColor([UIColor redColor])
-            .L_tag(i)
-            .L_Click(self,@selector(photoImageClick:))
-            .L_AddView(_rightPhotoView);
-        }];
+        //创建容器
+        for(int i=0;i<_photoImages.count;i++){
+            
+            
+            
+            //每项图片
+            UIView * photoItemView = [UIView ViewInitWith:^(UIView *view) {
+                view
+                .L_Frame(CGRectMake(photoItemW * i,0,photoItemW,[self height]))
+                .L_BgColor([UIColor redColor])
+                .L_tag(i)
+                .L_Click(self,@selector(photoImageClick:))
+                .L_AddView(_rightPhotoView);
+            }];
+            
+            UIImageView * photoImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+                imgv
+                .L_Frame(CGRectMake(0,0, [photoItemView width],[photoItemView height]))
+                .L_Image(_photoImages[i])
+                .L_AddView(photoItemView);
+            }];
+            
+            UIButton * selectBtn = [UIButton ButtonInitWith:^(UIButton *btn) {
+                btn
+                .L_Frame(CGRectMake([photoImage width] - 34,10,24,24))
+                .L_BtnImageName(@"weixuanzhong",UIControlStateNormal)
+                .L_BtnImageName(@"xuanzhong",UIControlStateSelected)
+                .L_TargetAction(self,@selector(selectBtnClick:),UIControlEventTouchUpInside)
+                .L_tag(i)
+                .L_AddView(photoItemView);
+            } buttonType:UIButtonTypeCustom];
+        }
         
-        [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-            imgv
-            .L_Frame(CGRectMake(0,0, [photoItemView width],[photoItemView height]))
-            .L_Image(_photoImages[i])
-            .L_AddView(photoItemView);
-        }];
+        _rightPhotoView.contentSize = CGSizeMake(photoItemW * _photoImages.count, [self height] - 40);
         
-    }
+    }];
     
-    _rightPhotoView.contentSize = CGSizeMake(photoItemW * _photoImages.count, [self height] - 40);
+    
     
 }
 
@@ -165,8 +191,13 @@
         .L_AddView(self);
     }];
 
-    [self getSystemPhoto];
     
+    [[GCDQueue globalQueue] execute:^{
+        // 在系统默认级别的线程队列中执行并发的操作
+        [self getSystemPhoto];
+    }];
+    
+
 }
 
 
@@ -217,9 +248,73 @@
     
 }
 
+-(void)selectBtnClick:(UIButton *)sender {
+    
+    NSInteger tagv = sender.tag;
+
+    //选择中，去除
+    if(sender.isSelected){
+        sender.selected = NO;
+        
+        [_selectImageArr removeObject:_photoImages[tagv]];
+        
+    //未选择，添加
+    }else{
+        sender.selected = YES;
+
+        [_selectImageArr addObject:_photoImages[tagv]];
+    }
+
+    
+}
+
+
 //图片发送
 -(void)sendImageMessage {
     
+    if(_selectImageArr.count <= 0){
+        
+        SHOW_HINT(@"您未选择图片");
+        return;
+        
+    }
+    
+    [self.delegate sendImageData:_selectImageArr];
+    
+}
+
+//拍照
+-(void)photographClick {
+    
+    NSLog(@"拍照");
+    CameraViewController * cameraVC = [[CameraViewController alloc] init];
+    cameraVC.delegate = self;
+    [[self viewController] presentViewController:cameraVC animated:YES completion:nil];
+    
+    
+    
+}
+
+-(void)cameraTakePhoto:(UIImage *)photo {
+    [self.delegate sendImageData:@[photo]];
+}
+
+//相册
+-(void)albumClick {
+    
+    NSLog(@"相册");
+    TZImagePickerController *imagePickerVc = [[TZImagePickerController alloc] initWithMaxImagesCount:9 delegate:self];
+    [[self viewController] presentViewController:imagePickerVc animated:YES completion:nil];
+    
+}
+
+//相册图片选择代理
+-(void)imagePickerController:(TZImagePickerController *)picker didFinishPickingPhotos:(NSArray<UIImage *> *)photos sourceAssets:(NSArray *)assets isSelectOriginalPhoto:(BOOL)isSelectOriginalPhoto {
+    NSLog(@"%@",photos);
+    
+    if(photos.count > 0){
+         [self.delegate sendImageData:photos];
+    }
 }
 
 #pragma mark - 代理
@@ -251,18 +346,29 @@
     // 同步获得图片, 只会返回1张图片
     options.synchronous = YES;
     
+    options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
+    options.resizeMode = PHImageRequestOptionsResizeModeFast;
+    
     // 获得某个相簿中的所有PHAsset对象
     PHFetchResult<PHAsset *> *assets = [PHAsset fetchAssetsInAssetCollection:assetCollection options:nil];
     for (PHAsset *asset in assets) {
         // 是否要原图
-        CGSize size = original ? CGSizeMake(asset.pixelWidth, asset.pixelHeight) : CGSizeZero;
+        CGSize size = original ? CGSizeMake(asset.pixelWidth*0.1, asset.pixelHeight*0.1) : CGSizeZero;
         
         // 从asset中获得图片
         [[PHImageManager defaultManager] requestImageForAsset:asset targetSize:size contentMode:PHImageContentModeDefault options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
       
             
             [tempPhotoImages addObject:result];
+            
         }];
+        
+     
+        if(tempPhotoImages.count >= 5){
+            break;
+        }
+        
+        
     }
     
     return tempPhotoImages;
@@ -275,16 +381,19 @@
     NSMutableArray * tempImages = [NSMutableArray array];
     
     // 获得所有的自定义相簿
+    /*
     PHFetchResult<PHAssetCollection *> *assetCollections = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
     // 遍历所有的自定义相簿
     for (PHAssetCollection *assetCollection in assetCollections) {
        tempImages =  [self enumerateAssetsInAssetCollection:assetCollection original:NO];
     }
+    */
+     
     // 获得相机胶卷
     PHAssetCollection *cameraRoll = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeSmartAlbumUserLibrary options:nil].lastObject;
-    [tempImages addObject:[self enumerateAssetsInAssetCollection:cameraRoll original:NO]];
+    [tempImages addObjectsFromArray:[self enumerateAssetsInAssetCollection:cameraRoll original:NO]];
     
-    return tempImages[0];
+    return tempImages;
 }
 
 
@@ -294,18 +403,23 @@
     NSMutableArray * tempImages = [NSMutableArray array];
     
     // 获得所有的自定义相簿
+    /*
     PHFetchResult<PHAssetCollection *> *assetCollections = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
     // 遍历所有的自定义相簿
     for (PHAssetCollection *assetCollection in assetCollections) {
        tempImages =   [self enumerateAssetsInAssetCollection:assetCollection original:YES];
     }
+    */
     
+
     // 获得相机胶卷
     PHAssetCollection *cameraRoll = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeSmartAlbumUserLibrary options:nil].lastObject;
     // 遍历相机胶卷,获取大图
-    [tempImages addObject:[self enumerateAssetsInAssetCollection:cameraRoll original:YES]];
     
-    return tempImages[0];
+    [tempImages addObjectsFromArray:[self enumerateAssetsInAssetCollection:cameraRoll original:YES]];
+    
+
+    return tempImages;
 }
 
 - (UIViewController *)viewController

@@ -13,7 +13,7 @@
         self.textMessageModel = model;
         
         //判断是回复消息还是发送消息 1-发送 2-接收
-        NSInteger messageDirection = self.textMessageModel.tempMessageDirection;
+        NSInteger messageDirection = self.textMessageModel.messageDirection;
         
         //发送或接收时间
         self.messageTimeFrame = CGRectMake(0,20,D_WIDTH,ATTR_FONT_SIZE);
@@ -28,7 +28,7 @@
         //聊天气泡
         
         //计算内容大小
-        NSString * contentStr = self.textMessageModel.tempMessageStr;
+        NSString * contentStr = self.textMessageModel.messageStr;
         CGSize contentSize = [G labelAutoCalculateRectWith:contentStr FontSize:SUBTITLE_FONT_SIZE MaxSize:CGSizeMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - 40*2 - ICON_MARGIN_CONTENT*2,1000)];
         
         if(contentSize.height <= 30){

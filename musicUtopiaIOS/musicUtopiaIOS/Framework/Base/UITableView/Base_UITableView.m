@@ -57,6 +57,10 @@
     
 }
 
+-(void)resetNoMoreData {
+    [self.mj_footer resetNoMoreData];
+}
+
 -(void)footerEndRefreshingNoData {
     [self.mj_footer endRefreshingWithNoMoreData];
 }

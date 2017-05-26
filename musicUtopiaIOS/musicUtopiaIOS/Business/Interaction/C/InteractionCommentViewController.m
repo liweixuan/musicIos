@@ -3,11 +3,16 @@
 #import "DynamicCommentCell.h"
 #import "DynamicCommentFrame.h"
 
-@interface InteractionCommentViewController ()<UITableViewDelegate,UITableViewDataSource>
+@interface InteractionCommentViewController ()<UITableViewDelegate,UITableViewDataSource,UITextViewDelegate>
 {
     Base_UITableView * _tableview;
     UIView           * _replyView;
     NSMutableArray   * _tableData;
+    UITextView       * _inputTextView;
+    UILabel          * _inputPlaceholderLabel;
+    CGFloat            _inputTextViewHeight;
+    CGFloat            _keyboardHeight;
+    UIView          *  _maskView; //遮罩
 }
 @end
 
@@ -18,10 +23,9 @@
     self.title = @"动态评论";
     NSLog(@"要查询的动态信息为：%@",self.dynamicFrame.dynamicModel.headerUrl);
     
+    //初始化变量
     [self initVar];
     
-    [self initData];
-
     //创建表视图
     [self createTableview];
     
@@ -29,28 +33,89 @@
     //创建底部回复框
     [self createReplyView];
     
+    //初始化数据
+    [self initData:@"init"];
+    
+    //相关通知监听
+    [self createNoti];
+    
+    //创建遮罩
+    [self createMaskView];
+
+
+    
 }
 
 -(void)initVar {
     _tableData = [NSMutableArray array];
+    [_tableData addObject:@{}];
+    _keyboardHeight      = 0.0;
+    _inputTextViewHeight = 0.0;
 }
 
--(void)initData {
+-(void)initData:(NSString *)type {
     
-    NSArray * tempArr = @[
-                   @{@"nickname":@"小雪",@"time":@"2012-12-12",@"zanCount":@"999",@"commentContent":@"庆历四年春， 滕子京谪守巴陵郡。 越明年， 政通人和， 百废具兴。 乃重修岳阳楼， 增其旧制， 刻唐贤今人诗赋于其上。 属予作文以记之。"},
-                   @{@"nickname":@"小雪",@"time":@"2012-12-12",@"zanCount":@"10",@"commentContent":@"予观夫巴陵胜状， 在洞庭一湖。"},
-                   @{@"nickname":@"小雪",@"time":@"2012-12-12",@"zanCount":@"9",@"commentContent":@"庆历四年的春天，滕子京被降职到巴陵郡做太守。到了第二年，政事顺利，百姓和乐，各种荒废的事业都兴办起来了。于是重新修建岳阳楼，扩大它原有的规模，把唐代名家和当代人的赋刻在它上面。嘱托我写一篇文章来记述这件事情。我观看那巴陵郡的美好景色，全在洞庭湖上。"},
-                   @{@"nickname":@"小雪",@"time":@"2012-12-12",@"zanCount":@"100",@"commentContent":@"庆历四年春"},
-                   @{@"nickname":@"小雪",@"time":@"2012-12-12",@"zanCount":@"29",@"commentContent":@"庆历四年春， 滕子京谪守巴陵郡。 越明年， 政通人和， 百废具兴。"}
-                   ];
-    
-    for(int i =0;i<tempArr.count;i++){
-        DynamicCommentFrame * frame = [[DynamicCommentFrame alloc] initWithDynamicComment:tempArr[i]];
-        [_tableData addObject:frame];
+    //开始加载
+    if([type isEqualToString:@"init"]){
+        [self startLoading];
     }
     
     
+    //请求动态评论数据
+    NSArray  * params = @[@{@"key":@"dc_did",@"value":@(self.dynamicFrame.dynamicModel.dynamicId)}];
+    NSString * apiUrl = [G formatRestful:API_DYNAMIC_COMMENT_SEARCH Params:params];
+    [NetWorkTools GET:apiUrl params:nil successBlock:^(NSArray *array) {
+        
+        NSLog(@"%@",array);
+
+        //删除加载动画
+        if([type isEqualToString:@"init"]){
+            [self endLoading];
+        }
+        
+        if([type isEqualToString:@"reload"]){
+            [_tableData removeAllObjects];
+            [_tableData addObject:@{}];
+            [_tableview headerEndRefreshing];
+        }
+        
+        NSMutableArray *tempArr = [NSMutableArray array];
+        
+        //将数据转化为数据模型
+        for(NSDictionary * dict in array){
+            
+            DynamicCommentFrame * frame = [[DynamicCommentFrame alloc] initWithDynamicComment:dict];
+            [tempArr addObject:frame];
+
+        }
+        
+        //更新数据数据
+        [_tableData addObjectsFromArray:tempArr];
+        
+        NSLog(@"!!!!%@",_tableData);
+        
+        //更新表视图
+        [_tableview reloadData];
+        
+        
+        
+    } errorBlock:^(NSString *error) {
+        NSLog(@"%@",error);
+    }];
+    
+}
+
+//创建遮罩
+-(void)createMaskView {
+    
+    _maskView = [UIView ViewInitWith:^(UIView *view) {
+        view
+        .L_Frame(CGRectMake(0,0,D_WIDTH,D_HEIGHT - 50))
+        .L_BgColor([UIColor blackColor])
+        .L_Alpha(0.0)
+        .L_Click(self,@selector(maskBoxClick))
+        .L_AddView(self.navigationController.view);
+    }];
     
 }
 
@@ -67,28 +132,31 @@
         .L_AddView(self.view);
     }];
     
-    //回复输入框
-    [UITextField TextFieldInitWith:^(UITextField *text) {
-        text
-        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,[_replyView height]/2 - 38/2,[_replyView width] - 80, 38))
-        .L_Placeholder(@"为该动态新增评论")
-        .L_PaddingLeft(10)
-        .L_BgColor(HEX_COLOR(@"F5F5F5"))
-        .L_Font(TEXTFIELD_FONT_SIZE)
-        .L_radius_NO_masksToBounds(5)
-        .L_AddView(_replyView);
+    
+    _inputTextView = [[UITextView alloc] initWithFrame:CGRectMake(CARD_MARGIN_LEFT,5,[_replyView width] - CARD_MARGIN_LEFT*2,40)];
+    _inputTextView.font = [UIFont systemFontOfSize:TEXTFIELD_FONT_SIZE];
+    _inputTextView.backgroundColor = HEX_COLOR(@"#EEEEEE");
+    _inputTextView.delegate = self;
+    _inputTextView.scrollEnabled = NO;
+    _inputTextView.layer.masksToBounds = YES;
+    _inputTextView.layer.cornerRadius = 5;
+    _inputTextView.returnKeyType = UIReturnKeySend;
+    _inputTextView.layer.shadowColor = [UIColor grayColor].CGColor;
+    _inputTextView.layer.shadowOpacity = 0.2;
+    _inputTextView.layer.shadowOffset = CGSizeMake(3,3);
+    _inputTextView.textContainerInset = UIEdgeInsetsMake(10,10,10,10);
+    [_replyView addSubview:_inputTextView];
+    
+    //输入框的占位字
+    _inputPlaceholderLabel = [UILabel LabelinitWith:^(UILabel *la) {
+        la
+        .L_Frame(CGRectMake(15,40/2 - ATTR_FONT_SIZE/2 - 2,200, ATTR_FONT_SIZE))
+        .L_Font(ATTR_FONT_SIZE)
+        .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+        .L_Text(@"说点什么吧")
+        .L_AddView(_inputTextView);
+        
     }];
-    
-    //发送按钮
-    [UIButton ButtonInitWith:^(UIButton *btn) {
-        btn
-        .L_Frame(CGRectMake([_replyView width] - 75, [_replyView height]/2 - 30/2,80,30))
-        .L_Title(@"回复",UIControlStateNormal)
-        .L_TitleColor(HEX_COLOR(APP_MAIN_COLOR),UIControlStateNormal)
-        .L_AddView(_replyView);
-    } buttonType:UIButtonTypeCustom];
-    
-    
 }
 
 //创建表视图
@@ -101,7 +169,7 @@
     _tableview.dataSource = self;
     
     //创建上下拉刷新
-    _tableview.isCreateHeaderRefresh = NO;
+    _tableview.isCreateHeaderRefresh = YES;
     _tableview.isCreateFooterRefresh = YES;
     
     //去除分割线
@@ -135,6 +203,11 @@
     
 }
 
+-(void)createNoti {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHidden:) name:UIKeyboardWillHideNotification object:nil];
+}
+
 #pragma mark - 代理
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -154,7 +227,7 @@
         cell.selectionStyle    = UITableViewCellSelectionStyleNone;
         
         //数据
-        DynamicCommentFrame * frame = _tableData[indexPath.row - 1];
+        DynamicCommentFrame * frame = _tableData[indexPath.row];
         cell.dynamicCommentFrame = frame;
         return cell;
     }
@@ -167,16 +240,148 @@
         return self.dynamicFrame.cellHeight;
     }
 
-    DynamicCommentFrame * frame = _tableData[indexPath.row - 1];
+    DynamicCommentFrame * frame = _tableData[indexPath.row];
+    NSLog(@"###%f",frame.cellHeight);
     return frame.cellHeight;
 }
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    [self initData:@"reload"];
+
+    
 }
 
 -(void)loadMoreData {
     [_tableview footerEndRefreshing];
 }
+
+//textview内容改变时
+-(void)textViewDidChange:(UITextView *)textView {
+    
+    //获得textView的初始尺寸
+    CGFloat width   = CGRectGetWidth(textView.frame);
+    CGFloat height  = CGRectGetHeight(textView.frame);
+    CGSize newSize  = [textView sizeThatFits:CGSizeMake(width,MAXFLOAT)];
+    CGRect newFrame = textView.frame;
+    newFrame.size   = CGSizeMake(fmax(width, newSize.width), fmax(height, newSize.height));
+    textView.frame  = newFrame;
+    
+    CGFloat tempH = 0.0;
+    if(newSize.height < 40){
+        tempH = 40;
+    }else{
+        tempH = newSize.height;
+    }
+    _inputTextViewHeight = tempH;
+    [_replyView setHeight:_inputTextViewHeight+10];
+    [UIView animateWithDuration:0.2 animations:^{
+        [_replyView setY:D_HEIGHT_NO_NAV - [_replyView height] - _keyboardHeight];
+        [_inputTextView setHeight:_inputTextViewHeight];
+    }];
+    
+    
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
+    
+    _inputPlaceholderLabel.hidden = YES;
+    
+    if ([text isEqualToString:@"\n"]){ //获取键盘中发送事件（回车事件）
+        
+        
+        if([_inputTextView.text isEqualToString:@""] && _inputTextView.text.length<=0){
+            _inputTextView.text = @"";
+        }else{
+            
+            [self messageSend:_inputTextView.text];  //处理键盘的发送事件
+            
+            //清除输入框
+            _inputTextView.text = @"";
+            
+            //恢复输入框
+            _inputTextViewHeight = 40;
+            
+            //隐藏
+            _inputPlaceholderLabel.hidden = NO;
+            
+            
+        }
+        
+        return NO;
+        
+        
+    }
+    return YES;
+    
+}
+
+
+-(void)messageSend:(NSString *)msg {
+    
+    //发布动态评论信息
+    NSDictionary * params = @{
+                              @"dc_uid"     :@(1),
+                              @"dc_did"     :@(self.dynamicFrame.dynamicModel.dynamicId),
+                              @"dc_content" :msg
+                            };
+    
+    [self startActionLoading:@"评论发布中..."];
+    
+    [NetWorkTools POST:API_DYNAMIC_REPLY params:params successBlock:^(NSArray *array) {
+        
+        [self endActionLoading];
+        
+        SHOW_HINT(@"评论发布成功");
+        [self maskBoxClick];
+        
+        
+    } errorBlock:^(NSString *error) {
+        SHOW_HINT(@"评论发布失败");
+        NSLog(@"%@",error);
+    }];
+    
+    
+    
+}
+
+
+#pragma mark - 通知相关事件
+//键盘将要打开
+-(void)keyboardWillShow:(NSNotification *)notification {
+    
+    //这样就拿到了键盘的位置大小信息frame，然后根据frame进行高度处理之类的信息
+    CGRect frame = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    _keyboardHeight = frame.size.height;
+    [_replyView setY:D_HEIGHT_NO_NAV - frame.size.height - [_replyView height]];
+    
+    [self showMaskView];
+  
+}
+
+//键盘将要隐藏
+-(void)keyboardWillHidden:(NSNotification *)notification {
+    [_inputTextView setHeight:40];
+    [_replyView setHeight:50];
+    [_replyView setY:D_HEIGHT_NO_NAV - [_replyView height]];
+}
+
+//显示遮罩
+-(void)showMaskView {
+    [_maskView setHeight:D_HEIGHT - _keyboardHeight - 50];
+    [UIView animateWithDuration:0.4 animations:^{
+        _maskView.alpha = 0.3;
+    }];
+}
+
+//遮罩视图点击时
+-(void)maskBoxClick {
+    [self.view endEditing:YES];
+    [UIView animateWithDuration:0.4 animations:^{
+        _maskView.alpha = 0.0;
+    }];
+}
+
+
 
 @end

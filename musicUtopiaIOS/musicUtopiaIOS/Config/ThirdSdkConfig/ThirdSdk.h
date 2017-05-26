@@ -5,9 +5,14 @@
 
 
 /****** 融云相关 ******/
-extern NSString * const AppKey;
-extern NSString * const AppId;
+extern NSString * const RongCloudAppKey;
 
 
-/****** 友盟相关 ******/
-//....
+/****** 高德相关 ******/
+extern NSString * const AMapAppKey;
+
+/****** 阿里云OSS管理相关 ******/
+extern NSString * const AliyunAccessKey;
+extern NSString * const AliyunSecretKey;
+extern NSString * const AliyunEndpoint;
+extern NSString * const AliyunBucketName;

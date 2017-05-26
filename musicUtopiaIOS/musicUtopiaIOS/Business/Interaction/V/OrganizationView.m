@@ -8,7 +8,9 @@
 {
     UIView * _loadView;
     Base_UITableView * _tableview;
-    NSArray          * _tableData;
+    NSMutableArray   * _tableData;
+    
+    NSInteger          _skip;
 }
 @end
 
@@ -29,16 +31,14 @@
         [self createTableView];
         
         
-        //创建加载中遮罩
-        _loadView = [LoadingView createDataLoadingView];
-        [self addSubview:_loadView];
         
     }
     return self;
 }
 
 -(void)initVar {
-    _tableData = [NSArray array];
+    _skip = 0;
+    _tableData = [NSMutableArray array];
 }
 
 -(void)createTableView {
@@ -88,8 +88,33 @@
     
     NSLog(@"请求找找伙伴列表数据...");
     
+    //创建加载中遮罩
+    if([type isEqualToString:@"init"]){
+        _loadView = [LoadingView createDataLoadingView];
+        [self addSubview:_loadView];
+    }
+    
+    NSArray  * getParams = @[@{@"key":@"skip",@"value":@(_skip)},@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
+    NSString * url       = [G formatRestful:API_ORGANIZATION_SEARCH Params:getParams];
+    
     //请求动态数据
-    [NetWorkTools GET:API_ORGANIZATION_SEARCH params:nil successBlock:^(NSArray *array) {
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        //删除加载动画
+        if([type isEqualToString:@"init"]){
+            REMOVE_LOADVIEW
+        }
+        
+        if([type isEqualToString:@"reload"]){
+            [_tableData removeAllObjects];
+            [_tableview headerEndRefreshing];
+            [_tableview resetNoMoreData];
+        }
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            return;
+        }
         
         NSMutableArray *tempArr = [NSMutableArray array];
         
@@ -102,17 +127,21 @@
  
             [tempArr addObject:frame];
         }
-        
-        
-        
-        //更新数据数据
-        _tableData = tempArr;
+  
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:tempArr];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = tempArr;
+            
+        }
         
         //更新表视图
         [_tableview reloadData];
         
-        //删除加载动画
-        REMOVE_LOADVIEW
+        
         
         
     } errorBlock:^(NSString *error) {
@@ -125,12 +154,20 @@
     
 }
 
+
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    _skip = 0;
+    [self getData:nil Type:@"reload"];
+    
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    
+    _skip += PAGE_LIMIT;
+    [self getData:nil Type:@"more"];
+    
 }
 
 //行数

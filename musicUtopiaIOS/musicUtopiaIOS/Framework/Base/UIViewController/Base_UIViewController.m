@@ -4,14 +4,19 @@
 #import "EmptyView.h"
 
 @interface Base_UIViewController(){
-    UIView * _errorView;
-    UIView * _loadView;
-    UIView * _emptyView;
+    UIView        * _errorView;
+    UIView        * _loadView;
+    UIView        * _emptyView;
+    MBProgressHUD * _hud;
 }
 
 @end
 
 @implementation Base_UIViewController
+
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self.view endEditing:YES];
+}
 
 -(void)viewDidLoad {
     
@@ -78,6 +83,23 @@
     [_errorView removeFromSuperview];
     [_emptyView removeFromSuperview];
     [self dataReset];
+}
+
+//开启操作加载请求
+-(void)startActionLoading:(NSString *)msg {
+
+    _hud = [[MBProgressHUD alloc] initWithView:self.view];
+    [self.view addSubview:_hud];
+    _hud.label.text = msg == nil ? @"处理中..." : msg;
+    _hud.mode = MBProgressHUDModeIndeterminate;
+    [_hud showAnimated:YES];
+}
+
+//关闭操作加载请求
+-(void)endActionLoading {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_hud removeFromSuperview];
+    });
 }
 
 @end

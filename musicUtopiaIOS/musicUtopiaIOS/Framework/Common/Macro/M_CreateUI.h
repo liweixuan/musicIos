@@ -28,11 +28,14 @@ _loadView.alpha = 0.0; \
 #define SHOW_HINT(MSG)      UIView *view = [[UIApplication sharedApplication].delegate window];\
 MBProgressHUD *HUD = [MBProgressHUD showHUDAddedTo:view animated:YES];\
 HUD.mode = MBProgressHUDModeText;\
-HUD.labelText = MSG;\
+HUD.label.text = MSG;\
 HUD.margin = 10.0;\
-HUD.yOffset = 150.0;\
+HUD.offset = CGPointMake(0,150.0);\
 HUD.removeFromSuperViewOnHide = YES;\
-[HUD hide:YES afterDelay:1.0];\
+[HUD hideAnimated:YES afterDelay:1.0];\
 
+//更新TAB角标数
+#define TAB_UNMESSAGE_COUNT(COUNT) UITabBarItem * item=[self.tabBarController.tabBar.items objectAtIndex:2]; \
+if(COUNT > 0){ item.badgeValue= [NSString stringWithFormat:@"%ld",COUNT]; }else{ item.badgeValue=nil; }  \
 
 #endif

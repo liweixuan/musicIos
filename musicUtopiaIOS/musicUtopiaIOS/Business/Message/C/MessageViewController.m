@@ -6,12 +6,13 @@
 #import "MusicVideoViewController.h"
 #import "MusicArticleViewController.h"
 #import "RichScanViewController.h"
+#import "ApplyFriendViewController.h"
 
 @interface MessageViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
     Base_UITableView * _tableview;
     UIView           * _loadView;
-    NSArray          * _tableData;
+    NSMutableArray   * _tableData;
     UIView           * _fieldLeftView;
     UIView           * _popView;
     UIView           * _maskView;
@@ -24,6 +25,8 @@
     [super viewDidLoad];
     self.title = @"消息";
     
+    [self initVar];
+
     //创建导航顶部按钮+菜单
     [self createNav];
     
@@ -36,10 +39,41 @@
     //创建头部视图
     [self createHeaderTableview];
     
+    //监听接收消息通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedMessage:) name:@"RECEIVED_RCMESSAGE" object:nil];
+
+    
 }
 
+
 -(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
     [self maskBoxClick];
+
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    
+    [self initData];
+}
+
+-(void)initVar {
+    _tableData = [NSMutableArray array];
+}
+
+-(void)initData {
+
+    _tableData = [[RongCloudData getConversationList] mutableCopy];
+    [_tableview reloadData];
+    
+    NSLog(@"%@",_tableData);
+    
+    //更新未读消息总数
+    NSInteger unmessageCount = [RongCloudData getUnMessageCount];
+    TAB_UNMESSAGE_COUNT(unmessageCount)
+    
 }
 
 //创建导航顶部按钮+菜单
@@ -48,13 +82,16 @@
     //展开按钮
     UIImageView * rightImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
         imgv
-        .L_Frame(CGRectMake(0,0,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
+        .L_Frame(CGRectMake(0,-1,18, 18))
         .L_Click(self,@selector(openMenuClick))
-        .L_ImageName(ICON_DEFAULT);
+        .L_ImageName(@"jiahao");
     }];
     
     UIBarButtonItem * rightBtn = [[UIBarButtonItem alloc] initWithCustomView:rightImage];
     self.navigationItem.rightBarButtonItem = rightBtn;
+    
+    //忽略消息按钮
+    R_NAV_TITLE_BTN(@"L",@"忽略",ignoreunMessage);
     
 }
 
@@ -121,13 +158,11 @@
     
     //在容器中创建菜单
     NSArray * popMenuArr = @[
-                             @{@"icon":ICON_DEFAULT,@"text":@"聊天室"},
-                             @{@"icon":ICON_DEFAULT,@"text":@"音乐文章"},
-                             @{@"icon":ICON_DEFAULT,@"text":@"音乐视频"},
-                             @{@"icon":ICON_DEFAULT,@"text":@"扫一扫"}
+                             @{@"icon":@"liaotianshi",@"text":@"聊天室"},
+                             @{@"icon":@"wenzhang",@"text":@"音乐文章"},
+                             @{@"icon":@"shipin",@"text":@"音乐视频"},
+                             @{@"icon":@"saoyisao",@"text":@"扫一扫"}
     ];
-    
-    
     
     CGFloat popMenuY = 5.0;
     
@@ -198,6 +233,8 @@
         .L_AddView(headerView);
     }];
     
+    searchField.enabled = YES;
+    
     //默认占位视图
     _fieldLeftView = [UIView ViewInitWith:^(UIView *view) {
        view
@@ -209,14 +246,14 @@
     UIImageView * searchIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
         imgv
         .L_Frame(CGRectMake(10,[_fieldLeftView height]/2 - MIDDLE_ICON_SIZE/2,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-        .L_ImageName(ICON_DEFAULT)
+        .L_ImageName(@"sousuo")
         .L_AddView(_fieldLeftView);
     }];
     
     //占位标题
     [UILabel LabelinitWith:^(UILabel *la) {
         la
-        .L_Frame(CGRectMake([searchIcon right]+CONTENT_PADDING_LEFT,-2,50,[_fieldLeftView height]))
+        .L_Frame(CGRectMake([searchIcon right]+CONTENT_PADDING_LEFT,0,50,[_fieldLeftView height]))
         .L_Text(@"搜索")
         .L_Font(SUBTITLE_FONT_SIZE)
         .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
@@ -237,18 +274,20 @@
 
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 10;
+    return _tableData.count;
 }
 
 //行内容
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     MessageCell * cell = [[MessageCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+
+    RCConversation * rcc = _tableData[indexPath.row];
+    
+    cell.conversaction = rcc;
     
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    
-    
     
     return cell;
     
@@ -256,12 +295,70 @@
 
 //行高
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 80;
+    return 70;
 }
 
 //行点击
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    PUSH_VC(PrivateChatViewController,YES,@{});
+
+    //当前会话信息
+    RCConversation * rcc = _tableData[indexPath.row];
+    
+    if([rcc.targetId isEqualToString:@"ADD_FRIEND_SYSTEM_USER"]){
+        PUSH_VC(ApplyFriendViewController,YES,@{});
+        
+        
+    }else{
+        PUSH_VC(PrivateChatViewController,YES,@{@"conversation":rcc});
+    }
+    
+    
+    
+    
+}
+
+//先要设Cell可编辑
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath{
+    return YES;
+}
+
+//定义编辑样式
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return UITableViewCellEditingStyleDelete;
+}
+//进入编辑模式，按下出现的编辑按钮后,进行删除操作
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        NSLog(@"删除。。。。");
+        
+        //获取要删除会话的ID
+        RCConversation * rcc    = _tableData[indexPath.row];
+        NSString * targetId     = rcc.targetId;
+        RCConversationType type = rcc.conversationType;
+        
+        BOOL isDelete = [RongCloudData removeTargetConversation:targetId ConversationType:type];
+        
+        //本地数据会话删除成功
+        if(isDelete){
+            
+            //删除当前数据源
+            [_tableData removeObjectAtIndex:indexPath.row];
+            
+            //删除UI
+            [_tableview deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            
+            //重新计算未读消息数
+            NSInteger unmessageCount = [RongCloudData getUnMessageCount];
+            TAB_UNMESSAGE_COUNT(unmessageCount)
+            
+        }
+ 
+        
+    }
+}
+//修改编辑按钮文字
+- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return @"删除";
 }
 
 #pragma mark - 事件
@@ -309,5 +406,25 @@
     }];
 }
 
+//忽略消息
+-(void)ignoreunMessage {
+    NSLog(@"忽略未读消息");
+    [RongCloudData ignoreunAllMessage];
+    [_tableview reloadData];
+    
+}
 
+#pragma mark - 融云消息接收
+-(void)receivedMessage:(NSNotification *)sender {
+
+    _tableData = [[RongCloudData getConversationList] mutableCopy];
+    
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        [_tableview reloadData];
+    });
+    
+    
+    
+    
+}
 @end

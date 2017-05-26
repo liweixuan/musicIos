@@ -1,8 +1,10 @@
 #import "AppDelegate.h"
 #import "AppDelegate+Expand.h"
 #import "HintManager.h"
+#import "LoginViewController.h"
+#import "CustomNavigationController.h"
 
-@interface AppDelegate ()
+@interface AppDelegate ()<RCIMClientReceiveMessageDelegate>
 
 @end
 
@@ -18,20 +20,73 @@
     
     //初始化启动界面
     [self initLaunchScreen:^{
+
+        //初始化地图SDK
+        [self initMap];
+        
+        //初始化融云SDK
+        [self initRongCloud];
         
         //初始化应用相关配置
         [self initAppConfig];
-        
-        //初始化底部菜单
-        [self initTabBar];
+
         
         //设置状态栏相关
         [self setStatusStyle];
-        
+
+        //判断登录状态
+        if([self isLogin]){
+            
+            NSLog(@"已登录");
+            
+            //更新位置信息
+            [self updateNowLocation];
+            
+            //连接融云
+            [self connentRongCloud:^{
+                
+                NSLog(@"融云服务器连接成功，进入界面...");
+                
+                dispatch_sync(dispatch_get_main_queue(), ^{
+                    
+                    //初始化底部菜单
+                    [self initTabBar];
+                    
+                });
+                
+                // 设置消息接收监听
+                [[RCIMClient sharedRCIMClient] setReceiveMessageDelegate:self object:nil];
+
+            }];
+            
+        }else{
+            
+            
+            NSLog(@"未登录");
+            
+            NSLog(@"进入登录的画面...");
+            LoginViewController * loginVC = [[LoginViewController alloc] init];
+            CustomNavigationController * customNav = [[CustomNavigationController alloc] initWithRootViewController:loginVC];
+            self.window.rootViewController = customNav;
+  
+        }
+ 
     }];
 
     return YES; 
 }
+
+//融云消息接收监听回调
+- (void)onReceived:(RCMessage *)message left:(int)nLeft object:(id)object {
+    NSLog(@"您有新消息....");
+    
+    //发送消息通知
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RECEIVED_RCMESSAGE" object:nil userInfo:@{@"message":message,@"left":@(nLeft)}];
+    
+}
+
+
+
 
 
 /*
@@ -52,14 +107,15 @@
  * 当程序从后台将要重新回到前台时候调用
  */
 - (void)applicationWillEnterForeground:(UIApplication *)application {
-   
+    //更新当前用户位置
+    [self updateNowLocation];
 }
 
 /*
  * 当应用程序入活动状态执行
  */
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-
+   
 }
 
 /*

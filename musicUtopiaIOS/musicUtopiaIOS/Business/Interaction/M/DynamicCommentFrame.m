@@ -18,8 +18,7 @@
         
         //获取卡片宽度
         CGFloat cardWidth = D_WIDTH - CARD_MARGIN_LEFT * 2;
-        
- 
+
         //头像
         self.headerFrame = CGRectMake(CONTENT_PADDING_LEFT, CONTENT_PADDING_TOP,30,30);
         
@@ -29,7 +28,7 @@
         self.timeFrame = CGRectMake(cardWidth - 80 - CONTENT_PADDING_LEFT, CGRectGetMinY(self.nicknameFrame), 80,ATTR_FONT_SIZE);
         
         //内容
-        NSString * content = dictData[@"commentContent"];
+        NSString * content = dictData[@"dc_content"];
         CGSize contentSize = [G labelAutoCalculateRectWith:content FontSize:CONTENT_FONT_SIZE MaxSize:CGSizeMake(cardWidth - CGRectGetMinX(self.nicknameFrame), 1000)];
         self.contentFrame = CGRectMake(CGRectGetMinX(self.nicknameFrame), CGRectGetMaxY(self.nicknameFrame)+CONTENT_PADDING_TOP, cardWidth - CGRectGetMinX(self.nicknameFrame), contentSize.height);
         

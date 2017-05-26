@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface MessageCell : UITableViewCell
-
+@property(nonatomic,strong)RCConversation * conversaction;
 @end

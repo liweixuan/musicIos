@@ -462,9 +462,56 @@
     PUSH_VC(InteractionCommentViewController, YES, @{@"dynamicFrame":dynamicFrame});
 }
 
+//动态点赞按钮点击时
+-(void)dynamicZanClick:(NSInteger)dynamicId NowView:(UILabel *)label NowZanCount:(NSInteger)zanCount{
+    
+    [self startActionLoading:@"处理中..."];
+    
+    NSDictionary * params = @{@"d_id":@(dynamicId)};
+    [NetWorkTools POST:API_DYNAMIC_ZAN params:params successBlock:^(NSArray *array) {
+        
+        [self endActionLoading];
+        SHOW_HINT(@"点赞成功");
+        
+        //增加赞数
+        NSInteger nowZan = zanCount + 1;
+        label.text = [NSString stringWithFormat:@"点赞(%ld)",nowZan];
+
+    } errorBlock:^(NSString *error) {
+        SHOW_HINT(@"点赞失败");
+        NSLog(@"%@",error);
+    }];
+    
+    
+}
+
 //动态头像点击时
--(void)publicUserHeaderClick:(NSInteger)userId {
-    PUSH_VC(UserDetailViewController, YES, @{@"userId":@(userId)});
+-(void)publicUserHeaderClick:(NSInteger)userId UserName:(NSString *)username {
+    
+    UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
+    userDetailVC.userId   = userId;
+    userDetailVC.username = username;
+    
+    [self.navigationController pushViewController:userDetailVC animated:YES];
+}
+
+//动态关注点击时
+-(void)dynamicConcernClick:(NSInteger)userId {
+
+    [self startActionLoading:@"处理中..."];
+    
+    NSDictionary * params = @{@"uc_uid":@(1),@"uc_concern_id":@(userId)};
+    [NetWorkTools POST:API_USER_CONCERN params:params successBlock:^(NSArray *array) {
+        
+        [self endActionLoading];
+        SHOW_HINT(@"关注成功");
+        
+    } errorBlock:^(NSString *error) {
+        
+        [self endActionLoading];
+        SHOW_HINT(error);
+    }];
+    
 }
 
 //点击团体，查看团体详细

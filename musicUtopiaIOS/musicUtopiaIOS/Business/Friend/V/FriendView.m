@@ -1,5 +1,6 @@
 #import "FriendView.h"
 #import "FriendCell.h"
+#import "LoadingView.h"
 
 @interface FriendView()<UITableViewDelegate,UITableViewDataSource>
 {
@@ -27,12 +28,32 @@
         //创建头部视图
         [self createHeaderTableview];
         
+        
+        _loadView = [LoadingView createDataLoadingView];
+        [self addSubview:_loadView];
+        
     }
     return self;
 }
 
 
 -(void)getData:(NSDictionary *)params Type:(NSString *)type {
+
+    
+    //获取好友列表
+    NSArray  * fParams = @[@{@"key":@"f_username",@"value":params[@"u_username"]}];
+    NSString * url     = [G formatRestful:API_FRIENDS_SEARCH Params:fParams];
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        REMOVE_LOADVIEW
+        
+        _tableData = array;
+        
+        [_tableview reloadData];
+        
+    } errorBlock:^(NSString *error) {
+        NSLog(@"%@",error);
+    }];
     
 }
 
@@ -98,7 +119,7 @@
     UIImageView * searchIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
         imgv
         .L_Frame(CGRectMake(10,[_fieldLeftView height]/2 - MIDDLE_ICON_SIZE/2 - 2,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-        .L_ImageName(ICON_DEFAULT)
+        .L_ImageName(@"sousuo")
         .L_AddView(_fieldLeftView);
     }];
     
@@ -136,8 +157,9 @@
     //发现好友图标
     UIImageView * findFriendIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
        imgv
-        .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,10,40,40))
-        .L_ImageName(ICON_DEFAULT)
+        .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,6,50,50))
+        .L_ImageName(@"fanxiaohaoyou")
+        .L_ImageMode(UIViewContentModeScaleAspectFit)
         .L_AddView(findFriendView);
     }];
     
@@ -154,24 +176,24 @@
     //右侧箭头
     [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
         imgv
-        .L_Frame(CGRectMake([findFriendView width] - CONTENT_PADDING_LEFT - MIDDLE_ICON_SIZE,[findFriendView height]/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-        .L_ImageName(ICON_DEFAULT)
+        .L_Frame(CGRectMake([findFriendView width] - CONTENT_PADDING_LEFT - SMALL_ICON_SIZE,[findFriendView height]/2 - SMALL_ICON_SIZE/2, SMALL_ICON_SIZE, SMALL_ICON_SIZE))
+        .L_ImageName(@"fanhui")
         .L_AddView(findFriendView);
     
     }];
     
     //好友列表图标
-    UIImageView * friendIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-        imgv
-        .L_Frame(CGRectMake([findFriendView left],[findFriendView bottom]+20,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-        .L_ImageName(ICON_DEFAULT)
-        .L_AddView(headerView);
-    }];
+//    UIImageView * friendIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+//        imgv
+//        .L_Frame(CGRectMake([findFriendView left],[findFriendView bottom]+20,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+//        .L_ImageName(ICON_DEFAULT)
+//        .L_AddView(headerView);
+//    }];
     
     //好友列表标题
     [UILabel LabelinitWith:^(UILabel *la) {
         la
-        .L_Frame(CGRectMake([friendIcon right]+ICON_MARGIN_CONTENT,[friendIcon top],100,CONTENT_FONT_SIZE))
+        .L_Frame(CGRectMake([findFriendView left],[findFriendView bottom]+20,100,CONTENT_FONT_SIZE))
         .L_Font(CONTENT_FONT_SIZE)
         .L_Text(@"好友列表")
         .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
@@ -189,7 +211,7 @@
 
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 10;
+    return _tableData.count;
 }
 
 //行内容
@@ -201,7 +223,7 @@
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     
     //数据
-    NSDictionary * dictData = @{};
+    NSDictionary * dictData = _tableData[indexPath.row];
     
     cell.dictData = dictData;
     

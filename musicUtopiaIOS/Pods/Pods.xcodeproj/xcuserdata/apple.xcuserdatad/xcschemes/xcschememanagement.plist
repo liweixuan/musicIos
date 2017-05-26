@@ -9,6 +9,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>AliyunOSSiOS.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>FMDB.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -44,10 +49,15 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>TZImagePickerController.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>188B259057DCFDFDB5156F8A4F928ECC</key>
+		<key>147C4D6909D08EDDCD36E2C84B2C409C</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -67,17 +77,27 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>3E3A5ACDC97CC5AD4D84F50FDBF14653</key>
+		<key>3B26AF6270057964B4ADDB4097293A10</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>72EC017A3F9EC9BD5BB3B23CCB98FB4F</key>
+		<key>4DF3FC58E2668F458021C844DEDDC1ED</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>56AF1C7C135A696D120014A972866BE2</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
 		<key>A9A83F63385AA43314397B8DD375464B</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B83643ED651906B6023BF4FE52386998</key>
 		<dict>
 			<key>primary</key>
 			<true/>

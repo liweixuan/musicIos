@@ -42,6 +42,7 @@
         _headerImageView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_ImageName(HEADER_DEFAULT)
+            .L_radius(5)
             .L_AddView(_cellBox);
         }];
         
@@ -49,7 +50,6 @@
         _nicknameView = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Font(TITLE_FONT_SIZE)
-            .L_Text(@"李冒冒")
             .L_TextColor(HEX_COLOR(TITLE_FONT_COLOR))
             .L_AddView(_cellBox);
         }];
@@ -57,7 +57,7 @@
         //右侧箭头
         _rightIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"fanhui")
             .L_AddView(_cellBox);
             
         }];
@@ -76,8 +76,18 @@
     
     _nicknameView.frame = CGRectMake([_headerImageView right]+CONTENT_PADDING_LEFT, 0, 100, [_cellBox height]);
     
-    _rightIconView.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - MIDDLE_ICON_SIZE,[_cellBox height]/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+    _rightIconView.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - SMALL_ICON_SIZE,[_cellBox height]/2 - SMALL_ICON_SIZE/2, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
     
+    
+    
+}
+
+-(void)setDictData:(NSDictionary *)dictData {
+    
+    NSString * imageUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dictData[@"u_header_url"]];
+    _headerImageView.L_ImageUrlName(imageUrl,HEADER_DEFAULT);
+    
+    _nicknameView.L_Text(dictData[@"u_nickname"]);
     
     
 }

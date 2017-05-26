@@ -63,8 +63,9 @@
     
     _filterScrollView = [UIScrollView ScrollViewInitWith:^(UIScrollView *view) {
         view
-        .L_Frame(CGRectMake(0,20,[self width],[self height] - 49 - 50))
+        .L_Frame(CGRectMake(0,20,[self width],[self height] - 49 - 50 - 20))
         .L_bounces(YES)
+        .L_BgColor(HEX_COLOR(VC_BG))
         .L_showsVerticalScrollIndicator(NO)
         .L_showsHorizontalScrollIndicator(NO)
         .L_contentSize(CGSizeMake([self width],0))
@@ -140,23 +141,10 @@
     }];
     
     //乐器类别数据
-    NSArray * categoryArr = @[
-                              @{@"icon":ICON_DEFAULT,@"text":@"民谣吉他"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"古典吉他"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"电声吉他"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"钢琴"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"小提琴"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"二胡"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"大提琴"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"小号"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"电声贝斯"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"长笛"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"长笛"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"长笛"},
-                              @{@"icon":ICON_DEFAULT,@"text":@"长笛"},
-                              ];
+    NSArray * categoryArr = [LocalData getMusicCategory];
     
-    NSDictionary * musicCategoryDict = [MusciCategorySelectView createViewBoxWidth:[self width] - CONTENT_PADDING_LEFT * 2  CategoryArr:categoryArr];
+    MusciCategorySelectView * musicCategorySelectView = [[MusciCategorySelectView alloc] init];
+    NSDictionary * musicCategoryDict = [musicCategorySelectView createViewBoxWidth:[self width] - CONTENT_PADDING_LEFT * 2  CategoryArr:categoryArr];
     
     //创建乐器选择视图
     UIView * cView = [[UIView alloc] initWithFrame:CGRectMake(CONTENT_PADDING_LEFT,[musciTypeIcon bottom]+CONTENT_MARGIN_TOP,[self width] - CONTENT_PADDING_LEFT * 2,[musicCategoryDict[@"height"] floatValue])];
@@ -184,7 +172,7 @@
     UIImageView * typeIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
        
         imgv
-        .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,20,BIG_ICON_SIZE, BIG_ICON_SIZE))
+        .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,0,BIG_ICON_SIZE, BIG_ICON_SIZE))
         .L_ImageName(ICON_DEFAULT)
         .L_AddView(_filterScrollView);
         

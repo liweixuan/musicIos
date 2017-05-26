@@ -19,6 +19,17 @@
 #import "Font.h"
 
 /*
+ * 导入三方配置文件
+ */
+#import "ThirdSdk.h"
+
+/*
+ * 获取本地数据操作类
+ */
+#import "LocalData.h"
+#import "UserData.h"
+
+/*
  * 信息提示库
  */
 #import <MBProgressHUD/MBProgressHUD.h>
@@ -94,14 +105,9 @@
 #import "M_Utils.h"
 
 /*
- * 数据转化操作
- */
-#import "DateModel.h"
-
-/*
  * 数据模型类
  */
-#import "FirendsModel.h"
+#import "MemberInfoModel.h"
 
 /*
  * 数据库操作类
@@ -130,6 +136,8 @@
 
 
 /*
- * 导入融云库
+ * 导入融云相关库
  */
 #import <RongIMLib/RongIMLib.h>
+#import "RongCloudData.h"
+#import "MemberInfoData.h"

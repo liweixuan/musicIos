@@ -8,6 +8,8 @@ extern NSString * const IMG_NAV_NAME;                       //导航条图片的
 extern BOOL const       IS_NAV_BACK_TITLE;                  //是否保留后退文字
 extern NSInteger const  STATUS_COLOR;                       //状态栏颜色(0-黑色 1-白色)
 extern BOOL const       IS_SHOW_NETWORK_ACTIVITY_INDICATOR; //是否在网络请求时开启状态栏加载器
+extern NSString * const IMAGE_SERVER;                       //图片服务器地址
+extern NSInteger const  PAGE_LIMIT;                         //每页显示数据量
 
 
 extern NSInteger const  NETWORK_TIMEOUT;                    //网络请求超时时间

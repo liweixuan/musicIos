@@ -14,6 +14,7 @@
         
         self.organizationId           = [dict[@"o_id"] integerValue];
         self.organizationCover        = dict[@"o_cover"];
+        self.organizationLogo         = dict[@"o_logo"];
         self.organizationCreateTime   = [G formatData:[dict[@"o_create_time"] integerValue] Format:@"YYYY年MM月dd日"];
         self.organizationProvinceName = dict[@"o_province_name"];
         self.organizationCityName     = dict[@"o_city_name"];

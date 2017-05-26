@@ -16,7 +16,8 @@
 {
     UIView * _loadView;
     Base_UITableView * _tableview;
-    NSArray          * _tableData;
+    NSMutableArray   * _tableData;
+    NSInteger          _skip;
 }
 @end
 
@@ -34,13 +35,7 @@
         
         //创建表视图
         [self createTableView];
-        
-        
-        //创建加载中遮罩
-        _loadView = [LoadingView createDataLoadingView];
-        [self addSubview:_loadView];
 
-        
         
         
     }
@@ -48,7 +43,8 @@
 }
 
 -(void)initVar {
-    _tableData = [NSArray array];
+    _tableData = [NSMutableArray array];
+    _skip      = 0;
 }
 
 -(void)createTableView {
@@ -56,7 +52,7 @@
     //创建列表视图
     _tableview  = [[Base_UITableView alloc] init];
     _tableview.backgroundColor = HEX_COLOR(VC_BG);
-    _tableview.delegate = self;
+    _tableview.delegate   = self;
     _tableview.dataSource = self;
     
     //创建上下拉刷新
@@ -98,10 +94,36 @@
     
     NSLog(@"请求找找伙伴列表数据...");
     
+    //创建加载中遮罩
+    if([type isEqualToString:@"init"]){
+        _loadView = [LoadingView createDataLoadingView];
+        [self addSubview:_loadView];
+    }
+    
+    NSArray  * getParams = @[@{@"key":@"skip",@"value":@(_skip)},@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
+    NSString * url       = [G formatRestful:API_PARTNER_SEARCH Params:getParams];
+    
     //请求动态数据
-    [NetWorkTools GET:API_PARTNER_SEARCH params:nil successBlock:^(NSArray *array) {
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
         
         NSMutableArray *tempArr = [NSMutableArray array];
+        
+        //删除加载动画
+        if([type isEqualToString:@"init"]){
+            REMOVE_LOADVIEW
+        }
+        
+        if([type isEqualToString:@"reload"]){
+            [_tableData removeAllObjects];
+            [_tableview headerEndRefreshing];
+            [_tableview resetNoMoreData];
+        }
+
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            return;
+        }
         
         //将数据转化为数据模型
         for(NSDictionary * dict in array){
@@ -109,27 +131,28 @@
             //初始化数据源
             PartnerModel * model = [PartnerModel partnerWithDict:dict];
             PartnerFrame * frame = [[PartnerFrame alloc] initWithPartner:model];
-            
-            
-            
+
             [tempArr addObject:frame];
         }
-        
-        
-        
-        //更新数据数据
-        _tableData = tempArr;
+
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:tempArr];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = tempArr;
+            
+        }
         
         //更新表视图
         [_tableview reloadData];
         
-        //删除加载动画
-        REMOVE_LOADVIEW
-        
         
     } errorBlock:^(NSString *error) {
-        
-        NSLog(@"%@",error);
+
+        //向控制器发送错误
+        [self.delegate requestFaild:1];
         
     }];
     
@@ -138,11 +161,15 @@
 }
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    _skip = 0;
+    [self getData:nil Type:@"reload"];
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    _skip += PAGE_LIMIT;
+    [self getData:nil Type:@"more"];
+    
 }
 
 //行数
@@ -177,6 +204,18 @@
     return cellHeight;
 }
 
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    //获取当前动态ID
+    PartnerFrame * partnerFrame = _tableData[indexPath.row];
+    NSInteger userId   = partnerFrame.partnerModel.userId;
+    NSString *username = partnerFrame.partnerModel.username;
+    
+    //向外传递
+    [self.delegate publicUserHeaderClick:userId UserName:username];
+    NSLog(@"行点击...");
+}
+
 #pragma mark - 事件处理
 //动态用户头像点击
 -(void)userHeaderClick:(PartnerCell *)cell {
@@ -184,10 +223,11 @@
     //获取当前动态ID
     NSIndexPath * indxPath = [_tableview indexPathForCell:cell];
     PartnerFrame * partnerFrame = _tableData[indxPath.row];
-    NSInteger userId = partnerFrame.partnerModel.userId;
+    NSInteger userId   = partnerFrame.partnerModel.userId;
+    NSString *username = partnerFrame.partnerModel.username;
     
     //向外传递
-    [self.delegate publicUserHeaderClick:userId];
+    [self.delegate publicUserHeaderClick:userId UserName:username];
     
     
 }

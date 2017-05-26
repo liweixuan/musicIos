@@ -12,6 +12,8 @@
 @class DynamicCell;
 @protocol DynamicCellDelegate <NSObject>
 -(void)commentClick   :(DynamicCell *)cell;  //动态评论点击
+-(void)zanClick       :(DynamicCell *)cell NowView:(UILabel *)label;  //赞点击
+-(void)concernClick   :(DynamicCell *)cell;  //关注点击
 -(void)userHeaderClick:(DynamicCell *)cell;  //用户头像点击
 @end
 

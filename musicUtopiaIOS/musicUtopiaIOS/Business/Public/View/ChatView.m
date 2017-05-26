@@ -1,5 +1,6 @@
 #import "ChatView.h"
 #import "PhotoBoxView.h"
+#import "RadioBoxView.h"
 
 #define INPUT_BOX_HEIGHT 80   //底部输入容器高度
 
@@ -8,7 +9,8 @@
         UITableViewDelegate,
         UITableViewDataSource,
         UITextViewDelegate,
-        PhotoBoxViewDelegate
+        PhotoBoxViewDelegate,
+        UIGestureRecognizerDelegate
     >
 {
     Base_UITableView * _tableview;              //聊天列表视图
@@ -18,7 +20,7 @@
     UILabel          * _inputPlaceholderLabel;  //输入框的占位字
     
     UIView           * _expressionBox;        //表情容器
-    UIView           * _radioBox;             //语音容器
+    RadioBoxView     * _radioBox;             //语音容器
     PhotoBoxView     * _photoBox;             //图片容器
     UIView           * _moreBox;              //更多容器
     
@@ -28,7 +30,7 @@
     //当前所处的模式 0-无状态模式（初始）1-普通键盘弹出模式 2-表情输入表示 3-语音模式 4-照相相册模式 5-视频模式 6-地理位置模式 7-更多模式
     NSInteger          _nowMode;
     
-    NSArray          * _tableData; //数据源
+    NSMutableArray    * _tableData; //数据源
 }
 @end
 
@@ -62,7 +64,7 @@
     _nowMode             = 0;
     _keyboardHeight      = 0.0;
     _inputTextViewHeight = 0.0;
-    _tableData = [NSArray array];
+    _tableData = [NSMutableArray array];
 }
 
 //创建聊天列表视图
@@ -74,6 +76,9 @@
     _tableview.delegate   = self;
     _tableview.dataSource = self;
     
+    UITapGestureRecognizer * tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tableClick)];
+    tap.delegate = self;
+    [_tableview addGestureRecognizer:tap];
     
     //创建上下拉刷新
     _tableview.isCreateHeaderRefresh = NO;
@@ -84,11 +89,25 @@
     
     [self addSubview:_tableview];
     
+    //列表视图事件部分
+    __weak typeof(self) weakSelf = self;
+    
+    //下拉加载历史信息
+    _tableview.loadNewData = ^(){
+        NSLog(@"loadNewData...");
+        [weakSelf loadNewData];
+        
+    };
+    
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(0,0,INPUT_BOX_HEIGHT,0));
     }];
     
+}
+
+-(void)loadNewData {
+    [self.delegate getHistoryMessage];
 }
 
 //创建底部输入框
@@ -174,6 +193,8 @@
 //创建底部各个菜单项操作容器
 -(void)createBottomMenuItemBox {
     
+    
+    
     //表情容器框
     _expressionBox = [UIView ViewInitWith:^(UIView *view) {
         view
@@ -183,17 +204,13 @@
     }];
     
     //语音容器
-    _radioBox = [UIView ViewInitWith:^(UIView *view) {
-        view
-        .L_Frame(CGRectMake(0,[_bottomToolBox bottom],D_WIDTH,200))
-        .L_BgColor([UIColor orangeColor])
-        .L_AddView(self);
-    }];
-    
+    _radioBox = [[RadioBoxView alloc] initWithFrame:CGRectMake(0,[_bottomToolBox bottom],D_WIDTH,200)];
+    _radioBox.backgroundColor = [UIColor whiteColor];
+    [self addSubview:_radioBox];
+
     //图片容器
     _photoBox = [[PhotoBoxView alloc] initWithFrame:CGRectMake(0,[_bottomToolBox bottom],D_WIDTH,200)];
     _photoBox.delegate = self;
-    _photoBox.backgroundColor = [UIColor purpleColor];
     [self addSubview:_photoBox];
     
     //更多容器
@@ -250,6 +267,18 @@
         
         return cell;
         
+    }else{
+        
+        RadioMessageCell  * cell  = [[RadioMessageCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+        RadioMessageFrame * frame = _tableData[indexPath.row];
+        cell.frameData           = frame;
+        
+        //禁止点击
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        return cell;
+        
+        
     }
     
     
@@ -271,6 +300,9 @@
     }else if([messageObj isKindOfClass:[ImageMessageFrame class]]){
         ImageMessageFrame * frame = _tableData[indexPath.row];
         return frame.cellHeight;
+    }else if([messageObj isKindOfClass:[RadioMessageFrame class]]){
+        RadioMessageFrame * frame = _tableData[indexPath.row];
+        return frame.cellHeight;
     }
     
     return 0;
@@ -278,12 +310,13 @@
 
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    
+    NSLog(@"rowClick...");
     [self CloseActionViewOrKeyBoard:_nowMode];
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
-    [self CloseActionViewOrKeyBoard:_nowMode];
+    NSLog(@"********");
+   // [self CloseActionViewOrKeyBoard:_nowMode];
 }
 
 //textview内容改变时
@@ -310,7 +343,10 @@
         [_inputTextView setHeight:_inputTextViewHeight];
         [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - _keyboardHeight];
         [_bottomToolMenu setY:[_inputTextView bottom]];
-        [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+        //判断内容是否超过了一屏
+        //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+        //}
     }];
     
     
@@ -390,7 +426,9 @@
             
             [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_expressionBox height] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - [_expressionBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //}
         }];
         
     }else if(tagV == 1){
@@ -415,7 +453,9 @@
             
             [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_radioBox height] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - [_radioBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //}
         }];
     }else if(tagV == 2){
         
@@ -439,7 +479,9 @@
             
             [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_photoBox height] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - [_photoBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+           // }
         }];
         
     }else if(tagV == 3){
@@ -456,8 +498,18 @@
       
             [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //}
+        } completion:^(BOOL finished) {
+            
+            //跳转到视频录制界面
+            [self.delegate goVideoRecord];
+            
+            
         }];
+        
+        
         
         
     }else if(tagV == 4){
@@ -474,7 +526,9 @@
             
             [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+           // }
         }];
         
     }else if(tagV == 5){
@@ -499,7 +553,9 @@
             
             [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_moreBox height] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - [_moreBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+           // if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+           // }
         }];
         
     }
@@ -518,7 +574,11 @@
     _keyboardHeight = frame.size.height;
     [_tableview setHeight:D_HEIGHT_NO_NAV - INPUT_BOX_HEIGHT - _keyboardHeight];
     [_bottomToolBox setY:[_tableview bottom]];
-    [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+    
+    //判断内容是否超过了一屏
+    //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+        [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:YES];
+   // }
     
     
 }
@@ -568,6 +628,7 @@
     NSString * message = [_inputTextView text];
     NSLog(@"******%@",message);
     [self.delegate sendTextMessage:message];
+    
 }
 
 //发送单图片消息
@@ -590,7 +651,10 @@
             [_expressionBox setY:D_HEIGHT_NO_NAV];
             [_bottomToolBox setY:[_expressionBox top] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //判断内容是否超过了一屏
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+           // }
         }];
         
         
@@ -600,7 +664,10 @@
             [_radioBox setY:D_HEIGHT_NO_NAV];
             [_bottomToolBox setY:[_radioBox top] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //判断内容是否超过了一屏
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //}
         }];
     }else if(mode == 4){
         
@@ -608,7 +675,10 @@
             [_photoBox setY:D_HEIGHT_NO_NAV];
             [_bottomToolBox setY:[_photoBox top] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //判断内容是否超过了一屏
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //}
         }];
     }else if(mode == 7){
        
@@ -616,7 +686,10 @@
             [_moreBox setY:D_HEIGHT_NO_NAV];
             [_bottomToolBox setY:[_moreBox top] - [_bottomToolBox height]];
             [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
-            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //判断内容是否超过了一屏
+            //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+                [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+            //}
         }];
     }else{
         
@@ -650,14 +723,52 @@
     }
 }
 
+-(void)tableClick {
+    NSLog(@"tableClick....");
+    [self CloseActionViewOrKeyBoard:_nowMode];
+}
+
 -(void)setMessageData:(NSArray *)messageData {
     
     //更新列表数据
-    _tableData = messageData;
-    [_tableview reloadData];
+    _tableData = [messageData mutableCopy];
     
-    [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:YES];
+    NSLog(@"2222222");
+    
+    NSLog(@"%f",_tableview.contentSize.height);
+    NSLog(@"%f",[_tableview height]);
+        [_tableview reloadData];
+    
+//    if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+//        _tableview.tableHeaderView.hidden = YES;
+//    }
+    
+    //判断内容是否超过了一屏
+   // if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+        
+        NSLog(@"111111111");
+        [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:YES];
+   // }
+
+   
 }
+
+
+
+-(void)setHistoryData:(NSArray *)historyData {
+    
+    
+    [_tableview headerEndRefreshing];
+    
+    if(historyData.count <= 0){
+        return;
+    }
+    
+    _tableData = [historyData mutableCopy];
+    
+    [_tableview reloadData];
+}
+
 
 
 -(void)resumeBottomTool {
@@ -673,9 +784,22 @@
         
         [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
         [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
-        [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+        //判断内容是否超过了一屏
+       // if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
+            [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:NO];
+       // }
     }];
     
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch  {
+    // 输出点击的view的类名
+    NSLog(@"%@", NSStringFromClass([touch.view class]));
+    // 若为UITableViewCellContentView（即点击了tableViewCell），则不截获Touch事件
+    if ([NSStringFromClass([touch.view class]) isEqualToString:@"UITableViewCellContentView"]) {
+        return NO;
+    }
+    return  YES;
 }
 
 @end

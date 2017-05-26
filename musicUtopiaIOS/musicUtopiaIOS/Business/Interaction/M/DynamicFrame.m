@@ -31,13 +31,19 @@
         self.nickNameFrame = CGRectMake(CGRectGetMaxX(self.sexFrame),CGRectGetMinY(self.sexIconFrame)-2,nicknameSize.width,TITLE_FONT_SIZE);
         
         //动态类型图标
-        self.categoryIconFrame = CGRectMake(D_WIDTH-(CARD_MARGIN_LEFT*2)-(CONTENT_PADDING_LEFT*2)-MIDDLE_ICON_SIZE/2,CGRectGetMinY(self.headerUrlFrame), MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+        self.categoryIconFrame = CGRectMake(D_WIDTH-(CARD_MARGIN_LEFT*2)-(CONTENT_PADDING_LEFT*2)-30/2,CGRectGetMinY(self.headerUrlFrame), 30, 30);
         
         //位置图标
         self.locationIconFrame = CGRectMake(CGRectGetMinX(self.sexIconFrame), CGRectGetMaxY(self.sexIconFrame)+CONTENT_PADDING_TOP,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
         
         //位置信息
-        CGSize locationSize = [G labelAutoCalculateRectWith:self.dynamicModel.location FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(D_WIDTH,1000)];
+        NSString * locationStr = @"";
+        if([self.dynamicModel.location isEqualToString:@""]||self.dynamicModel.location == nil){
+            locationStr = @"未获取到该用户位置信息";
+        }else{
+            locationStr = self.dynamicModel.location;
+        }
+        CGSize locationSize = [G labelAutoCalculateRectWith:locationStr FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(D_WIDTH,1000)];
         self.locationFrame = CGRectMake(CGRectGetMaxX(self.locationIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.locationIconFrame),locationSize.width,ATTR_FONT_SIZE);
         
         //内容

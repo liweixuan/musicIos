@@ -2,17 +2,12 @@
 #import "MenuTabBarController.h"
 #import "CustomNavigationController.h"
 #import "LaunchScreenViewController.h"
+#import <AMapFoundationKit/AMapFoundationKit.h>
+#import <AMapLocationKit/AMapLocationKit.h>
+#import "ConditionFilterViewController.h"
 
-#import "CreateInteractionViewController.h"
-#import "OrganizationDetailViewController.h"
-#import "MatchDetailViewController.h"
-#import "OfficialMusicScoreViewController.h"
-#import "OrganizationUserViewController.h"
-#import "CreateChatroomViewController.h"
-#import "LoginViewController.h"
-#import "OfficialNoteDetailViewController.h"
-#import "RegisterViewController.h"
-#import "PrivateChatViewController.h"
+#import "UserDetailViewController.h"
+#import "PartakeMatchViewController.h"
 
 
 @implementation AppDelegate (Expand)
@@ -27,13 +22,13 @@
 
 -(void)initTabBar {
     
-//    MenuTabBarController *menuTabController = [[MenuTabBarController alloc] init];
-//    menuTabController.selectedIndex = DEFAULT_TAB_INDEX;
-//    self.window.rootViewController = menuTabController;
-    
-    PrivateChatViewController * cc = [[PrivateChatViewController alloc] init];
-    CustomNavigationController * nav = [[CustomNavigationController alloc] initWithRootViewController:cc];
-    self.window.rootViewController = nav;
+    MenuTabBarController *menuTabController = [[MenuTabBarController alloc] init];
+    menuTabController.selectedIndex = DEFAULT_TAB_INDEX;
+    self.window.rootViewController = menuTabController;
+
+//    PartakeMatchViewController * cc = [[PartakeMatchViewController alloc] init];
+//    CustomNavigationController * nav = [[CustomNavigationController alloc] initWithRootViewController:cc];
+//    self.window.rootViewController = nav;
     
 }
 
@@ -125,4 +120,156 @@
         }
     }
 }
+
+//初始化地图
+-(void)initMap {
+    NSLog(@"初始化地图KEY");
+    [AMapServices sharedServices].apiKey = AMapAppKey;
+}
+
+//初始化融云
+-(void)initRongCloud {
+    [[RCIMClient sharedRCIMClient] initWithAppKey:RongCloudAppKey];
+}
+
+//判断是否登录
+-(BOOL)isLogin {
+    NSLog(@"判断是否登录...");
+    if(![UserData UserIsLogin]){
+        return NO;
+    }
+    
+    return YES;
+    
+    
+}
+
+//连接融云IM
+-(void)connentRongCloud:(void (^)())connentEndBlock{
+    
+    NSLog(@"开始连接融云服务器...");
+    
+    //查看本地是否存储了融云TOKEN
+    NSString * rongToken = [UserData getRongCloudToken];
+    if(rongToken != nil){
+        
+        NSLog(@"有融云TOKEN，直接连接...");
+        
+        //直接连接融云
+        [[RCIMClient sharedRCIMClient] connectWithToken:rongToken
+                                                success:^(NSString *userId) {
+                                                    NSLog(@"登陆成功。当前登录的用户ID：%@", userId);
+                                                    connentEndBlock();
+                                                } error:^(RCConnectErrorCode status) {
+                                                    NSLog(@"登陆的错误码为:%ld", (long)status);
+                                                } tokenIncorrect:^{
+                                                    NSLog(@"token错误");
+                                                }];
+ 
+    }else{
+        
+        NSLog(@"无融云TOKEN，向服务器请求后连接...");
+
+        //获取个人信息
+        NSDictionary * userInfo = [UserData getUserInfo];
+        
+        //获取TOKEN所需参数
+        NSDictionary * params = @{
+            @"userId"      : userInfo[@"u_username"],
+            @"name"        : userInfo[@"u_nickname"],
+            @"portraitUri" : userInfo[@"u_header_url"],
+        };
+ 
+        //获取融云连接TOKEN
+        [NetWorkTools POST:API_RONGCLOUD_TOKEN params:params successBlock:^(NSArray *array) {
+            
+            NSLog(@"融云TOKEN获取成功");
+            
+            NSDictionary * dictData = (NSDictionary *)array;
+            
+            //融云TOKEN
+            NSString * rToken = dictData[@"rongCloudToken"];
+            
+            //保存在本地
+            [UserData saveRongCloudToken:rToken];
+            
+            //直接连接融云
+            [[RCIMClient sharedRCIMClient] connectWithToken:rongToken
+                                                    success:^(NSString *userId) {
+                                                        NSLog(@"登陆成功。当前登录的用户ID：%@", userId);
+                                                        connentEndBlock();
+                                                    } error:^(RCConnectErrorCode status) {
+                                                        NSLog(@"登陆的错误码为:%ld", (long)status);
+                                                    } tokenIncorrect:^{
+                                                        NSLog(@"token错误");
+                                                    }];
+            
+        } errorBlock:^(NSString *error) {
+            NSLog(@"%@",error);
+        }];
+  
+    }
+ 
+}
+
+-(void)updateNowLocation {
+    
+    NSLog(@"更新当前位置");
+    //初始化操作对象
+    AMapLocationManager * locationManager = [[AMapLocationManager alloc] init];
+    
+    //带逆地理信息的一次定位（返回坐标和地址信息）
+    [locationManager setDesiredAccuracy:kCLLocationAccuracyBest];
+    
+    //定位超时时间，最低2s，此处设置为2s
+    locationManager.locationTimeout = 10;
+    
+    //逆地理请求超时时间，最低2s，此处设置为2s
+    locationManager.reGeocodeTimeout = 10;
+    
+    // 带逆地理（返回坐标和地址信息）。将下面代码中的 YES 改成 NO ，则不会返回地址信息。
+    [locationManager requestLocationWithReGeocode:NO completionBlock:^(CLLocation *location, AMapLocationReGeocode *regeocode, NSError *error) {
+        
+        if (error)
+        {
+            NSLog(@"locError:{%ld - %@};", (long)error.code, error.localizedDescription);
+            
+            if (error.code == AMapLocationErrorLocateFailed)
+            {
+                return;
+            }
+        }
+   
+        CLLocationCoordinate2D lc = location.coordinate;
+        
+        //获取到经纬度坐标，更新进用户位置
+        NSLog(@"^^^^^^%f",lc.latitude);
+        NSLog(@"^^^^^^%f",lc.longitude);
+        
+        NSString * lcStr = [NSString stringWithFormat:@"%f,%f",lc.longitude,lc.latitude];
+        NSDictionary * userInfo = [UserData getUserInfo];
+        NSDictionary * updateLocationParams = @{
+                                                    @"userid"    : userInfo[@"u_id"],
+                                                    @"username"  : userInfo[@"u_username"],
+                                                    @"nickname"  : userInfo[@"u_nickname"],
+                                                    @"headerUrl" : userInfo[@"u_header_url"],
+                                                    @"sex"       : userInfo[@"u_sex"],
+                                                    @"userGoodInstrument" : userInfo[@"u_good_instrument"],
+                                                    @"longitude" : @(lc.longitude),
+                                                    @"latitude"  : @(lc.latitude)
+        };
+        [NetWorkTools POST:API_USER_UPDATE_LOCATION params:updateLocationParams successBlock:^(NSArray *array) {
+            NSLog(@"用户位置更新成功");
+            
+            //更新本地保存的用户当前位置信息数据
+            [UserData saveUserLocation:lcStr];
+            
+        } errorBlock:^(NSString *error) {
+            NSLog(@"用户位置更新失败");
+        }];
+    }];
+    
+}
+
+
 @end
