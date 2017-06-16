@@ -14,7 +14,9 @@
 {
     UIView * _loadView;
     Base_UITableView * _tableview;
-    NSArray          * _tableData;
+    NSMutableArray   * _tableData;
+    
+    NSInteger          _skip;
 }
 @end
 
@@ -33,16 +35,16 @@
         //创建表视图
         [self createTableView];
         
-        //创建加载中遮罩
-        _loadView = [LoadingView createDataLoadingView];
-        [self addSubview:_loadView];
+        
         
     }
     return self;
 }
 
 -(void)initVar {
-    _tableData = [NSArray array];
+    _tableData = [NSMutableArray array];
+    
+    _skip      = 0;
 }
 
 
@@ -50,11 +52,42 @@
 -(void)getData:(NSDictionary *)params Type:(NSString *)type {
     
     NSLog(@"请求比赛列表数据...");
+    //创建加载中遮罩
+    if([type isEqualToString:@"init"]){
+        _loadView = [LoadingView createDataLoadingView];
+        [self addSubview:_loadView];
+    }
+    
+    NSMutableArray  * getParams = [NSMutableArray array];
+    [getParams addObject:@{@"key":@"skip",@"value":@(_skip)}];
+    [getParams addObject:@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
+    
+    
+    NSString * url = [G formatRestful:API_MATCH_SEARCH Params:getParams];
     
     //请求动态数据
-    [NetWorkTools GET:API_MATCH_SEARCH params:nil successBlock:^(NSArray *array) {
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
         
         NSMutableArray *tempArr = [NSMutableArray array];
+        
+        //删除加载动画
+        if([type isEqualToString:@"init"]){
+            REMOVE_LOADVIEW
+        }
+        
+        if([type isEqualToString:@"reload"]){
+            [_tableData removeAllObjects];
+            [_tableview headerEndRefreshing];
+            _tableview.mj_footer.hidden = NO;
+            [_tableview resetNoMoreData];
+        }
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多比赛信息");
+            return;
+        }
         
         //将数据转化为数据模型
         for(NSDictionary * dict in array){
@@ -65,15 +98,20 @@
             
             [tempArr addObject:frame];
         }
-        
-        //更新数据数据
-        _tableData = tempArr;
+      
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:tempArr];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = tempArr;
+            
+        }
         
         //更新表视图
         [_tableview reloadData];
         
-        //删除加载动画
-        REMOVE_LOADVIEW
         
         
     } errorBlock:^(NSString *error) {
@@ -107,7 +145,7 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(10,0,0,0));
+        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(5,0,0,0));
     }];
     
     //列表视图事件部分
@@ -126,16 +164,25 @@
         [weakSelf loadMoreData];
         
     };
+    
+    _tableview.marginBottom = 10;
 
     
 }
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    _skip = 0;
+    [self getData:nil Type:@"reload"];
+    
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    
+    _skip += PAGE_LIMIT;
+    [self getData:nil Type:@"more"];
+    
 }
 
 //行数
@@ -183,6 +230,31 @@
     //向外传递
     [self.delegate voteClick:matchId];
     
+    
+}
+
+-(void)partakeMatchClick:(MatchCell *)cell {
+    
+    //获取当前动态ID
+    NSIndexPath * indxPath = [_tableview indexPathForCell:cell];
+    MatchFrame * matchFrame = _tableData[indxPath.row];
+    NSInteger matchId = matchFrame.matchModel.matchId;
+    NSString * musicScoreName = matchFrame.matchModel.matchName;
+    NSInteger musicScorePage  = matchFrame.matchModel.musicScorePage;
+    NSInteger musicScoreId    = matchFrame.matchModel.musicScoreId;
+    
+    [self.delegate partakeMatchClick:@{@"matchid":@(matchId),@"musicScoreName":musicScoreName,@"musicScorePage":@(musicScorePage),@"musicScoreId":@(musicScoreId)}];
+    
+}
+
+-(void)matchResultClick:(MatchCell *)cell {
+    
+    //获取当前动态ID
+    NSIndexPath * indxPath = [_tableview indexPathForCell:cell];
+    MatchFrame * matchFrame = _tableData[indxPath.row];
+    NSInteger matchId = matchFrame.matchModel.matchId;
+    
+    [self.delegate matchResultClick:matchId];
     
 }
 

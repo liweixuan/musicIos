@@ -42,10 +42,10 @@
 -(void)getData:(NSDictionary *)params Type:(NSString *)type {
     
     //获取当前用户的ID
-    NSInteger uid = [UserData getUserId];
+    NSString * username = [UserData getUsername];
     
     //获取好友列表
-    NSArray  * cParams = @[@{@"key":@"u_id",@"value":@(uid)}];
+    NSArray  * cParams = @[@{@"key":@"u_username",@"value":username}];
     NSString * url     = [G formatRestful:API_USER_ORGANIZATION_SEARCH Params:cParams];
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
         

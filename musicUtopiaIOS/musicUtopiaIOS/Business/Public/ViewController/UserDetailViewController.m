@@ -9,11 +9,14 @@
 #import "UserDetailViewController.h"
 #import "CardCell.h"
 #import "TagLabel.h"
+#import "MyPlayVideoViewController.h"
+#import "LookUserUpgradeVideoViewController.h"
 
 @interface UserDetailViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
     Base_UITableView * _tableview;
     NSDictionary     * _tableData;
+    NSArray          * _levelArr;
 }
 @end
 
@@ -22,17 +25,13 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"用户详情";
-    NSLog(@"用户ID为：%ld",(long)self.userId);
-    NSLog(@"用户帐号为：%@",self.username);
+    
     //初始化变量
     [self initVar];
     
     //初始化数据
     [self initData];
-    
-    //创建导航按钮
-    [self createNav];
-    
+ 
     //创建表视图
     [self createTableview];
     
@@ -45,16 +44,30 @@
 
 -(void)initData {
     
+
     //获取用户详细信息
-    NSInteger userid = [UserData getUserId];
-    NSArray * params = @[@{@"key":@"u_id",@"value":@(userid)}];
-    NSString * url = [G formatRestful:API_USER_DETAIL Params:params];
+    NSArray * params = @[
+                        @{@"key":@"u_id",@"value":@(self.userId)},
+                        @{@"key":@"u_username",@"value":self.username},
+                        @{@"key":@"f_username",@"value":[UserData getUsername]}
+    ];
+    NSString * url = [G formatRestful:API_USER_INFO_AND_IS_FRIEND Params:params];
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
         [self endLoading];
         
         _tableData = (NSDictionary *)array;
         
         [_tableview reloadData];
+        
+        
+        //判断是否显示添加好友
+        if([_tableData[@"isFriend"] integerValue] == 0){
+            
+            //创建导航按钮
+            [self createNav];
+            
+        }
+        
         
         NSLog(@"%@",array);
         
@@ -114,6 +127,7 @@
            imgv
             .L_Frame(CGRectMake(CARD_MARGIN_LEFT + 15,15,50,50))
             .L_ImageUrlName(headerUrl,HEADER_DEFAULT)
+            .L_radius(5)
             .L_AddView(cell.contentView);
         }];
         
@@ -164,10 +178,10 @@
             .L_AddView(cell.contentView);
         }];
         
-        NSArray * tempArr = _tableData[@"instrumentLevels"];
-        for(int i = 0;i<tempArr.count;i++){
+        _levelArr = _tableData[@"instrumentLevels"];
+        for(int i = 0;i<_levelArr.count;i++){
             
-            NSDictionary * dictData = tempArr[i];
+            NSDictionary * dictData = _levelArr[i];
             
             //创建UILabel
             TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(0,i*30 + i*5,130,30)];
@@ -187,7 +201,10 @@
                 .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT - 15 - 100 - 30,[tagLabel top],100,30))
                 .L_Font(CONTENT_FONT_SIZE)
                 .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
+                .L_Tag(i)
                 .L_Text(@"去看看过级视频")
+                .L_isEvent(YES)
+                .L_Click(self,@selector(lookVideoClick:))
                 .L_AddView(levelBox);
             }];
             
@@ -201,7 +218,7 @@
             
         }
         
-        [levelBox setHeight:30 * tempArr.count + (tempArr.count - 1) * 5];
+        [levelBox setHeight:30 * _levelArr.count + (_levelArr.count - 1) * 5];
     
     //个人信息
     }else if(indexPath.row == 1){
@@ -322,12 +339,17 @@
             .L_AddView(cell.contentView);
         }];
         
+        NSString * sign = [BusinessEnum getEmptyString:_tableData[@"u_sign"]];
+        if([sign isEqualToString:@""]){
+            sign = @"他/她很懒，什么都没有留下";
+        }
+        
         UILabel * singLabel = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([titleIcon left],[titleIcon bottom]+8,300,50))
             .L_Font(CONTENT_FONT_SIZE)
             .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
-            .L_Text([BusinessEnum getEmptyString:_tableData[@"u_sign"]])
+            .L_Text(sign)
             .L_AddView(cell.contentView);
         }];
         
@@ -356,7 +378,7 @@
             .L_Frame(CGRectMake([titleIcon left],[titleIcon bottom]+10,300,CONTENT_FONT_SIZE))
             .L_Font(CONTENT_FONT_SIZE)
             .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
-            .L_Text(@"我的演奏集")
+            .L_Text(@"他/她的演奏集")
             .L_AddView(cell.contentView);
         }];
         
@@ -427,6 +449,16 @@
     return 65;
 }
 
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if(indexPath.row == 4){
+
+        PUSH_VC(MyPlayVideoViewController, YES, @{@"userid":@(self.userId)});
+    }
+    
+    
+}
+
 -(void)addFriends {
     NSLog(@"添加好友");
     
@@ -451,4 +483,19 @@
     
 }
 
+-(void)lookVideoClick:(UITapGestureRecognizer *)tap {
+    
+    NSInteger tagValue = tap.view.tag;
+    
+    NSDictionary * dictData = _levelArr[tagValue];
+    
+    //查看过级视频
+    LookUserUpgradeVideoViewController * lookUserUpgradeVideoVC = [[LookUserUpgradeVideoViewController alloc] init];
+    lookUserUpgradeVideoVC.hidesBottomBarWhenPushed = YES;
+    lookUserUpgradeVideoVC.userid = self.userId;
+    lookUserUpgradeVideoVC.cid    = [dictData[@"c_id"] integerValue];
+    [self.navigationController pushViewController:lookUserUpgradeVideoVC animated:YES];
+    
+    
+}
 @end

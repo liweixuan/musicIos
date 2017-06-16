@@ -9,8 +9,8 @@
     Base_UITableView * _tableview;
     UIView           * _loadView;
     NSMutableArray   * _tableData;
-    
     NSInteger          _skip;
+    
 }
 @end
 
@@ -52,12 +52,19 @@
         [self addSubview:_loadView];
     }
 
-    NSArray  * getParams = @[@{@"key":@"skip",@"value":@(_skip)},@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
-    NSString * url       = [G formatRestful:API_DYNAMIC_SEARCH Params:getParams];
+    NSMutableArray  * getParams = [NSMutableArray array];
+    [getParams addObject:@{@"key":@"skip",@"value":@(_skip)}];
+    [getParams addObject:@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
+
+    if(self.paramsDict != nil){
+        [getParams addObject:self.paramsDict];
+    }
     
-  
+    NSString * url       = [G formatRestful:API_DYNAMIC_SEARCH Params:getParams];
+
     //请求动态数据
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
 
         NSMutableArray *tempArr = [NSMutableArray array];
         
@@ -70,11 +77,14 @@
         if([type isEqualToString:@"reload"]){
             [_tableData removeAllObjects];
             [_tableview headerEndRefreshing];
+            _tableview.mj_footer.hidden = NO;
             [_tableview resetNoMoreData];
         }
         
         if([type isEqualToString:@"more"] && array.count <= 0){
             [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多动态信息");
             return;
         }
 
@@ -136,7 +146,7 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(0,0,0,0));
+        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(5,0,0,0));
     }];
     
     //列表视图事件部分
@@ -155,6 +165,8 @@
         [weakSelf loadMoreData];
         
     };
+    
+    _tableview.marginBottom = 10;
     
     
 }
@@ -188,6 +200,8 @@
     //设置位置
     cell.dynamicFrame = frameData;
     
+    cell.isDeleteBtn  = NO;
+    
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     
@@ -204,6 +218,16 @@
     DynamicFrame * frameData = _tableData[indexPath.row];
     CGFloat cellHeight       = frameData.cellHeight;
     return cellHeight;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    //获取当前动态ID
+    DynamicFrame * dynamicFrame = _tableData[indexPath.row];
+    
+    //向外传递
+    [self.delegate dynamicCommentClick:dynamicFrame];
+    
 }
 
 
@@ -258,6 +282,40 @@
     NSInteger      userId       = dynamicFrame.dynamicModel.userId;
     
     [self.delegate dynamicConcernClick:userId];
+}
+
+//删除动态
+-(void)deleteBtnClick:(DynamicCell *)cell {
+    
+    //获取当前动态ID
+    NSIndexPath  * indxPath     = [_tableview indexPathForCell:cell];
+    DynamicFrame * dynamicFrame = _tableData[indxPath.row];
+    NSInteger dynamicId         = dynamicFrame.dynamicModel.dynamicId;
+
+    [self.delegate deleteDynamic:dynamicId];
+}
+
+//播放视频
+-(void)videoPlayerBtnClick:(DynamicCell *)cell {
+    
+    //获取视频URL
+    NSIndexPath  * indxPath     = [_tableview indexPathForCell:cell];
+    DynamicFrame * dynamicFrame = _tableData[indxPath.row];
+    
+    NSString * videoUrlStr = @"";
+    if(dynamicFrame.dynamicModel.videoType == 0){
+        videoUrlStr = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dynamicFrame.dynamicModel.videoUrl];
+    }else{
+        videoUrlStr = dynamicFrame.dynamicModel.videoUrl;
+    }
+
+    [self.delegate dynamicVideoPlayer:videoUrlStr];
+    
+}
+
+//重新加载数据
+-(void)reloadData {
+    [_tableview beginHeaderRefresh];
 }
 
 

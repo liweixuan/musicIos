@@ -35,10 +35,7 @@
     
     //创建分页控件
     [self createUIPageControl];
-    
-    //创建展现图片
-    //[self createImage];
-    
+
     //创建返回按钮
     [self popButton];
     

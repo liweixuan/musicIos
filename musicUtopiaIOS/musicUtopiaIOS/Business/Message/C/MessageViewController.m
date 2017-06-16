@@ -7,6 +7,8 @@
 #import "MusicArticleViewController.h"
 #import "RichScanViewController.h"
 #import "ApplyFriendViewController.h"
+#import "ApplyOrganizationViewController.h"
+#import "GroupChatViewController.h"
 
 @interface MessageViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
@@ -84,7 +86,7 @@
         imgv
         .L_Frame(CGRectMake(0,-1,18, 18))
         .L_Click(self,@selector(openMenuClick))
-        .L_ImageName(@"jiahao");
+        .L_ImageName(@"jiahao2");
     }];
     
     UIBarButtonItem * rightBtn = [[UIBarButtonItem alloc] initWithCustomView:rightImage];
@@ -141,7 +143,7 @@
 
     _popView = [UIView ViewInitWith:^(UIView *view) {
         view
-        .L_Frame(CGRectMake(D_WIDTH - 100 - CONTENT_PADDING_LEFT,70,100,130))
+        .L_Frame(CGRectMake(D_WIDTH - 110 - CONTENT_PADDING_LEFT,70,110,100))
         .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
         .L_shadowOpacity(0.2)
         .L_Alpha(0.0)
@@ -158,10 +160,9 @@
     
     //在容器中创建菜单
     NSArray * popMenuArr = @[
-                             @{@"icon":@"liaotianshi",@"text":@"聊天室"},
+                             @{@"icon":@"liaotianshi",@"text":@"主题聊天"},
                              @{@"icon":@"wenzhang",@"text":@"音乐文章"},
-                             @{@"icon":@"shipin",@"text":@"音乐视频"},
-                             @{@"icon":@"saoyisao",@"text":@"扫一扫"}
+                             @{@"icon":@"shipin",@"text":@"音乐视频"}
     ];
     
     CGFloat popMenuY = 5.0;
@@ -179,7 +180,7 @@
         //标题图标
         UIImageView * popMenuIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
-            .L_Frame(CGRectMake(0,[popMenuBox height]/2 - SMALL_ICON_SIZE /2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_Frame(CGRectMake(0,[popMenuBox height]/2 - CONTENT_FONT_SIZE /2 - 1,CONTENT_FONT_SIZE,CONTENT_FONT_SIZE))
             .L_ImageName(popMenuArr[i][@"icon"])
             .L_AddView(popMenuBox);
         }];
@@ -190,7 +191,7 @@
             .L_Frame(CGRectMake([popMenuIcon right]+10,0, 60, [popMenuBox height]))
             .L_TextColor([UIColor whiteColor])
             .L_Text(popMenuArr[i][@"text"])
-            .L_Font(ATTR_FONT_SIZE)
+            .L_Font(CONTENT_FONT_SIZE)
             .L_AddView(popMenuBox);
         }];
         
@@ -199,8 +200,8 @@
             //分割线
             [UIView ViewInitWith:^(UIView *view) {
                 view
-                .L_Frame(CGRectMake(0,[popMenuBox height]-1, [popMenuBox width], 1))
-                .L_BgColor(HEX_COLOR(@"#E0E0E0"))
+                .L_Frame(CGRectMake(0,[popMenuBox height]-1, [popMenuBox width],PX_1))
+                .L_BgColor(HEX_COLOR(@"E0E0E0"))
                 .L_AddView(popMenuBox);
             }];
             
@@ -307,6 +308,12 @@
     if([rcc.targetId isEqualToString:@"ADD_FRIEND_SYSTEM_USER"]){
         PUSH_VC(ApplyFriendViewController,YES,@{});
         
+    }else if([rcc.targetId isEqualToString:@"JOIN_ORGANIZATION_SYSTEM_USER"]){
+        PUSH_VC(ApplyOrganizationViewController,YES,@{});
+    
+    }else if([rcc.senderUserId isEqualToString:@"SYSTEM_GROUP_USER"]){
+        
+        PUSH_VC(GroupChatViewController,YES,@{});
         
     }else{
         PUSH_VC(PrivateChatViewController,YES,@{@"conversation":rcc});

@@ -21,7 +21,7 @@
         
 
         //性别图标位置
-        self.sexIconFrame = CGRectMake(CGRectGetMaxX(self.headerUrlFrame) + CONTENT_MARGIN_LEFT,CGRectGetMinY(self.headerUrlFrame) + 10,SMALL_ICON_SIZE,SMALL_ICON_SIZE);
+        self.sexIconFrame = CGRectMake(CGRectGetMaxX(self.headerUrlFrame) + CONTENT_MARGIN_LEFT,CGRectGetMinY(self.headerUrlFrame) + 12,SMALL_ICON_SIZE,SMALL_ICON_SIZE);
         
         //性别内容
         self.sexFrame = CGRectMake(CGRectGetMaxX(self.sexIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.sexIconFrame),30,ATTR_FONT_SIZE);
@@ -31,7 +31,7 @@
         self.nickNameFrame = CGRectMake(CGRectGetMaxX(self.sexFrame),CGRectGetMinY(self.sexIconFrame)-2,nicknameSize.width,TITLE_FONT_SIZE);
         
         //动态类型图标
-        self.categoryIconFrame = CGRectMake(D_WIDTH-(CARD_MARGIN_LEFT*2)-(CONTENT_PADDING_LEFT*2)-30/2,CGRectGetMinY(self.headerUrlFrame), 30, 30);
+        self.categoryIconFrame = CGRectMake(D_WIDTH-(CARD_MARGIN_LEFT*2)-20-MIDDLE_ICON_SIZE/2,CGRectGetMinY(self.headerUrlFrame), MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
         
         //位置图标
         self.locationIconFrame = CGRectMake(CGRectGetMinX(self.sexIconFrame), CGRectGetMaxY(self.sexIconFrame)+CONTENT_PADDING_TOP,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
@@ -47,7 +47,7 @@
         self.locationFrame = CGRectMake(CGRectGetMaxX(self.locationIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.locationIconFrame),locationSize.width,ATTR_FONT_SIZE);
         
         //内容
-        CGSize contentSize = [G labelAutoCalculateRectWith:self.dynamicModel.content FontSize:CONTENT_FONT_SIZE MaxSize:CGSizeMake(cardWidth - CONTENT_PADDING_LEFT *2, 1000)];
+        CGSize contentSize = [G labelAutoCalculateRectWith:self.dynamicModel.content FontSize:SUBTITLE_FONT_SIZE MaxSize:CGSizeMake(cardWidth - CONTENT_PADDING_LEFT *2, 1000)];
         
         //判断如果没有内容，将content的高度设置为0
         if(contentSize.width<=0){ contentSize.height = 0.0; }
@@ -99,10 +99,13 @@
         }else if(self.dynamicModel.dynamicType == 2){
             
             if(self.dynamicModel.videoType == 0){
-                self.videoBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+CONTENT_MARGIN_TOP, (cardWidth - CONTENT_PADDING_LEFT * 2)/2, (cardWidth - CONTENT_PADDING_LEFT * 2)*0.7);
+                self.videoBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+CONTENT_MARGIN_TOP, (cardWidth - CONTENT_PADDING_LEFT * 2)/2, (cardWidth - CONTENT_PADDING_LEFT * 2)*0.9);
             }else{
                 self.videoBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT * 2, (cardWidth - CONTENT_PADDING_LEFT * 2)*0.7);
             }
+            
+            //播放按钮
+            self.videoPlayerFrame = CGRectMake(self.videoBoxFrame.size.width/2 - 60/2,self.videoBoxFrame.size.height/2 - 60/2,60,60);
             
             
         //判断是否为音频类型
@@ -127,15 +130,15 @@
         }
         
         if(self.dynamicModel.tag.length > 0){
-            tagBoxH = 40;
+            tagBoxH = 30;
         }
         
         //标签容器
-        self.tagBoxFrame = CGRectMake(CONTENT_PADDING_LEFT,tagBoxY + CONTENT_MARGIN_TOP,cardWidth - CONTENT_PADDING_LEFT * 2, tagBoxH);
+        self.tagBoxFrame = CGRectMake(CONTENT_PADDING_LEFT,tagBoxY + 5,cardWidth - CONTENT_PADDING_LEFT * 2, tagBoxH);
 
 
         //操作区域容器
-        self.actionBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.tagBoxFrame) + CONTENT_MARGIN_TOP,cardWidth - CONTENT_PADDING_LEFT * 2, 30);
+        self.actionBoxFrame = CGRectMake(CONTENT_PADDING_LEFT + 2, CGRectGetMaxY(self.tagBoxFrame) + 9,cardWidth - CONTENT_PADDING_LEFT * 2, 30);
 
         //评论容器
         self.commentBoxFrame = CGRectMake(0,0,self.actionBoxFrame.size.width/3,30);
@@ -165,7 +168,7 @@
         self.concernTextFrame = CGRectMake(CGRectGetMaxX(self.concernIconFrame) + ICON_MARGIN_CONTENT,0,100,30);
  
         //行高度
-        self.cellHeight = CGRectGetMaxY(self.tagBoxFrame) + CONTENT_MARGIN_TOP*4 + self.actionBoxFrame.size.height;
+        self.cellHeight = CGRectGetMaxY(self.tagBoxFrame) + CONTENT_MARGIN_TOP*3 + self.actionBoxFrame.size.height;
         
   
         

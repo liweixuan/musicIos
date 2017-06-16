@@ -141,3 +141,4 @@
 #import <RongIMLib/RongIMLib.h>
 #import "RongCloudData.h"
 #import "MemberInfoData.h"
+#import "GroupInfoData.h"

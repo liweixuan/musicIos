@@ -8,6 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
-@interface VideoRecordingViewController : UIViewController
+@protocol VideoRecordingDelegate <NSObject>
 
+//发送小视频
+-(void)sendVideo:(NSString *)videoPath;
+
+@end
+
+@interface VideoRecordingViewController : UIViewController
+@property(nonatomic,strong)id<VideoRecordingDelegate> delegate;
 @end

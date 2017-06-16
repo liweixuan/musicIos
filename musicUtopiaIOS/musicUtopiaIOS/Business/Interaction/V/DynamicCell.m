@@ -15,6 +15,7 @@
     UILabel     * _contentView;
     UIView      * _imageBoxView;
     UIView      * _videoBoxView;
+    UIImageView * _videoPlayerIconView;
     UIView      * _audioBoxView;
     UIView      * _tagBoxView;
     UIView      * _actionBoxView;
@@ -27,6 +28,8 @@
     UILabel     * _zanCountView;
     UIImageView * _concernIconView;
     UILabel     * _concernTextView;
+    
+    UIImageView * _deleteDynamicBtn;
     
     NSArray     * _imageArr; //图片数组
 }
@@ -83,8 +86,11 @@
         
         _categoryIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
+            .L_ImageMode(UIViewContentModeScaleAspectFit)
             .L_AddView(_cellBox);
         }];
+        
+        //_categoryIconView.hidden = YES;
         
         _locationIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
@@ -102,7 +108,7 @@
         _contentView = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
-            .L_Font(CONTENT_FONT_SIZE)
+            .L_Font(SUBTITLE_FONT_SIZE)
             .L_numberOfLines(0)
             .L_AddView(_cellBox);
         }];
@@ -184,10 +190,27 @@
             .L_AddView(_cellBox);
         }];
         
+        _videoPlayerIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+            imgv
+            .L_ImageName(@"bofang")
+            .L_Event(YES)
+            .L_Click(self,@selector(videoPlayerClick))
+            .L_radius(30);
+        }];
+        
         _audioBoxView = [UIView ViewInitWith:^(UIView *view) {
             view
             .L_AddView(_cellBox);
         }];
+        
+        _deleteDynamicBtn = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+            imgv
+            .L_ImageName(ICON_DEFAULT)
+            .L_Event(YES)
+            .L_Click(self,@selector(deleteDynamicClick))
+            .L_AddView(_cellBox);
+        }];
+        _deleteDynamicBtn.hidden = YES;
         
 
         
@@ -195,12 +218,16 @@
     return self;
 }
 
+
+
 //设置位置
 -(void)layoutSubviews {
     [super layoutSubviews];
 
     //行容器大小
-    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP * 2);
+    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP);
+    
+    _deleteDynamicBtn.frame = CGRectMake([_cellBox width] - BIG_ICON_SIZE - 12, [_cellBox height] - BIG_ICON_SIZE - 15, BIG_ICON_SIZE, BIG_ICON_SIZE);
 }
 
 //设置位置+数据
@@ -213,7 +240,7 @@
     _headerUrlView.frame = dynamicFrame.headerUrlFrame;
     NSString * headerImageStr = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dynamicFrame.dynamicModel.headerUrl];
     [_headerUrlView sd_setImageWithURL:[NSURL URLWithString:headerImageStr] placeholderImage:[UIImage imageNamed:HEADER_DEFAULT]];
-    _headerUrlView.L_Round();
+    _headerUrlView.L_radius(5);
     
     //性别图标
     _sexIconView.frame = dynamicFrame.sexIconFrame;
@@ -294,10 +321,14 @@
                
                 imgv
                 .L_Frame(CGRectMake(ix,iy,dynamicFrame.imagesSize.width,dynamicFrame.imagesSize.height))
-                .L_BgColor([UIColor grayColor])
+                .L_BgColor(HEX_COLOR(@"#F5F5F5"))
                 .L_Event(YES)
+                .L_ImageMode(UIViewContentModeScaleAspectFill)
                 .L_ImageUrlName(imageUrl,IMAGE_DEFAULT)
                 .L_Click(self,@selector(imageClick:))
+                .L_borderWidth(1)
+                .L_borderColor(HEX_COLOR(@"#EEEEEE"))
+                .L_radius(5)
                 .L_tag(i)
                 .L_AddView(_imageBoxView);
                 
@@ -314,23 +345,39 @@
         //视频容器
         _videoBoxView.frame = dynamicFrame.videoBoxFrame;
         
+
         //根据视频类别加载占位图
         NSString * videoDefaultImage = @"";
+        NSString * videoImageUrl = @"";
         
         if(dynamicFrame.dynamicModel.videoType == 0){
             videoDefaultImage = MOBILE_VIDEO_DEFAULT;
+            videoImageUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dynamicFrame.dynamicModel.videoImage];
         }else{
             videoDefaultImage = VIDEO_DEFAULT;
+            videoImageUrl = dynamicFrame.dynamicModel.videoImage;
         }
-        
-        //创建视频占位图
-        [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+
+ 
+        //创建视频标题图
+        UIImageView * imagev = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(0,0,[_videoBoxView width],[_videoBoxView height]))
-            .L_ImageName(videoDefaultImage)
-            .L_ImageMode(UIViewContentModeScaleAspectFit)
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
+            .L_radius(5)
             .L_AddView(_videoBoxView);
         }];
+        
+        //加载完成后，添加播放按钮
+        [imagev sd_setImageWithURL:[NSURL URLWithString:videoImageUrl] placeholderImage:[UIImage imageNamed:videoDefaultImage] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+            
+            //播放按钮
+            _videoPlayerIconView.frame = dynamicFrame.videoPlayerFrame;
+            [_videoBoxView addSubview:_videoPlayerIconView];
+            
+        }];
+        
+        
         
         
     }
@@ -367,18 +414,18 @@
             CGSize s = [G labelAutoCalculateRectWith:tags[i] FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(1000, 1000)];
             
             //创建UILabel
-            TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(nowX,5,s.width + 30,30)];
+            TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(nowX,5,s.width + TAG_SIZE,TAG_SIZE)];
             tagLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
             tagLabel.text = tags[i];
             tagLabel.textColor = [UIColor whiteColor];
             tagLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
             tagLabel.layer.masksToBounds = YES;
-            tagLabel.layer.cornerRadius = 15;
-            tagLabel.insets = UIEdgeInsetsMake(0,15, 0,15);
+            tagLabel.layer.cornerRadius = TAG_SIZE/2;
+            tagLabel.insets = UIEdgeInsetsMake(0,TAG_SIZE/2, 0,TAG_SIZE/2);
             [_tagBoxView addSubview:tagLabel];
             
             //X轴位置变化
-            nowX += s.width + 30 + 10;
+            nowX += s.width + TAG_SIZE + 10;
         }
     }
     
@@ -396,7 +443,7 @@
     //评论内容
     _commentCountView.frame = dynamicFrame.commentCountFrame;
     _commentCountView.L_Text([NSString stringWithFormat:@"评论(%ld)",(long)dynamicFrame.dynamicModel.commentCount]);
-    
+
     //点赞图标
     _zanIconView.frame = dynamicFrame.zanIconFrame;
     
@@ -410,12 +457,29 @@
     //关注容器
     _concernBoxView.frame = dynamicFrame.concernBoxFrame;
     
-    //点赞图标
+    //关注图标
     _concernIconView.frame = dynamicFrame.zanIconFrame;
     
-    //点赞内容
+    //关注内容
     _concernTextView.frame = dynamicFrame.zanCountFrame;
-    _concernTextView.L_Text([NSString stringWithFormat:@"关注"]);
+    _concernTextView.L_Text([NSString stringWithFormat:@"关注该用户"]);
+    
+    
+    
+    
+}
+
+-(void)setIsDeleteBtn:(BOOL)isDeleteBtn {
+
+    NSLog(@"123123123");
+    if(isDeleteBtn){
+        
+        _zanBoxView.hidden     = YES;
+        _concernBoxView.hidden = YES;
+        
+        //显示删除按钮
+        _deleteDynamicBtn.hidden = NO;
+    }
 }
 
 //图片点击
@@ -469,4 +533,14 @@
     
 }
 
+//删除按钮点击
+-(void)deleteDynamicClick {
+    [self.delegate deleteBtnClick:self];
+}
+
+//播放按钮
+-(void)videoPlayerClick {
+    NSLog(@"播放");
+    [self.delegate videoPlayerBtnClick:self];
+}
 @end

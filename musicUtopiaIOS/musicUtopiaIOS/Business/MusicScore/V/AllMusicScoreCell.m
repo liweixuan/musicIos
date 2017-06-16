@@ -35,6 +35,7 @@
         _musicCoverView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             
             imgv
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_radius(5)
             .L_AddView(_cellBox);
             
@@ -79,20 +80,21 @@
 -(void)setDictData:(NSDictionary *)dictData {
     
     //乐器类型图片
+    NSString * coverUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dictData[@"msc_title_image"]];
     _musicCoverView.frame = CGRectMake(CONTENT_PADDING_LEFT,12, 110,80);
-    _musicCoverView.L_ImageName(@"gangqin.jpg");
+    _musicCoverView.L_ImageUrlName(coverUrl,RECTANGLE_IMAGE_DEFAULT);
     
     //乐器类别名称
     _musicCategoryView.frame = CGRectMake([_musicCoverView right]+CONTENT_PADDING_LEFT,[_musicCoverView top] + 15,80,TITLE_FONT_SIZE);
-    _musicCategoryView.L_Text(dictData[@"c_name"]);
+    _musicCategoryView.L_Text(dictData[@"msc_name"]);
 
     //总谱图标
     _buyCountIconView.frame = CGRectMake([_musicCategoryView left], [_musicCoverView bottom]-20, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
     _buyCountIconView.L_ImageName(@"qupuzongshu");
     
     //总铺数
-    _buyCountView.frame = CGRectMake([_buyCountIconView right]+ICON_MARGIN_CONTENT,[_buyCountIconView top],200,CONTENT_FONT_SIZE);
-    _buyCountView.L_Text([NSString stringWithFormat:@"总谱数 : %@ 首",@"1000"]);
+    _buyCountView.frame = CGRectMake([_buyCountIconView right]+ICON_MARGIN_CONTENT,[_buyCountIconView top] - 1,200,CONTENT_FONT_SIZE);
+    _buyCountView.L_Text([NSString stringWithFormat:@"总谱数 : %@ 首",dictData[@"msc_count"]]);
     
     //右侧箭头
     _iconRightView.frame = CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - CONTENT_PADDING_LEFT - MIDDLE_ICON_SIZE,100/2 - MIDDLE_ICON_SIZE/2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE);

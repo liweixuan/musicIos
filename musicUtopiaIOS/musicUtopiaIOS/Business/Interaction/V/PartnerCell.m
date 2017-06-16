@@ -175,7 +175,7 @@
     [super layoutSubviews];
 
     //行容器大小
-    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP * 2);
+    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP);
 }
 
 //设置位置+数据
@@ -187,7 +187,9 @@
     
     //头像
     _headerUrlView.frame = partnerFrame.headerUrlFrame;
-    _headerUrlView.L_Round();
+    NSString * headerImageStr = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,partnerFrame.partnerModel.headerUrl];
+    [_headerUrlView sd_setImageWithURL:[NSURL URLWithString:headerImageStr] placeholderImage:[UIImage imageNamed:HEADER_DEFAULT]];
+    _headerUrlView.L_radius(5);
     
     //性别图标
     _sexIconView.frame = partnerFrame.sexIconFrame;
@@ -223,18 +225,18 @@
             CGSize s = [G labelAutoCalculateRectWith:tags[i] FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(1000, 1000)];
             
             //创建UILabel
-            TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(nowX,5,s.width + 30,30)];
+            TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(nowX,5,s.width + TAG_SIZE,TAG_SIZE)];
             tagLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
             tagLabel.text = tags[i];
             tagLabel.textColor = [UIColor whiteColor];
             tagLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
             tagLabel.layer.masksToBounds = YES;
-            tagLabel.layer.cornerRadius = 15;
-            tagLabel.insets = UIEdgeInsetsMake(0,15, 0,15);
+            tagLabel.layer.cornerRadius = TAG_SIZE/2;
+            tagLabel.insets = UIEdgeInsetsMake(0,TAG_SIZE/2, 0,TAG_SIZE/2);
             [_tagBoxView addSubview:tagLabel];
             
             //X轴位置变化
-            nowX += s.width + 30 + 10;
+            nowX += s.width + TAG_SIZE + 10;
         }
     }
     
@@ -258,14 +260,14 @@
     _askBoxView.frame = partnerFrame.askContentBoxFrame;
     
     //创建容器内容
-    if(partnerFrame.partnerModel.partnerTags.length > 0){
+    if(partnerFrame.partnerModel.partnerAsk.length > 0){
         
-        NSArray *tags = [partnerFrame.partnerModel.partnerTags componentsSeparatedByString:@"|"];
+        NSArray *asks = [partnerFrame.partnerModel.partnerAsk componentsSeparatedByString:@"|"];
         
         CGFloat askItemHeight = 24;
         
         //创建内容
-        for(int i=0;i<tags.count;i++){
+        for(int i=0;i<asks.count;i++){
             
             CGFloat tagY = askItemHeight * i;
             
@@ -279,13 +281,13 @@
             //序号
             UILabel * indexLabel = [UILabel LabelinitWith:^(UILabel *la) {
                la
-                .L_Frame(CGRectMake(0,[askItemView height]/2 - 16/2,16,16))
+                .L_Frame(CGRectMake(0,[askItemView height]/2 - 12/2,12,12))
                 .L_Text([NSString stringWithFormat:@"%d",(i+1)])
                 .L_BgColor(HEX_COLOR(BG_GARY))
-                .L_Font(12)
+                .L_Font(10)
                 .L_textAlignment(NSTextAlignmentCenter)
                 .L_TextColor(HEX_COLOR(@"#FFFFFF"))
-                .L_radius(8)
+                .L_radius(6)
                 .L_AddView(askItemView);
             }];
             
@@ -293,7 +295,7 @@
             [UILabel LabelinitWith:^(UILabel *la) {
                 la
                 .L_Frame(CGRectMake([indexLabel right]+ICON_MARGIN_CONTENT,[askItemView height]/2 - 20/2,[askItemView width] - 30,20))
-                .L_Text(tags[i])
+                .L_Text(asks[i])
                 .L_Font(CONTENT_FONT_SIZE)
                 .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
                 .L_AddView(askItemView);

@@ -115,9 +115,27 @@
             .L_Frame(CGRectMake([cItemView width] - MIDDLE_ICON_SIZE - 5,5,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
             .L_BtnImageName(@"weixuanzhong",UIControlStateNormal)
             .L_BtnImageName(@"xuanzhong",UIControlStateSelected)
+            .L_tag(i)
             .L_AddView(cItemView);
             
         } buttonType:UIButtonTypeCustom];
+
+        [categorySelectedBtn addClickedBlock:^(id obj) {
+            
+            NSInteger idx = ((UIView *)obj).tag;
+            
+            NSDictionary * dictData = cArr[idx];
+            
+            for(int i = 0;i<_categoryBtnArr.count;i++){
+                ((UIButton *)_categoryBtnArr[i]).selected = NO;
+            }
+            
+            ((UIButton *)_categoryBtnArr[idx]).selected = YES;
+            
+            
+            [self.delegate categoryClick:dictData[@"c_name"] Cid:[dictData[@"c_id"] integerValue]];
+            
+        }];
         
         
         [_categoryBtnArr addObject:categorySelectedBtn];
@@ -130,7 +148,6 @@
         
         
     }
-
     
     return @{ @"view" : boxView , @"height" : @([boxView height]) };
     

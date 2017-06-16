@@ -4,39 +4,81 @@
 #import "MyCell.h"
 #import "MyEditViewController.h"
 #import "SettingViewController.h"
+#import "MyDynamicViewController.h"
+#import "MyPlayVideoViewController.h"
+#import "MyPartakeMatchViewController.h"
+#import "MyHistoryMatchViewController.h"
+#import "MyUpgradeViewController.h"
 
-@interface MyViewController()<UITableViewDelegate,UITableViewDataSource>
+@interface MyViewController()<UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate>
 {
     Base_UITableView * _tableview;
     UIView           * _loadView;
-    NSArray          * _tableData;
+    NSDictionary     * _tableDictData;
 }
 @end
 
 @implementation MyViewController
 -(void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"会员中心";
-
-    //创建表视图
-    [self createTableview];
+    self.title = @"我的";
+    
+    //初始化变量
+    [self initVar];
     
     //创建导航按钮
     R_NAV_TITLE_BTN(@"R",@"编辑",editInfoClick)
+
+    //初始化数据
+    [self initData];
     
-    //创建头部视图
-    [self createHeaderview];
-    
+
+    //开始加载
+    [self startLoading];
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
     self.navigationController.navigationBar.layer.shadowOpacity = 0.1;
+    
 }
 
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:YES];
     self.navigationController.navigationBar.layer.shadowOpacity = 0.0;
+}
+
+-(void)initVar {
+    _tableDictData = [NSDictionary dictionary];
+}
+
+-(void)initData {
+    
+    //获取个人信息
+    NSInteger uid       = [UserData getUserId];
+    NSString * username = [UserData getUsername];
+    
+    NSArray * params = @[@{@"key":@"u_id",@"value":@(uid)},@{@"key":@"u_username",@"value":username}];
+    NSString * url   = [G formatRestful:API_USER_DETAIL_INFO Params:params];
+    
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        [self endLoading];
+        
+        _tableDictData = (NSDictionary *)array;
+
+        //创建表视图
+        [self createTableview];
+        
+        //创建头部视图
+        [self createHeaderview];
+
+        
+    } errorBlock:^(NSString *error) {
+        [self endLoading];
+        NSLog(@"%@",error);
+    }];
 }
 
 //创建表视图
@@ -72,7 +114,7 @@
         view
         .L_Frame(CGRectMake(CARD_MARGIN_LEFT,0,D_WIDTH - CARD_MARGIN_LEFT*2,380));
     }];
-    
+
     //头视图容器
     UIView * headerBox = [UIView ViewInitWith:^(UIView *view) {
         view
@@ -85,19 +127,22 @@
     }];
     
      //背景
-//    UIImageView * bgImageview = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-//        imgv
-//        .L_Frame(CGRectMake(0,-55,D_WIDTH,190))
-//        .L_ImageName(@"my_header_bg")
-//        .L_ImageMode(UIViewContentModeScaleAspectFit)
-//        .L_AddView(headerBox);
-//    }];
+    [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+        imgv
+        .L_Frame(CGRectMake(0,-55,D_WIDTH,190))
+        .L_ImageName(@"my_header_bg")
+        .L_ImageMode(UIViewContentModeScaleAspectFit)
+        .L_AddView(headerBox);
+    }];
     
     //头像
+    NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,_tableDictData[@"u_header_url"]];
+    NSLog(@"%@",headerUrl);
     UIImageView * headerImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
        imgv
-        .L_Frame(CGRectMake(D_WIDTH/2 - 70/2,70/2,70,70))
-        .L_ImageName(HEADER_DEFAULT)
+        .L_Frame(CGRectMake(D_WIDTH/2 - 70/2,70/2+20,70,70))
+        .L_ImageUrlName(headerUrl,HEADER_DEFAULT)
+        .L_Round()
         .L_AddView(headerBox);
     }];
     
@@ -119,16 +164,18 @@
     UILabel * nicknameLabel = [UILabel LabelinitWith:^(UILabel *la) {
         la
         .L_Frame(CGRectMake(D_WIDTH/2 - 80 / 2,[headerImage bottom]+CONTENT_PADDING_TOP,80,SUBTITLE_FONT_SIZE))
-        .L_Text(@"桃子小姐")
+        .L_Text(_tableDictData[@"u_nickname"])
+        .L_textAlignment(NSTextAlignmentCenter)
         .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
         .L_AddView(headerBox);
     }];
     
     //性别标签
+    NSString * sexIconStr = [BusinessEnum getSexIcon:[_tableDictData[@"u_sex"] integerValue]];
     UIImageView * sexIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
        imgv
         .L_Frame(CGRectMake(D_WIDTH/2 - SMALL_ICON_SIZE/2 - ATTR_FONT_SIZE/2,[nicknameLabel bottom]+CONTENT_PADDING_TOP,SMALL_ICON_SIZE, SMALL_ICON_SIZE))
-        .L_ImageName(ICON_DEFAULT)
+        .L_ImageName(sexIconStr)
         .L_AddView(headerBox);
     }];
     
@@ -137,17 +184,17 @@
         la
         .L_Frame(CGRectMake([sexIcon right]+ICON_MARGIN_CONTENT,[sexIcon top],30,ATTR_FONT_SIZE))
         .L_Font(ATTR_FONT_SIZE)
-        .L_Text(@"男")
+        .L_Text([BusinessEnum getSex:[_tableDictData[@"u_sex"] integerValue]])
         .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
         .L_AddView(headerBox);
     }];
     
     //乐币
-    NSString *musicMoney = [NSString stringWithFormat:@"M币: <color value='#FFA500'>200</>"];
+    NSString *musicMoney = [NSString stringWithFormat:@"M币: <color value='#FFA500'>%@</>",_tableDictData[@"u_money"]];
     
     UILabel * musicMoneyTitle = [UILabel LabelinitWith:^(UILabel *la) {
         la
-        .L_Frame(CGRectMake(0,[sexIcon bottom]+20, [headerBox width]/2, SUBTITLE_FONT_SIZE))
+        .L_Frame(CGRectMake(0,[sexIcon bottom]+10, [headerBox width]/2, SUBTITLE_FONT_SIZE))
         .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
         .L_Font(SUBTITLE_FONT_SIZE)
         .L_textAlignment(NSTextAlignmentCenter)
@@ -158,13 +205,15 @@
     musicMoneyTitle.attributedText = musicMoneyStr;
     
     //当前最高乐器级别
+    NSDictionary * levelDict = _tableDictData[@"instrumentLevels"][0];
+    
     [UILabel LabelinitWith:^(UILabel *la) {
         la
-        .L_Frame(CGRectMake([headerBox width]/2,[sexIcon bottom]+20, [headerBox width]/2, SUBTITLE_FONT_SIZE))
+        .L_Frame(CGRectMake([headerBox width]/2,[sexIcon bottom]+10, [headerBox width]/2, SUBTITLE_FONT_SIZE))
         .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
         .L_Font(SUBTITLE_FONT_SIZE)
         .L_textAlignment(NSTextAlignmentCenter)
-        .L_Text(@"古典吉他: 十阶 ")
+        .L_Text([NSString stringWithFormat:@"%@：%@级",levelDict[@"c_name"],levelDict[@"ul_level"]])
         .L_AddView(headerBox);
     }];
     
@@ -186,13 +235,13 @@
         .L_Frame(CGRectMake(0,5,[userInfoBox width],50))
         .L_AddView(userInfoBox);
     }];
-    
+
     //循环创建4个统计数
     NSArray * countArr = @[
-                           @{@"text":@"好友",@"count":@"58"},
-                           @{@"text":@"已关注",@"count":@"98"},
-                           @{@"text":@"被关注",@"count":@"168"},
-                           @{@"text":@"团体",@"count":@"8"}
+                           @{@"text":@"好友",@"count":_tableDictData[@"friendCount"]},
+                           @{@"text":@"已关注",@"count":_tableDictData[@"userConcernCount"]},
+                           @{@"text":@"被关注",@"count":_tableDictData[@"concernUserCount"]},
+                           @{@"text":@"团体",@"count":_tableDictData[@"organizationCount"]}
                            ];
     
     //每项的大小
@@ -216,7 +265,7 @@
             .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
             .L_Font(ATTR_FONT_SIZE)
             .L_textAlignment(NSTextAlignmentCenter)
-            .L_Text(dictData[@"count"])
+            .L_Text([NSString stringWithFormat:@"%@",dictData[@"count"]])
             .L_AddView(countItem);
         }];
         
@@ -254,12 +303,76 @@
         .L_AddView(userInfoBox);
     }];
     
-    //身份容器
-//    UIView * identityView = [UIView ViewInitWith:^(UIView *view) {
-//       view
-//        .L_Frame(CGRectMake(0,[userMiddleLine bottom]+CONTENT_PADDING_TOP,[userInfoBox width],0))
-//        .L_AddView(userInfoBox);
-//    }];
+    //资料完善度容器
+    UIView * personalDataView = [UIView ViewInitWith:^(UIView *view) {
+       view
+        .L_Frame(CGRectMake(0,[userMiddleLine bottom]+CONTENT_PADDING_TOP,[userInfoBox width],60))
+        .L_AddView(userInfoBox);
+    }];
+    
+    //资料完善图标
+    UIImageView * personalDataIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+       imgv
+        .L_Frame(CGRectMake(10,-2,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
+        .L_ImageName(@"ziliao")
+        .L_AddView(personalDataView);
+    }];
+    
+    //资料完善标题
+    UILabel * personalDataTitle = [UILabel LabelinitWith:^(UILabel *la) {
+       la
+        .L_Frame(CGRectMake([personalDataIcon right]+ICON_MARGIN_CONTENT,[personalDataIcon top],120,20))
+        .L_Font(CONTENT_FONT_SIZE)
+        .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
+        .L_Text(@"您的资料完善度：")
+        .L_AddView(personalDataView);
+    }];
+    
+    //进入总容器
+    UIView * personalDataPercentage = [UIView ViewInitWith:^(UIView *view) {
+        view
+        .L_Frame(CGRectMake([personalDataIcon left],[personalDataTitle bottom] + 7,[personalDataView width]-100,30))
+        .L_BgColor([UIColor whiteColor])
+        .L_ShadowColor([UIColor grayColor])
+        .L_shadowOffset(CGSizeMake(1,1))
+        .L_shadowOpacity(0.2)
+        .L_radius_NO_masksToBounds(5)
+        .L_AddView(personalDataView);
+    }];
+    
+    //容器进度
+    UIView * progressValueView = [UIView ViewInitWith:^(UIView *view) {
+       view
+        .L_Frame(CGRectMake(0,0,100,30))
+        .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
+        .L_radius(5)
+        .L_AddView(personalDataPercentage);
+    }];
+    
+    //容器进度显示
+    UILabel * progressValueLabel = [UILabel LabelinitWith:^(UILabel *la) {
+       la
+        .L_Frame(CGRectMake(0,0,[progressValueView width],[progressValueView height]))
+        .L_textAlignment(NSTextAlignmentCenter)
+        .L_Text(@"20%")
+        .L_TextColor([UIColor whiteColor])
+        .L_AddView(progressValueView);
+    }];
+    
+    //去完善按钮
+    [UIButton ButtonInitWith:^(UIButton *btn) {
+        
+        btn
+        .L_Frame(CGRectMake([personalDataPercentage right]+5,[personalDataPercentage top],80,[personalDataPercentage height]))
+        .L_Title(@"去完善一下",UIControlStateNormal)
+        .L_Font(12)
+        .L_TitleColor(HEX_COLOR(APP_MAIN_COLOR),UIControlStateNormal)
+        .L_TargetAction(self,@selector(editInfoClick),UIControlEventTouchUpInside)
+        .L_AddView(personalDataView);
+        
+        
+    } buttonType:UIButtonTypeCustom];
+    
     
     /*
      @{@"text":@"官方教师",@"icon":ICON_DEFAULT,@"isOpen":@(0)},
@@ -366,25 +479,25 @@
     //判断相应列给予相应数据
     if(indexPath.section == 0){
         if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"我的动态"};
+            cell.dictData = @{@"icon":@"wodedongtai",@"text":@"我的动态"};
         }else if(indexPath.row == 1){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"我的演奏集"};
+            cell.dictData = @{@"icon":@"wodeyanzouji",@"text":@"我的演奏"};
         }else{
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"我的收藏"};
+            cell.dictData = @{@"icon":@"wodeshoucang",@"text":@"我的收藏"};
         }
     }else if(indexPath.section == 1){
         if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"正在参与的比赛"};
+            cell.dictData = @{@"icon":@"wodebisai",@"text":@"比赛进行"};
         }else if(indexPath.row == 1){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"历史赛事"};
+            cell.dictData = @{@"icon":@"lishisaishi",@"text":@"历史赛事"};
         }
     }else if(indexPath.section == 2){
         if(indexPath.row == 0){
-             cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"升阶考试"};
+             cell.dictData = @{@"icon":@"shengjiekaoshi",@"text":@"升级评测"};
         }
     }else{
         if(indexPath.row == 0){
-            cell.dictData = @{@"icon":ICON_DEFAULT,@"text":@"设置"};
+            cell.dictData = @{@"icon":@"shezhi",@"text":@"系统设置"};
         }
     }
     
@@ -401,7 +514,7 @@
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return @"";
+    return @" ";
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -414,7 +527,7 @@
     //创建标题
     UILabel * titleSection = [UILabel LabelinitWith:^(UILabel *la) {
        la
-        .L_Frame(CGRectMake(0,0,[titleSectionView width],40))
+        .L_Frame(CGRectMake(15,0,[titleSectionView width],30))
         .L_Font(TITLE_FONT_SIZE)
         .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
         .L_AddView(titleSectionView);
@@ -425,7 +538,7 @@
     if(section == 0){
         titleStr = @"管理";
     }else if(section == 1){
-        titleStr = @"周/月/季赛";
+        titleStr = @"比赛";
     }else if(section == 2){
         titleStr = @"升阶";
     }else{
@@ -439,7 +552,40 @@
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if(indexPath.section == 3){
+    
+    if(indexPath.section == 0){
+        
+        if(indexPath.row == 0){
+            
+            PUSH_VC(MyDynamicViewController,YES,@{});
+            
+        }else if(indexPath.row == 1){
+            
+            PUSH_VC(MyPlayVideoViewController, YES, @{});
+            
+        }else if(indexPath.row == 2){
+            
+            
+            
+        }
+    }else if(indexPath.section == 1){
+        
+        if(indexPath.row == 0){
+            PUSH_VC(MyPartakeMatchViewController, YES, @{});
+        }else{
+            PUSH_VC(MyHistoryMatchViewController, YES, @{});
+        }
+        
+    }else if(indexPath.section == 2){
+        
+        if(indexPath.row == 0){
+            
+            PUSH_VC(MyUpgradeViewController,YES,@{});
+            
+        }
+    
+    }else if(indexPath.section == 3){
+        
         if(indexPath.row == 0){
             
             NSLog(@"设置");
@@ -452,6 +598,7 @@
 
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+
     CGFloat sectionHeaderHeight = 30;
     if(scrollView.contentOffset.y<=sectionHeaderHeight&&scrollView.contentOffset.y>=0) {
         scrollView.contentInset = UIEdgeInsetsMake(-scrollView.contentOffset.y, 0, 0, 0);
@@ -459,23 +606,8 @@
         scrollView.contentInset = UIEdgeInsetsMake(-sectionHeaderHeight, 0, 0, 0);
     }
     
-
-//    
-//    if(scrollView.contentOffset.y > 80){
-//        self.navigationController.navigationBar.hidden = NO;
-//        [UIView animateWithDuration:0.3 animations:^{
-//            self.navigationController.navigationBar.alpha = 1;
-//            
-//        }];
-//        
-//        
-//    }else{
-//        
-//        [UIView animateWithDuration:0.3 animations:^{
-//            self.navigationController.navigationBar.alpha = 0;
-//        }];
-//    }
 }
+
 
 #pragma mark - 事件
 //编辑用户信息

@@ -18,9 +18,9 @@
         self.partnerStatus       = [dict[@"fp_status"] integerValue]; //信息状态 0-未关闭 1-已关闭
         self.partnerTags         = dict[@"fp_tag"];
         self.partnerProvinceName = dict[@"fp_province_name"];
-        self.partnerCityName     = dict[@"fp_city_name"];
-        self.partnerDistrictName = dict[@"fp_district_name"];
-        self.partnerAddress      = dict[@"fp_address"];
+        self.partnerCityName     = [BusinessEnum getEmptyString:dict[@"fp_city_name"]];
+        self.partnerDistrictName = [BusinessEnum getEmptyString:dict[@"fp_district_name"]];
+        self.partnerAddress      = [BusinessEnum getEmptyString:dict[@"fp_address"]];
         self.location            = [NSString stringWithFormat:@"%@%@%@%@",self.partnerProvinceName,self.partnerCityName,self.partnerDistrictName,self.partnerAddress];
         self.partnerDesc         = dict[@"fp_desc"];
         self.partnerAsk          = dict[@"fp_ask"];

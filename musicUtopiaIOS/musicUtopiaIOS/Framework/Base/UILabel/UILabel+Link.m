@@ -19,9 +19,32 @@
     
 }
 
+
+-(UILabel *(^)(id,SEL))L_Click {
+    return ^UILabel *(id obj,SEL sel){
+        UITapGestureRecognizer * tap = [[UITapGestureRecognizer alloc] initWithTarget:obj action:sel];
+        [self addGestureRecognizer:tap];
+        return self;
+    };
+}
+
+
 -(UILabel *(^)(BOOL))L_isEvent {
     return ^UILabel *(BOOL e){
         self.userInteractionEnabled = e;
+        return self;
+    };
+}
+
+
+-(UILabel *(^)(UIRectCorner,NSInteger))L_raius_location {
+    return ^UILabel *(UIRectCorner rc,NSInteger rv){
+        
+        UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds byRoundingCorners:rc cornerRadii:CGSizeMake(rv,rv)];
+        CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];
+        maskLayer.frame = self.bounds;
+        maskLayer.path = maskPath.CGPath;
+        self.layer.mask = maskLayer;
         return self;
     };
 }

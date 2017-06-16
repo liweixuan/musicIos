@@ -9,7 +9,9 @@
 -(UIImageView *(^)(UIViewContentMode))L_ImageMode;
 -(UIImageView *(^)(NSInteger))L_Corner;
 -(UIImageView *(^)(BOOL))L_Event;
+-(UIImageView *(^)(NSInteger))L_Tag;
 -(UIImageView *(^)(NSString *,NSString *))L_ImageUrlName;
 -(UIImageView *(^)(id,SEL))L_Click;
+-(UIImageView *(^)(UIRectCorner,NSInteger))L_raius_location;
 +(instancetype)ImageViewInitWith:(void (^)(UIImageView *imgv)) initblock;
 @end

@@ -12,6 +12,7 @@
 
 @interface MusciCategorySelectView : UIView
 
+
 @property(nonatomic,strong)id<MusciCategorySelectViewDelegate> delegate;
 
 -(NSDictionary *)createViewBoxWidth:(CGFloat)boxWidth CategoryArr:(NSArray *)cArr;

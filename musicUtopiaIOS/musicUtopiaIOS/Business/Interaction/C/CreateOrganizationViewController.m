@@ -136,6 +136,7 @@
            imgv
             .L_Frame(CGRectMake(CARD_MARGIN_LEFT,0,D_WIDTH - CARD_MARGIN_LEFT * 2,257))
             .L_Image(_coverImage)
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_radius(5)
             .L_AddView(cell.contentView);
         }];
@@ -163,6 +164,7 @@
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,80/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
             .L_ImageName(@"o_logo")
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_AddView(cell.contentView);
         }];
         
@@ -679,7 +681,8 @@
                               @"o_city"           : _locationData[@"cid"],
                               @"o_district"       : _locationData[@"did"],
                               @"o_type"           : _createOrganizationArr[3][@"content"],
-                              @"o_create_userid"  : @(1),
+                              @"o_create_userid"  : @([UserData getUserId]),
+                              @"o_create_username": [UserData getUsername],
                               @"o_address"        : _createOrganizationArr[2][@"content"],
                               @"o_motto"          : _createOrganizationArr[6][@"content"],
                               @"o_desc"           : _createOrganizationArr[4][@"content"],

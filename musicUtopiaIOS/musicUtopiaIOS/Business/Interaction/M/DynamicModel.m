@@ -13,6 +13,7 @@
         self.videoUrl     = [BusinessEnum getEmptyString:dict[@"d_video_url"]];
         self.username     = dict[@"u_username"];
         self.nickname     = dict[@"u_nickname"];
+        self.videoImage   = dict[@"d_video_image"];
         self.sexIcon      = [BusinessEnum getSexIcon:[dict[@"u_sex"] integerValue]];
         self.sex          = [BusinessEnum getSex:[dict[@"u_sex"] integerValue]];
         self.cname        = dict[@"c_name"];

@@ -8,6 +8,7 @@
 
 #import "DynamicCommentCell.h"
 #import "DynamicCommentFrame.h"
+#import "GONMarkupParser_All.h"
 
 @interface DynamicCommentCell()
 {
@@ -53,8 +54,8 @@
         
         _nicknameView = [UILabel LabelinitWith:^(UILabel *la) {
             la
-            .L_Font(CONTENT_FONT_SIZE)
-            .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
+            .L_Font(SUBTITLE_FONT_SIZE)
+            .L_TextColor(HEX_COLOR(TITLE_FONT_COLOR))
             .L_AddView(_cellBox);
         }];
         
@@ -81,6 +82,8 @@
         
         _replyIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
+            .L_Event(YES)
+            .L_Click(self,@selector(commentReplyClick))
             .L_AddView(_actionView);
         }];
         
@@ -88,11 +91,15 @@
             la
             .L_Font(ATTR_FONT_SIZE)
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+            .L_isEvent(YES)
+            .L_Click(self,@selector(commentReplyClick))
             .L_AddView(_actionView);
         }];
         
         _zanIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
+            .L_Event(YES)
+            .L_Click(self,@selector(commentZanClick))
             .L_AddView(_actionView);
         }];
         
@@ -100,6 +107,8 @@
             la
             .L_Font(ATTR_FONT_SIZE)
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+            .L_isEvent(YES)
+            .L_Click(self,@selector(commentZanClick))
             .L_AddView(_actionView);
         }];
 
@@ -123,11 +132,24 @@
  
     _headerView.frame = dynamicCommentFrame.headerFrame;
     NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dynamicCommentFrame.dynamicCommentDict[@"u_header_url"]];
-    _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
-    _headerView.L_Round();
+    _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT).L_Event(YES).L_Click(self,@selector(headerClick)).L_radius(5);
     
-    _nicknameView.frame = dynamicCommentFrame.nicknameFrame;
-    _nicknameView.L_Text(dynamicCommentFrame.dynamicCommentDict[@"u1_nickname"]);
+    
+    //判断是否为回复
+    if([dynamicCommentFrame.dynamicCommentDict[@"dc_is_reply"] integerValue] == 0){
+        _nicknameView.frame = dynamicCommentFrame.nicknameFrame;
+        _nicknameView.L_Text(dynamicCommentFrame.dynamicCommentDict[@"u1_nickname"]);
+    }else{
+        _nicknameView.frame = dynamicCommentFrame.nicknameFrame;
+        
+        NSString *replyNickname = [NSString stringWithFormat:@"%@ 回复 <color value='#8BB3F1'>%@</>",dynamicCommentFrame.dynamicCommentDict[@"u1_nickname"],dynamicCommentFrame.dynamicCommentDict[@"u2_nickname"]];
+        NSAttributedString *replyNicknameStr = [[GONMarkupParserManager sharedParser] attributedStringFromString:replyNickname error:nil];
+        _nicknameView.attributedText = replyNicknameStr;
+        
+        //_nicknameView.L_Text([NSString stringWithFormat:@"%@ 回复 %@",dynamicCommentFrame.dynamicCommentDict[@"u1_nickname"],dynamicCommentFrame.dynamicCommentDict[@"u2_nickname"]]);
+    }
+    
+    
     
     _timeView.frame = dynamicCommentFrame.timeFrame;
     _timeView.L_Text([G formatData:[dynamicCommentFrame.dynamicCommentDict[@"dc_create_time"] integerValue] Format:@"YYYY-MM-dd"]);
@@ -152,5 +174,16 @@
     
 }
 
+-(void)commentReplyClick {
+    [self.delegate commentReplyClick:self];
+}
+
+-(void)commentZanClick {
+    [self.delegate commentZanClick:self];
+}
+
+-(void)headerClick {
+    [self.delegate commentUserHeaderClick:self];
+}
 
 @end

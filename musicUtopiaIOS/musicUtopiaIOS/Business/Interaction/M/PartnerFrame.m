@@ -42,17 +42,11 @@
         CGSize locationSize = [G labelAutoCalculateRectWith:self.partnerModel.location FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(D_WIDTH,1000)];
         self.locationFrame = CGRectMake(CGRectGetMaxX(self.locationIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.locationIconFrame),locationSize.width,ATTR_FONT_SIZE);
         
-        CGFloat tagBoxH = 0.0;
-        if(self.partnerModel.partnerTags.length > 0){
-            tagBoxH = 40;
-        }
-        
-        //标签容器
-        self.tagBoxFrame = CGRectMake(CONTENT_PADDING_LEFT,CGRectGetMaxY(self.headerUrlFrame) + CONTENT_MARGIN_TOP,cardWidth - CONTENT_PADDING_LEFT * 2, tagBoxH);
         
         //标题
-        self.titleFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.tagBoxFrame) +CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT * 2,TITLE_FONT_SIZE);
-    
+        self.titleFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.headerUrlFrame)+CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT * 2,TITLE_FONT_SIZE);
+        
+      
         //内容
         CGSize contentSize = [G labelAutoCalculateRectWith:self.partnerModel.partnerDesc FontSize:CONTENT_FONT_SIZE MaxSize:CGSizeMake(cardWidth - CONTENT_PADDING_LEFT *2, 1000)];
         
@@ -61,7 +55,7 @@
         self.contentFrame = CGRectMake(CONTENT_PADDING_LEFT,CGRectGetMaxY(self.titleFrame) + CONTENT_MARGIN_TOP,cardWidth - CONTENT_PADDING_LEFT*2,contentSize.height);
         
         //伙伴要求图标
-        self.askIconFrame = CGRectMake(CONTENT_PADDING_LEFT + 2, CGRectGetMaxY(self.contentFrame) + CONTENT_MARGIN_TOP, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
+        self.askIconFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame) + CONTENT_MARGIN_TOP, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
         
         //伙伴要求文字
         self.askFrame = CGRectMake(CGRectGetMaxX(self.askIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.askIconFrame), 100,ATTR_FONT_SIZE);
@@ -69,23 +63,32 @@
         //要求内容容器
         CGFloat askContentHeight = 0.0;
         
-        if(self.partnerModel.partnerTags.length > 0){
+        if(self.partnerModel.partnerAsk.length > 0){
             
-            NSArray *tags = [self.partnerModel.partnerTags componentsSeparatedByString:@"|"];
+            NSArray *asks = [self.partnerModel.partnerAsk componentsSeparatedByString:@"|"];
             
             CGFloat askItemHeight = 24;
             
             //计算内容高度
-            askContentHeight = tags.count * askItemHeight;
+            askContentHeight = asks.count * askItemHeight;
 
         }
-        
+
+
         self.askContentBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.askIconFrame) + CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT*2,askContentHeight);
+
+        CGFloat tagBoxH = 0.0;
+        if(self.partnerModel.partnerTags.length > 0){
+            tagBoxH = 40;
+        }
+        //标签容器
+        self.tagBoxFrame = CGRectMake(CONTENT_PADDING_LEFT,CGRectGetMaxY(self.askContentBoxFrame) + 5,cardWidth - CONTENT_PADDING_LEFT * 2, tagBoxH);
+
         
         //操作容器
 //        self.actionBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.askContentBoxFrame) + CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT*2, 50);
  
-        self.cellHeight = CGRectGetMaxY(self.askContentBoxFrame) + 30;
+        self.cellHeight = CGRectGetMaxY(self.tagBoxFrame) + 15;
         
         
     }

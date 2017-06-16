@@ -8,6 +8,14 @@
 
 #import "Base_UIView.h"
 
-@interface RadioBoxView : Base_UIView
 
+@protocol RadioBoxViewDelegate <NSObject>
+
+//发送语音数据
+-(void)sendRadioData:(NSData *)radioData TimeLength:(NSInteger)length;
+
+@end
+
+@interface RadioBoxView : Base_UIView
+@property(nonatomic,strong)id<RadioBoxViewDelegate> delegate;
 @end

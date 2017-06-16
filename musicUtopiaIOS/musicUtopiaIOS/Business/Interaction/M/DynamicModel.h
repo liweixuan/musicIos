@@ -9,6 +9,7 @@
 @property(nonatomic,copy)   NSArray  * images;        //图片类型的动态数组
 @property(nonatomic,assign) NSInteger  videoType;     //视频类型 0-本地 1-三方
 @property(nonatomic,copy)   NSString * videoUrl;      //视频地址
+@property(nonatomic,copy)   NSString * videoImage;    //视频标题图
 @property(nonatomic,copy)   NSString * username;      //用户帐号
 @property(nonatomic,copy)   NSString * nickname;      //用户昵称
 @property(nonatomic,copy)   NSString * sexIcon;       //性别图标名

@@ -147,17 +147,42 @@
         _headerView.L_ImageName(@"xitongxiaoxi");
         _nicknameView.L_Text(@"好友请求");
         
-    }else{
+    }else if([conversaction.targetId isEqualToString:@"JOIN_ORGANIZATION_SYSTEM_USER"]){
+        
+        _headerView.L_ImageName(@"xitongxiaoxi");
+        _nicknameView.L_Text(@"团体申请");
     
-        [MemberInfoData getMemberInfo:conversaction.targetId MemberEnd:^(NSDictionary *memberInfo) {
+    }else{
+        
+        //判断是个人信息还是群组信息
+        if(conversaction.conversationType == ConversationType_PRIVATE){
             
-            NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,memberInfo[@"m_headerUrl"]];
-            _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+            [MemberInfoData getMemberInfo:conversaction.targetId MemberEnd:^(NSDictionary *memberInfo) {
+                
+                NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,memberInfo[@"m_headerUrl"]];
+                _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+                
+                //昵称
+                _nicknameView.L_Text(memberInfo[@"m_nickName"]);
+                
+            }];
             
-            //昵称
-            _nicknameView.L_Text(memberInfo[@"m_nickName"]);
             
-        }];
+        }else if(conversaction.conversationType == ConversationType_GROUP){
+            
+            [GroupInfoData getGroupInfo:conversaction.targetId GroupEnd:^(NSDictionary *groupInfo) {
+                
+                NSLog(@"#######%@",groupInfo);
+                
+                NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,groupInfo[@"g_headerUrl"]];
+                _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+                
+                //昵称
+                _nicknameView.L_Text(groupInfo[@"g_name"]);
+                
+            }];
+            
+        }
         
     }
     
@@ -177,6 +202,8 @@
     
     //判断消息类型
     RCMessageContent * rccontent = conversaction.lastestMessage;
+    
+    NSLog(@"^^^^%@",rccontent);
 
     //消息内容
     NSString * messageContent = @"";
@@ -196,6 +223,12 @@
     }else if([rccontent isKindOfClass:[RCVoiceMessage class]]) {
         
         messageContent = @"[语音]";
+        
+    //通知类消息
+    }else if([rccontent isKindOfClass:[RCInformationNotificationMessage class]]){
+
+        RCInformationNotificationMessage * infoMessage = (RCInformationNotificationMessage *)rccontent;
+        messageContent = infoMessage.message;
         
     }
    
@@ -223,6 +256,19 @@
                 _messageContentView.L_Text([NSString stringWithFormat:@"您同意了[%@]的好友请求",memberInfo[@"m_nickName"]]);
             }];
         }
+    }else if([conversaction.targetId isEqualToString:@"JOIN_ORGANIZATION_SYSTEM_USER"]){
+        
+        RCTextMessage * textMessage = (RCTextMessage *)rccontent;
+        NSString * jsonStr          = textMessage.content;
+        NSDictionary * dictData     = [G dictionaryWithJsonString:jsonStr];
+        
+        if([dictData[@"operation"] isEqualToString:@"JOIN_ORGANIZATION_ACTION"]){
+            [MemberInfoData getMemberInfo:dictData[@"sourceUserId"] MemberEnd:^(NSDictionary *memberInfo) {
+                _messageContentView.L_Text([NSString stringWithFormat:@"[%@]申请加入团体[%@]",memberInfo[@"m_nickName"],dictData[@"extra"]]);
+            }];
+        }
+        
+        
     }
     
 }

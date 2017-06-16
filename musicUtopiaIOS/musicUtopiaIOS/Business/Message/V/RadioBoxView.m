@@ -127,8 +127,11 @@
 //在按钮内部抬起时
 -(void)touchUpInside {
     NSLog(@"在按钮内部抬起时...");
+
+    NSDictionary * radioDict = [_player stopRecording];
     
-    NSLog(@"录制音频的路径：%@",[_player stopRecording]);
+    NSLog(@"录制音频的路径：%@",radioDict[@"filePath"]);
+    NSLog(@"录制音频的时长：%@",radioDict[@"timeLength"]);
     
     _recordingLoading.hidden = YES;
     
@@ -138,6 +141,10 @@
     if (imageView.isAnimating) {
         [imageView stopAnimating];
     }
+    
+    [self.delegate sendRadioData:radioDict[@"radioData"] TimeLength:[radioDict[@"timeLength"] integerValue]];
+    
+
 }
 
 //在按钮外部抬起时

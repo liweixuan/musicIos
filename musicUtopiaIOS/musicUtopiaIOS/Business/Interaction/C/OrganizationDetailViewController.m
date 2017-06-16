@@ -2,6 +2,7 @@
 #import "CardCell.h"
 #import "HorizontalScrollPhotoView.h"
 #import "OrganizationUserViewController.h"
+#import "OrganizationPhotoImageViewController.h"
 
 @interface OrganizationDetailViewController ()<UITableViewDelegate,UITableViewDataSource,ViewEventDelegate>
 {
@@ -79,6 +80,7 @@
 //创建导航按钮
 -(void)createNavBtn {
     
+    /**
     UIImageView * rightImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
        imgv
         .L_Frame(CGRectMake(0,0,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
@@ -88,7 +90,9 @@
     
     UIBarButtonItem * rightBtn = [[UIBarButtonItem alloc] initWithCustomView:rightImage];
     self.navigationItem.rightBarButtonItem = rightBtn;
+    **/
     
+    R_NAV_TITLE_BTN(@"R",@"申请加入", applyAddOrganization)
 }
 
 //初始化表视图
@@ -137,19 +141,21 @@
         //创建LOGO
         UIImageView * logoImageView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
-            .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,INLINE_CELL_PADDING_TOP,50,50))
+            .L_Frame(CGRectMake(D_WIDTH/2 - 60/2,20,60,60))
             .L_ImageUrlName(logoUrl,IMAGE_DEFAULT)
-            .L_radius(25)
+            .L_ImageMode(UIViewContentModeScaleAspectFit)
+            .L_radius(30)
             .L_AddView(cell.contentView);
         }];
         
         //标题
-        [UILabel LabelinitWith:^(UILabel *la) {
+        UILabel * oNameLabel = [UILabel LabelinitWith:^(UILabel *la) {
             la
-            .L_Frame(CGRectMake([logoImageView right] + INLINE_CELL_ICON_LEFT,[logoImageView top], [cell.contentView width], 50))
+            .L_Frame(CGRectMake(0,[logoImageView bottom]+5,D_WIDTH,30))
             .L_Text(_organizationDetail[@"o_name"])
             .L_TextColor(HEX_COLOR(TITLE_FONT_COLOR))
-            .L_Font(TITLE_FONT_SIZE)
+            .L_textAlignment(NSTextAlignmentCenter)
+            .L_Font(18)
             .L_AddView(cell.contentView);
         }];
         
@@ -158,7 +164,7 @@
         //封面图
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
-            .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT, [logoImageView bottom] + CONTENT_MARGIN_TOP,D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT * 2, 230))
+            .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT, [oNameLabel bottom] + CONTENT_MARGIN_TOP,D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT * 2, 230))
             .L_ImageUrlName(coverUrl,RECTANGLE_IMAGE_DEFAULT)
             .L_radius(5)
             .L_AddView(cell.contentView);
@@ -171,7 +177,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,NORMAL_CELL_HIEGHT/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"suozaididian")
             .L_AddView(cell.contentView);
         }];
         
@@ -190,7 +196,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,NORMAL_CELL_HIEGHT/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"chengyuanshuliang")
             .L_AddView(cell.contentView);
         }];
         
@@ -205,8 +211,8 @@
         
         [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-MIDDLE_ICON_SIZE/2,NORMAL_CELL_HIEGHT/2 - MIDDLE_ICON_SIZE /2,MIDDLE_ICON_SIZE,MIDDLE_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT-SMALL_ICON_SIZE/2,NORMAL_CELL_HIEGHT/2 - SMALL_ICON_SIZE /2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_ImageName(@"fanhui")
             .L_AddView(cell.contentView);
         }];
     
@@ -216,7 +222,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,NORMAL_CELL_HIEGHT/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"tuantileixing")
             .L_AddView(cell.contentView);
         }];
         
@@ -235,7 +241,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,NORMAL_CELL_HIEGHT/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"chuanglishijian")
             .L_AddView(cell.contentView);
         }];
         
@@ -257,7 +263,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,NORMAL_CELL_HIEGHT/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"chuangshiren")
             .L_AddView(cell.contentView);
         }];
         
@@ -277,7 +283,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,NORMAL_CELL_HIEGHT/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"zuoyouming")
             .L_AddView(cell.contentView);
         }];
         
@@ -296,7 +302,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,CONTENT_PADDING_TOP,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"shenqingtiaojian")
             .L_AddView(cell.contentView);
         }];
         
@@ -355,7 +361,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,CONTENT_PADDING_TOP,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"miaoshu")
             .L_AddView(cell.contentView);
         }];
         
@@ -388,7 +394,7 @@
         UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,CONTENT_PADDING_TOP,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"xiangce")
             .L_AddView(cell.contentView);
         }];
         
@@ -402,15 +408,80 @@
         }];
         
         //相册容器
-        UIView * imageBoxView = [UIView ViewInitWith:^(UIView *view) {
+        UIScrollView * photoBoxView = [UIScrollView ScrollViewInitWith:^(UIScrollView *view) {
             view
-            .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,[icon bottom]+INLINE_CELL_PADDING_TOP, D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT * 2, 120))
-            .L_BgColor([UIColor orangeColor])
+            .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,[icon bottom]+CONTENT_PADDING_TOP, D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT * 2, 120))
+            .L_showsHorizontalScrollIndicator(NO)
             .L_AddView(cell.contentView);
         }];
         
-        UIView * photoView = (UIView *)[HorizontalScrollPhotoView createHorizontalScrollPhotoView:_organizationPhoto ViewSize:CGSizeMake([imageBoxView width], [imageBoxView height])];
-        [imageBoxView addSubview:photoView];
+        
+        CGFloat photoItemSize = [photoBoxView height];
+        CGFloat photoBoxX     = 0.0;
+        
+        if(_organizationPhoto.count > 0){
+            
+            //创建相册
+            for(int i =0;i<_organizationPhoto.count;i++){
+                
+                NSString * imageUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,_organizationPhoto[i][@"op_img_url"]];
+                
+                UIImageView * photoItemView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+                    imgv
+                    .L_Frame(CGRectMake(photoItemSize * i + i*10,0,photoItemSize,photoItemSize))
+                    .L_BgColor([UIColor whiteColor])
+                    .L_ImageMode(UIViewContentModeScaleAspectFill)
+                    .L_ImageUrlName(imageUrl,IMAGE_DEFAULT)
+                    .L_Event(YES)
+                    .L_Tag(i)
+                    .L_Click(self,@selector(photoItemViewClick:))
+                    .L_radius(5)
+                    .L_AddView(photoBoxView);
+                }];
+                
+                //创建相册名称
+                [UILabel LabelinitWith:^(UILabel *la) {
+                    la
+                    .L_Frame(CGRectMake(0,[photoBoxView height]-40,[photoItemView width],40))
+                    .L_BgColor([UIColor blackColor])
+                    .L_alpha(0.5)
+                    .L_Font(12)
+                    .L_Text(_organizationPhoto[i][@"op_name"])
+                    .L_TextColor([UIColor whiteColor])
+                    .L_textAlignment(NSTextAlignmentCenter)
+                    .L_AddView(photoItemView);
+                }];
+                
+                if(i == _organizationPhoto.count - 1){
+                    photoBoxX = [photoItemView right];
+                }
+                
+            }
+            
+            //设置相册容器宽度
+            photoBoxView.contentSize = CGSizeMake(photoBoxX, photoItemSize);
+            
+        }else{
+            
+            NSLog(@"无照片");
+            
+            [UILabel LabelinitWith:^(UILabel *la) {
+               la
+                .L_Frame(CGRectMake([photoBoxView width]/2 - 100/2,[photoBoxView height]/2 - 30/2 - 5, 100,30))
+                .L_Font(12)
+                .L_Text(@"暂无相册")
+                .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+                .L_textAlignment(NSTextAlignmentCenter)
+                .L_AddView(photoBoxView);
+            }];
+            
+        }
+        
+        
+        
+        
+//        UIView * photoView = (UIView *)[HorizontalScrollPhotoView createHorizontalScrollPhotoView:_organizationPhoto ViewSize:CGSizeMake([imageBoxView width], [imageBoxView height])];
+//        [imageBoxView addSubview:photoView];
         
      
     }
@@ -426,7 +497,7 @@
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if(indexPath.row == 0){
-        return 325;
+        return 370;
     }else if(indexPath.row == 7){
         
         NSArray *askArr = [_organizationDetail[@"o_ask"] componentsSeparatedByString:@"|"];
@@ -460,8 +531,43 @@
 }
 
 #pragma mark - 事件部分
--(void)collectClick {
-    NSLog(@"收藏按钮点击...");
+-(void)applyAddOrganization {
+    NSLog(@"123213123");
 }
 
+-(void)photoItemViewClick:(UITapGestureRecognizer *)tap {
+    NSInteger tagValue = tap.view.tag;
+    
+    NSDictionary * dictData = _organizationPhoto[tagValue];
+    
+    //获取相册中的图片数据
+    NSArray * params = @[@{@"key":@"op_oid",@"value":dictData[@"op_oid"]},@{@"key":@"op_fid",@"value":dictData[@"op_id"]}];
+    NSString * url   = [G formatRestful:API_ORGANIZATION_PHOTOS Params:params];
+    
+    [self startActionLoading:@"正在打开相册..."];
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        [self endActionLoading];
+        
+        
+        if(array.count > 0){
+            
+            OrganizationPhotoImageViewController *photoVC = [[OrganizationPhotoImageViewController alloc] init];
+            photoVC.imageType = 1;
+            photoVC.imageArr  = array;
+            photoVC.imageIdx  = 0;
+            
+            photoVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+            [self presentViewController:photoVC animated:YES completion:nil];
+            
+        }else{
+            
+            SHOW_HINT(@"该相册中暂无图片");
+            
+        }
+    } errorBlock:^(NSString *error) {
+        [self endActionLoading];
+        SHOW_HINT(error);
+    }];
+    
+}
 @end

@@ -11,18 +11,21 @@
 #import "MusicScoreDetailViewController.h"
 #import "SearchMusicScoreViewController.h"
 #import "MusicScoreFilterView.h"
+#import "MusicScorePrevImageViewController.h"
 
 @interface MusicScoreCategoryViewController()<UITableViewDelegate,UITableViewDataSource>
 {
     Base_UITableView * _tableview;
     UIView           * _loadView;
-    NSArray          * _tableData;
+    NSMutableArray   * _tableData;
     UIView           * _fieldLeftView;
     UIView           * _popView;
     UIView           * _maskView;
     UIView           * _maskBoxView;             //遮罩总视图
     
     MusicScoreFilterView * _musicScoreFilterView;
+    
+    NSInteger          _skip;
 }
 @end
 
@@ -34,13 +37,10 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"民谣吉他";
+    self.title = @"曲谱列表";
     
     //初始化变量
     [self initVar];
-    
-    //初始化数据
-    [self initData];
     
     //创建导航右侧图标
     [self createNav];
@@ -57,25 +57,57 @@
     //创建各个菜单筛选项视图
     [self createFilterView];
 
+    //初始化数据
+    [self initData:@"init"];
+
 }
 
 -(void)initVar {
-    
+    _skip      = 0;
+    _tableData = [NSMutableArray array];
 }
 
--(void)initData {
+-(void)initData:(NSString *)type {
     
-    _tableData =  @[
-                    @{@"hotCount":@"88",@"page":@"8",@"titleType":@"歌曲",@"name":@"当（还珠格格主题曲）"},
-                    @{@"hotCount":@"44",@"page":@"1",@"titleType":@"歌曲",@"name":@"暧昧"},
-                    @{@"hotCount":@"18",@"page":@"8",@"titleType":@"歌曲",@"name":@"老男孩"},
-                    @{@"hotCount":@"2",@"page":@"12",@"titleType":@"指弹",@"name":@"天空之城"},
-                    @{@"hotCount":@"1",@"page":@"60",@"titleType":@"歌曲",@"name":@"新白娘子传奇"},
-                    @{@"hotCount":@"0",@"page":@"12",@"titleType":@"指弹",@"name":@"千与千寻主题曲"},
-                    @{@"hotCount":@"120",@"page":@"15",@"titleType":@"歌曲",@"name":@"好汉歌"},
-                    @{@"hotCount":@"20",@"page":@"8",@"titleType":@"歌曲",@"name":@"成都"}
-                    
-        ];
+    if([type isEqualToString:@"init"]){
+        [self startLoading];
+    }
+    
+    //获取参数
+    NSArray * params = @[@{@"key":@"ms_mscid",@"value":@(self.cid)},@{@"key":@"skip",@"value":@(_skip)},@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
+    NSString * url   = [G formatRestful:API_MUSIC_SCORE_SEARCH Params:params];
+    
+    //获取曲谱信息
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        //删除加载动画
+        if([type isEqualToString:@"init"]){
+            [self endLoading];
+        }
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多曲谱");
+            return;
+        }
+        
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:array];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = [array mutableCopy];
+            
+        }
+
+        [_tableview reloadData];
+        
+    } errorBlock:^(NSString *error) {
+        [self endLoading];
+        SHOW_HINT(error);
+    }];
     
 }
 
@@ -96,9 +128,9 @@
     //展开按钮
     UIImageView * rightImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
         imgv
-        .L_Frame(CGRectMake(0,0,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
+        .L_Frame(CGRectMake(0,0,NAV_ICON_WIDTH, NAV_ICON_WIDTH))
         .L_Click(self,@selector(filterClick))
-        .L_ImageName(@"shaixuan");
+        .L_ImageName(@"fenleichaxun.jpg");
     }];
     
     UIBarButtonItem * rightBtn = [[UIBarButtonItem alloc] initWithCustomView:rightImage];
@@ -113,12 +145,10 @@
     _tableview.backgroundColor = HEX_COLOR(VC_BG);
     _tableview.delegate   = self;
     _tableview.dataSource = self;
-    
-    
-    
+
     //创建上下拉刷新
     _tableview.isCreateHeaderRefresh = NO;
-    _tableview.isCreateFooterRefresh = NO;
+    _tableview.isCreateFooterRefresh = YES;
     
     //去除分割线
     _tableview.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -130,8 +160,25 @@
         make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(0,0,0,0));
     }];
     
+    //列表视图事件部分
+    __weak typeof(self) weakSelf = self;
+
+    
+    //上拉加载更多
+    _tableview.loadMoreData = ^(){
+        [weakSelf loadMoreData];
+        
+    };
+    
     _tableview.marginBottom = 10;
     
+}
+
+-(void)loadMoreData {
+    
+    _skip = _skip += PAGE_LIMIT;
+    [self initData:@"more"];
+
 }
 
 //创建全局遮罩视图
@@ -211,13 +258,13 @@
     
     MusicScoreItemCell * cell = [[MusicScoreItemCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     
-    cell.dictData = _tableData[indexPath.row];
+    NSDictionary * dictData = _tableData[indexPath.row];
+    
+    cell.dictData = dictData;
     
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    
-    
-    
+
     return cell;
     
 }
@@ -231,16 +278,21 @@
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     MusicScoreDetailViewController * musicScoreDetailVC =  [[MusicScoreDetailViewController alloc] init];
-    musicScoreDetailVC.musicScoreName = @"爱的罗曼斯";
-    musicScoreDetailVC.imageCount     = 3;
+    
+    NSDictionary * dictData = _tableData[indexPath.row];
+    musicScoreDetailVC.musicScoreName = dictData[@"ms_name"];
+    musicScoreDetailVC.imageCount     = [dictData[@"mu_page"] integerValue];
+    musicScoreDetailVC.musicScoreId   = [dictData[@"ms_id"] integerValue];
     [self.navigationController pushViewController:musicScoreDetailVC animated:YES];
 }
 
 #pragma mark - 事件
 -(void)searchMusciScore {
     SearchMusicScoreViewController * searchMusicScoreVC = [[SearchMusicScoreViewController alloc] init];
-    searchMusicScoreVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-    [self presentViewController:searchMusicScoreVC animated:YES completion:nil];
+    //searchMusicScoreVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    searchMusicScoreVC.musicScoreCategoryID = self.cid;
+    [self.navigationController pushViewController:searchMusicScoreVC animated:YES];
+    //[self presentViewController:searchMusicScoreVC animated:YES completion:nil];
 }
 
 

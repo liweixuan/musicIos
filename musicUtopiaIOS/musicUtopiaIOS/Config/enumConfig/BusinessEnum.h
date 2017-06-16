@@ -19,10 +19,18 @@
 //乐器类别转化相应图标
 +(NSString *)getCategoryIcon:(NSString *)cname;
 
+//根据乐器ID获取相应图片与名称
++(NSDictionary *)getCategoryId:(NSInteger)cid;
+
 //空对象向空字符串转化(防闪退)
 +(NSString *)getEmptyString:(NSString *)v;
 
 //比赛类型转化为相应内容
 +(NSString *)getMatchTypeString:(NSInteger)type;
+
+//曲谱类型转化为相应内容
++(NSString *)getMusicScoreTypeString:(NSInteger)type;
+
+
 
 @end

@@ -12,6 +12,7 @@
 {
     UIView      * _cellBox;
     UIImageView * _titleImage;
+    UIView      * _titleBox;
     UILabel     * _title;
     UIImageView * _commentIcon;
     UILabel     * _commentCount;
@@ -35,7 +36,7 @@
             .L_ShadowColor([UIColor grayColor])
             .L_shadowOffset(CGSizeMake(2,2))
             .L_shadowOpacity(0.2)
-            .L_radius_NO_masksToBounds(5)
+            .L_radius(5)
             .L_AddView(self.contentView);
             
         }];
@@ -46,24 +47,31 @@
             .L_AddView(_cellBox);
         }];
         
+        _titleBox = [UIView ViewInitWith:^(UIView *view) {
+           view
+            .L_BgColor([UIColor blackColor])
+            .L_Alpha(0.6)
+            .L_AddView(_cellBox);
+        }];
+        
         _title = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_numberOfLines(0)
             .L_Font(SUBTITLE_FONT_SIZE)
-            .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
+            .L_TextColor([UIColor whiteColor])
             .L_AddView(_cellBox);
         }];
         
         _commentIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"pinglun")
             .L_AddView(_cellBox);
         }];
         
         _commentCount = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Font(ATTR_FONT_SIZE)
-            .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+            .L_TextColor([UIColor whiteColor])
             .L_AddView(_cellBox);
         }];
         
@@ -76,23 +84,27 @@
     [super layoutSubviews];
     
     //行容器大小
-    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,5,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - 5*2);
+    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,5,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - 7);
+    
+    _titleBox.frame = CGRectMake(0, [_cellBox height] - 40,[_cellBox width],40);
     
     _titleImage.frame = CGRectMake(0, 0, [_cellBox width], [_cellBox height]);
     
     _title.frame = CGRectMake(CONTENT_PADDING_LEFT, [_cellBox height] - SUBTITLE_FONT_SIZE - CONTENT_PADDING_TOP, [_cellBox width ] - 60, SUBTITLE_FONT_SIZE);
     
-    _commentCount.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - 30 ,[_cellBox height] - SUBTITLE_FONT_SIZE - CONTENT_PADDING_TOP, 30,ATTR_FONT_SIZE);
+    _commentCount.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - 10 ,[_cellBox height] - SUBTITLE_FONT_SIZE - CONTENT_PADDING_TOP, 30,ATTR_FONT_SIZE);
     
     _commentIcon.frame = CGRectMake([_commentCount left] - SMALL_ICON_SIZE - ICON_MARGIN_CONTENT,[_cellBox height] - SUBTITLE_FONT_SIZE - CONTENT_PADDING_TOP, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
 }
 
 -(void)setDictData:(NSDictionary *)dictData {
     
-    _titleImage.L_ImageName(dictData[@"image"]);
+    NSString * titleImage = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dictData[@"a_title_image"]];
+    _titleImage.L_ImageUrlName(titleImage,RECTANGLE_IMAGE_DEFAULT);
     
-    _title.L_Text(dictData[@"title"]);
+    _title.L_Text(dictData[@"a_title"]);
     
-    _commentCount.L_Text(@"888");
+    _commentCount.L_Text([NSString stringWithFormat:@"%@",dictData[@"a_comment_count"]]);
+
 }
 @end

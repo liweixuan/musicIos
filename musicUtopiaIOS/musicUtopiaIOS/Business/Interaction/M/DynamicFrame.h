@@ -14,6 +14,7 @@
 @property(nonatomic,assign)CGRect       contentFrame;       //动态内容
 @property(nonatomic,assign)CGRect       imagesBoxFrame;     //图片容器
 @property(nonatomic,assign)CGRect       videoBoxFrame;      //视频容器
+@property(nonatomic,assign)CGRect       videoPlayerFrame;   //播放按钮
 @property(nonatomic,assign)CGRect       audioBoxFrame;      //音频容器
 @property(nonatomic,assign)CGSize       imagesSize;         //图片大小
 @property(nonatomic,assign)CGRect       tagBoxFrame;        //标签容器

@@ -26,7 +26,7 @@
         
         //初始化变量
         [self initVar];
-        
+
         //创建表视图
         [self createTableView];
         
@@ -40,6 +40,8 @@
     _skip = 0;
     _tableData = [NSMutableArray array];
 }
+
+
 
 -(void)createTableView {
     
@@ -61,7 +63,7 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(10,0,0,0));
+        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(5,0,0,0));
     }];
     
     //列表视图事件部分
@@ -81,6 +83,7 @@
         
     };
     
+    _tableview.marginBottom = 10;
 }
 
 //数据获取

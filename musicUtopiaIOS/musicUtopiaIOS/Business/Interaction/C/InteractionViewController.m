@@ -11,6 +11,8 @@
 #import "OrganizationDetailViewController.h"
 #import "MatchDetailViewController.h"
 #import "CreateOrganizationViewController.h"
+#import "PartakeMatchViewController.h"
+#import "VideoPlayerViewController.h"
 
 @interface InteractionViewController ()<UIScrollViewDelegate,DynamicViewDelegate,PartnerViewDelegate,OrganizationViewDelegate,MatchViewDelegate>
 {
@@ -60,10 +62,6 @@
     
     //创建各个菜单的筛选视图
     [self createMenuFilterView];
-    
-    //初始化数据
-    [self initData];
-    
 
     
 }
@@ -83,8 +81,10 @@
     
     //自定义导航条视图
     [self createCustomNavigationView];
+
     
-    NSLog(@"即将进入");
+    //初始化数据
+    [self initData];
 }
 
 #pragma mark - 初始化部分
@@ -225,7 +225,7 @@
     [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
         imgv
         .L_Frame(CGRectMake(15,[filterView height]/2-NAV_ICON_HEIGHT/2,NAV_ICON_WIDTH,NAV_ICON_HEIGHT))
-        .L_ImageName(@"test1.jpg")
+        .L_ImageName(@"fenleichaxun.jpg")
         .L_AddView(filterView);
     }];
 
@@ -278,7 +278,7 @@
         
         view
         .L_Frame(CGRectMake(0,NAV_HEIGHT-1.5,menuViewWidth,1.5))
-        .L_BgColor([UIColor blackColor])
+        .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
         .L_AddView(_leftMenuBox);
         
     }];
@@ -292,8 +292,7 @@
         
         btn
         .L_Frame(CGRectMake(D_WIDTH - 65,self.view.frame.size.height - 185,56,56))
-        .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
-        .L_Title(@"创建",UIControlStateNormal)
+        .L_BtnImageName(@"tianjia",UIControlStateNormal)
         .L_TitleColor([UIColor whiteColor],UIControlStateNormal)
         .L_TargetAction(self,@selector(createBtnClick),UIControlEventTouchUpInside)
         .L_radius_NO_masksToBounds(28)
@@ -328,8 +327,9 @@
 //创建各个菜单筛选项视图
 -(void)createMenuFilterView {
     
-    _dynamicFilterView = [[DynamicFilterView alloc] initWithFrame:CGRectMake(D_WIDTH,0,D_WIDTH-80,D_HEIGHT)];
+    _dynamicFilterView                 = [[DynamicFilterView alloc] initWithFrame:CGRectMake(D_WIDTH,0,D_WIDTH-80,D_HEIGHT)];
     _dynamicFilterView.backgroundColor = HEX_COLOR(VC_BG);
+    _dynamicFilterView.hidden          = YES;
     [self.navigationController.view addSubview:_dynamicFilterView];
     
     
@@ -364,6 +364,7 @@
 -(void)filterClick {
     NSLog(@"筛选...");
     
+    _dynamicFilterView.hidden = NO;
     [UIView animateWithDuration:0.4 animations:^{
         _maskBoxView.alpha = 0.3;
         [_dynamicFilterView setX:80];
@@ -372,9 +373,12 @@
 
 //遮罩视图点击时
 -(void)maskBoxClick {
+
     [UIView animateWithDuration:0.4 animations:^{
         _maskBoxView.alpha = 0.0;
         [_dynamicFilterView setX:D_WIDTH];
+    } completion:^(BOOL finished) {
+        _dynamicFilterView.hidden = YES;
     }];
 }
 
@@ -454,6 +458,8 @@
     //当前切换到了第几个视图
     NSLog(@"%ld",(long)nowIdx);
     
+    [self initData];
+    
     
 }
 
@@ -491,7 +497,6 @@
     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
     userDetailVC.userId   = userId;
     userDetailVC.username = username;
-    
     [self.navigationController pushViewController:userDetailVC animated:YES];
 }
 
@@ -527,6 +532,33 @@
 //比赛去投票点击
 -(void)voteClick:(NSInteger)matchId {
     PUSH_VC(MatchDetailViewController, YES, @{@"matchId":@(matchId)});
+}
+
+//参与比赛点击
+-(void)partakeMatchClick:(NSDictionary *)matchDict {
+    PartakeMatchViewController * partakeMatchVC =  [[PartakeMatchViewController alloc] init];
+    partakeMatchVC.matchId        = [matchDict[@"matchid"] integerValue];
+    partakeMatchVC.musicScoreName = matchDict[@"musicScoreName"];
+    partakeMatchVC.musicScorePage = [matchDict[@"musicScorePage"] integerValue];
+    partakeMatchVC.musicScoreId   = [matchDict[@"musicScoreId"] integerValue];
+    partakeMatchVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:partakeMatchVC animated:YES];
+}
+
+//看比赛结果点击
+-(void)matchResultClick:(NSInteger)matchId {
+    PUSH_VC(MatchDetailViewController, YES, @{@"matchId":@(matchId)});
+}
+
+//视频播放
+-(void)dynamicVideoPlayer:(NSString *)videoUrl {
+    
+    VideoPlayerViewController * videoPlayerVC = [[VideoPlayerViewController alloc] init];
+    videoPlayerVC.videoUrl = videoUrl;
+    videoPlayerVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    [self presentViewController:videoPlayerVC animated:YES completion:nil];
+    
+    
 }
 
 //错误后点击重新加载

@@ -298,12 +298,6 @@
 
         //录制
         [self startRecord];
-            
-       
-
-        
-        
-        
 
         
     }
@@ -517,6 +511,10 @@
     
        // 开始播放
     [_videoPlayer play];
+    
+    
+    
+    NSLog(@"最终录制的视频路径为：%@",url);
 }
 
 - (void)playbackFinished:(NSNotification *)noti

@@ -19,13 +19,15 @@
         CGFloat cardWidth = D_WIDTH - CARD_MARGIN_LEFT * 2;
         
         //封面容器
-        self.coverBoxFrame = CGRectMake(0,0,cardWidth, 250);
+        self.coverBoxFrame = CGRectMake(0,0,cardWidth, 260);
+        
+        self.logoImageFrame = CGRectMake(self.coverBoxFrame.size.width - 60,10, 50, 50);
         
         //封面
-        self.coverImageFrame = CGRectMake(0, 0, cardWidth, 250);
+        self.coverImageFrame = CGRectMake(0, 0, cardWidth, 260);
         
         //封面下内容容器
-        self.coverContentFrame = CGRectMake(0,250-50,cardWidth,45);
+        self.coverContentFrame = CGRectMake(0,260-50,cardWidth,45);
         
         //创立时间图标
         self.createTimeIconFrame = CGRectMake(CONTENT_PADDING_LEFT,8, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
@@ -51,15 +53,15 @@
         
         
         //团体人数图标
-        self.userCountIconFrame = CGRectMake(cardWidth - 40,CGRectGetMinY(self.nameIconFrame),SMALL_ICON_SIZE, SMALL_ICON_SIZE);
+        self.userCountIconFrame = CGRectMake(cardWidth - 60,CGRectGetMinY(self.nameIconFrame)-6,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
         
         //团体人数
         self.userCountFrame = CGRectMake(CGRectGetMaxX(self.userCountIconFrame) + ICON_MARGIN_CONTENT,CGRectGetMinY(self.nameFrame),60, SUBTITLE_FONT_SIZE);
         
         //座右铭
-        self.mottoFrame = CGRectMake(CONTENT_PADDING_LEFT,CGRectGetMaxY(self.nameFrame)+20,cardWidth,SUBTITLE_FONT_SIZE);
+        self.mottoFrame = CGRectMake(CGRectGetMaxX(self.nameIconFrame)+5,CGRectGetMaxY(self.nameFrame)+10,cardWidth,SUBTITLE_FONT_SIZE);
       
-        self.cellHeight = 340;
+        self.cellHeight = 325;
         
     }
     return self;

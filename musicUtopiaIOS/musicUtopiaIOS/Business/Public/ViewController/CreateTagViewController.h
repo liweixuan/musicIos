@@ -9,5 +9,5 @@
 #import "Base_UIViewController.h"
 
 @interface CreateTagViewController : Base_UIViewController
-
+@property(nonatomic,strong)NSString * TAG_NAME;
 @end

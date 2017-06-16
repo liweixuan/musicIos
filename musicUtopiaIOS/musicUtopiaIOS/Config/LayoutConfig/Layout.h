@@ -32,6 +32,6 @@ extern CGFloat const INLINE_CELL_ICON_LEFT;     //直接内嵌CELL视图图标�
 extern CGFloat const INLINE_CARD_MARGIN;        //直接内嵌CELL卡片之间的距离
 
 extern CGFloat const TEXTFIELD_HEIGHT;          //输入框高度
-
+extern CGFloat const TAG_SIZE;                  //标签大小
 
 

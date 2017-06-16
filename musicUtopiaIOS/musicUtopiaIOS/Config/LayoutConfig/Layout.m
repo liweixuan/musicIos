@@ -23,6 +23,6 @@ CGFloat const INLINE_CELL_ICON_LEFT    = 10.0;
 CGFloat const INLINE_CARD_MARGIN       = 3.0;
 CGFloat const BOTTOM_BUTTON_HEIGHT     = 42.0;
 CGFloat const TEXTFIELD_HEIGHT         = 42.0;
-
+CGFloat const TAG_SIZE                 = 26;
 
 

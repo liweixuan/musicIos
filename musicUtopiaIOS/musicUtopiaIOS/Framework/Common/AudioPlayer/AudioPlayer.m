@@ -42,7 +42,7 @@
 }
 
 #pragma mark - 录制完成
--(NSString *)stopRecording {
+-(NSDictionary *)stopRecording {
     
     [_recorder stop];
     NSString *filePath = [NSString stringWithFormat:@"%@/%@.caf",[self documentsDirectory],_tempFileName];
@@ -51,7 +51,18 @@
     NSData *avdio = [NSData dataWithContentsOfURL:fileUrl];
     if(avdio!=nil){
         NSLog(@"录制成功");
-        return filePath;
+        
+        //获取秒数
+        NSInteger timeLength = [self getAudioFileDuration:filePath];
+        
+        NSDictionary * radioDict = @{
+                                     @"filePath"  : filePath,
+                                     @"timeLength": @(timeLength),
+                                     @"radioData" : avdio
+                       };
+        
+        
+        return radioDict;
     }
     NSLog(@"录制失败");
     return nil;

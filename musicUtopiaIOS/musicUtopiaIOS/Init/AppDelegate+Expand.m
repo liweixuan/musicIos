@@ -8,6 +8,8 @@
 
 #import "UserDetailViewController.h"
 #import "PartakeMatchViewController.h"
+#import "MatchUserVideoViewController.h"
+#import "InstrumentEvaluationViewController.h"
 
 
 @implementation AppDelegate (Expand)
@@ -26,7 +28,7 @@
     menuTabController.selectedIndex = DEFAULT_TAB_INDEX;
     self.window.rootViewController = menuTabController;
 
-//    PartakeMatchViewController * cc = [[PartakeMatchViewController alloc] init];
+//    InstrumentEvaluationViewController * cc = [[InstrumentEvaluationViewController alloc] init];
 //    CustomNavigationController * nav = [[CustomNavigationController alloc] initWithRootViewController:cc];
 //    self.window.rootViewController = nav;
     
@@ -271,5 +273,162 @@
     
 }
 
+//是否进入引导页
+-(BOOL)isNewVersion:(void (^)())versionBlock {
 
+    
+    //获取最新版本信息
+    NSArray * params = @[@{@"key":@"type",@"value":@"0"}];
+    NSString * url   = [G formatRestful:API_GET_VERSION Params:params];
+    
+    
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        NSDictionary * dictData = (NSDictionary *)array;
+        
+
+        /*** 对比版本号是否需要升级 ***/
+        
+        //获取应用当前版本号
+        NSDictionary *infoDic = [[NSBundle mainBundle] infoDictionary];
+        NSString *currentVersion = [infoDic objectForKey:@"CFBundleShortVersionString"];
+        
+        //判断版本号
+        NSArray * curVerAry = [currentVersion componentsSeparatedByString:@"."];
+        NSArray * newVerAry = [dictData[@"av_version"] componentsSeparatedByString:@"."];
+
+        
+        BOOL isUpdate = NO;
+        
+        //对比主版本号
+        if([newVerAry[0] integerValue] > [curVerAry[0] integerValue]){
+            
+            isUpdate = YES;
+            
+        }else{
+ 
+            //判断副版本号
+            if([newVerAry[1] integerValue] > [curVerAry[1] integerValue]){
+                
+                isUpdate = YES;
+                
+                
+            }else{
+                
+                //判断次版本号
+                NSInteger nV = newVerAry.count == 3 ? [newVerAry[2] integerValue] : 0;
+                NSInteger cV = curVerAry.count == 3 ? [curVerAry[2] integerValue] : 0;
+                
+                
+                if(nV > cV){
+                        
+                    isUpdate = YES;
+                        
+                }else{
+                    
+                    //记录是否有更新
+                    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"updateVersion"];
+                    [[NSUserDefaults standardUserDefaults] setObject:@"no" forKey:@"updateVersion"];
+                        
+                    versionBlock();
+                    return;
+                }
+                
+            }
+        }
+        
+        if(isUpdate){
+            
+            //记录是否有更新
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"updateVersion"];
+            [[NSUserDefaults standardUserDefaults] setObject:@"yes" forKey:@"updateVersion"];
+
+
+            //需要强制更新
+            if([dictData[@"av_is_force"] integerValue] == 1){
+                
+                //判断是否强制更新
+                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"更新提示" message:@"发现新版本，本版本更新较大，需要进行统一更新，给您带来不便，请见谅" preferredStyle:UIAlertControllerStyleAlert];
+                
+                UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"更新" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            
+                     NSLog(@"强制更新操作");
+            
+            
+                }];
+                
+                [alertController addAction:okAction];
+                UIWindow *aW = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
+                aW.rootViewController = [[UIViewController alloc]init];
+                aW.windowLevel = UIWindowLevelAlert + 1;
+                [aW makeKeyAndVisible];
+                [aW.rootViewController presentViewController:alertController animated:YES completion:nil];
+             
+            }else{
+                
+                versionBlock();
+                
+            }
+        }
+        
+    } errorBlock:^(NSString *error) {
+        versionBlock();
+    }];
+    
+    return NO;
+}
+
+//弹出更新提示（如果有新版本）
+-(void)updateVersionHint {
+    
+    NSString * isNewVersion = [[NSUserDefaults standardUserDefaults] stringForKey:@"updateVersion"];
+    
+    if([isNewVersion isEqualToString:@"yes"]){
+        
+        
+        //判断是否强制更新
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"更新提示" message:@"发现新版本，前往去更新" preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"更新" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            
+            NSLog(@"强制更新操作");
+            
+            
+        }];
+        
+        [alertController addAction:cancelAction];
+        [alertController addAction:okAction];
+        UIWindow *aW = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
+        aW.rootViewController = [[UIViewController alloc]init];
+        aW.windowLevel = UIWindowLevelAlert + 1;
+        [aW makeKeyAndVisible];
+        [aW.rootViewController presentViewController:alertController animated:YES completion:nil];
+ 
+        
+    }
+    
+}
+
+//是否进入引导页
+-(void)isGuide:(void (^)(BOOL isGoGuide))guideBlock {
+    
+    
+    NSString *bundleVersionKey = (NSString *)kCFBundleVersionKey;
+    NSString *bundleVersion = [NSBundle mainBundle].infoDictionary[bundleVersionKey];
+    NSString *saveVersion = [[NSUserDefaults standardUserDefaults] objectForKey:bundleVersionKey];
+    
+    if ([bundleVersion isEqualToString:saveVersion]) {
+        
+        NSLog(@"直接进入控制器");
+        guideBlock(NO);
+        
+    }else{
+        
+        NSLog(@"第一次使用APP");
+        [[NSUserDefaults standardUserDefaults] setObject:bundleVersion forKey:bundleVersionKey];
+        guideBlock(YES);
+    }
+    
+}
 @end

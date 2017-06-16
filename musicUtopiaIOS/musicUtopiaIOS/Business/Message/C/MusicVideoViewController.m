@@ -8,13 +8,20 @@
 
 #import "MusicVideoViewController.h"
 #import "VideoCell.h"
+#import "MusicArticlePreviewImageViewController.h"
+#import "MusicVideoDetailViewController.h"
 
 @interface MusicVideoViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
     UIScrollView     * _filterScrollView;
-    NSArray          * _categoryArr;
+    NSMutableArray   * _categoryArr;
     NSMutableArray   * _categoryLabelArr;
+    NSMutableArray   * _videoArr;
     Base_UITableView * _tableview;
+    
+    NSInteger          _nowSelectCid;  //当前选择类别ID
+    
+    NSInteger          _skip;
     
 }
 @end
@@ -25,14 +32,19 @@
     [super viewDidLoad];
     self.title = @"音乐视频";
     
-    //获取相应数据
-    [self initData];
+    [self initVar];
+
     
     //创建顶部筛选菜单
     [self createFilterView];
     
     //创建列表视图
     [self createTableview];
+    
+    
+    //获取相应数据
+    [self initData:@"init"];
+
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -41,6 +53,88 @@
 
 -(void)viewWillAppear:(BOOL)animated {
     self.navigationController.navigationBar.layer.shadowOpacity = 0.0;
+}
+
+-(void)initVar {
+    _skip         = 0;
+    _nowSelectCid = 0;
+    _categoryArr  = [NSMutableArray array];
+    _videoArr     = [NSMutableArray array];
+    
+    _categoryLabelArr = [NSMutableArray array];
+    _categoryArr      = [LocalData getStandardMusicCategory];
+    [_categoryArr insertObject:@{@"icon":@"",@"c_id":@(0) ,@"c_name":@"全部"} atIndex:0];
+    
+}
+
+
+-(void)initData:(NSString *)type {
+    
+    
+    //获取文章列表信息
+    NSArray * params = @[
+                         @{@"key":@"v_cid",@"value":@(_nowSelectCid)},
+                         @{@"key":@"skip" ,@"value":@(_skip)},
+                         @{@"key":@"limit",@"value":@(PAGE_LIMIT)}
+                         ];
+    NSString * url = [G formatRestful:API_VIDEO_SEARCH Params:params];
+    
+    
+    if([type isEqualToString:@"init"]){
+        [self startLoading];
+    }
+    
+    if([type isEqualToString:@"selectCategory"]){
+        [self startActionLoading:@"视频获取中..."];
+    }
+    
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        NSLog(@"%@",array);
+        
+        if([type isEqualToString:@"init"]){
+            [self endLoading];
+        }
+        
+        if([type isEqualToString:@"selectCategory"]){
+            [self endActionLoading];
+        }
+        
+        if([type isEqualToString:@"reload"]){
+            [_videoArr removeAllObjects];
+            [_tableview  headerEndRefreshing];
+            _tableview.mj_footer.hidden = NO;
+            [_tableview  resetNoMoreData];
+        }
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多评论信息");
+            return;
+        }
+        
+        
+        if([type isEqualToString:@"more"]){
+            [_videoArr addObjectsFromArray:[array mutableCopy]];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _videoArr = [array mutableCopy];
+            
+        }
+        
+        
+        [_tableview reloadData];
+        
+        
+        
+        
+    } errorBlock:^(NSString *error) {
+        [self endLoading];
+    }];
+
 }
 
 -(void)createFilterView {
@@ -91,8 +185,8 @@
         UILabel * categoryLabel = [UILabel LabelinitWith:^(UILabel *la) {
            la
             .L_Frame(CGRectMake(0,0, [categoryView width],categoryItemH))
-            .L_Text(dictData[@"text"])
-            .L_Tag(i)
+            .L_Text(dictData[@"c_name"])
+            .L_Tag([dictData[@"c_id"] integerValue])
             .L_Font(CONTENT_FONT_SIZE)
             .L_textAlignment(NSTextAlignmentCenter)
             .L_isEvent(YES)
@@ -110,35 +204,12 @@
     
 }
 
--(void)initData {
-    
-    _categoryLabelArr = [NSMutableArray array];
-    
-    _categoryArr = @[
-                     @{@"text":@"全部"},
-                     @{@"text":@"民谣吉他"},
-                     @{@"text":@"钢琴"},
-                     @{@"text":@"古典吉他"},
-                     @{@"text":@"小提琴"},
-                     @{@"text":@"二胡"},
-                     @{@"text":@"电音吉他"},
-                     @{@"text":@"大提琴"},
-                     @{@"text":@"小号"},
-                     @{@"text":@"电声贝斯"},
-                     @{@"text":@"长笛"},
-                     @{@"text":@"萨克斯管"},
-                     @{@"text":@"单簧管"},
-                     @{@"text":@"口琴"},
-                     @{@"text":@"尤克里里"},
-                     @{@"text":@"架子鼓"}
-    ];
-}
 
 //创建列表视图
 -(void)createTableview {
     
     //创建列表视图
-    _tableview  = [[Base_UITableView alloc] initWithFrame:CGRectMake(0,[_filterScrollView bottom]+15,D_WIDTH,D_HEIGHT_NO_NAV_STATUS - 15) style:UITableViewStylePlain];
+    _tableview  = [[Base_UITableView alloc] initWithFrame:CGRectMake(0,[_filterScrollView bottom]+10,D_WIDTH,D_HEIGHT_NO_NAV_STATUS - 15) style:UITableViewStylePlain];
     _tableview.backgroundColor = HEX_COLOR(VC_BG);
     _tableview.delegate = self;
     _tableview.dataSource = self;
@@ -177,7 +248,7 @@
 #pragma mark - 代理
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 10;
+    return _videoArr.count;
 }
 
 //行内容
@@ -185,7 +256,9 @@
     
     VideoCell * cell = [[VideoCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     
-    cell.dictData = @{};
+    NSDictionary * dictData = _videoArr[indexPath.row];
+    
+    cell.dictData = dictData;
     
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -193,6 +266,18 @@
     
     
     return cell;
+}
+
+//行点击
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    NSDictionary * dictData = _videoArr[indexPath.row];
+    
+    MusicVideoDetailViewController * musicVideoDetailVC = [[MusicVideoDetailViewController alloc] init];
+    musicVideoDetailVC.videoId = [dictData[@"v_id"] integerValue];
+    [self.navigationController pushViewController:musicVideoDetailVC animated:YES];
+    
+    
 }
 
 //行高
@@ -218,15 +303,29 @@
     UILabel * nowLabel = (UILabel *)tap.view;
     nowLabel.textColor = HEX_COLOR(APP_MAIN_COLOR);
     
-    NSLog(@"%ld",(long)vTag);
+    _nowSelectCid = vTag;
+    
+    _skip = 0;
+    
+    _tableview.mj_footer.hidden = NO;
+    [_tableview resetNoMoreData];
+    
+    [self initData:@"selectCategory"];
     
 }
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    _skip = 0;
+    [self initData:@"reload"];
+    
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    
+    _skip += PAGE_LIMIT;
+    [self initData:@"more"];
+    
 }
 @end

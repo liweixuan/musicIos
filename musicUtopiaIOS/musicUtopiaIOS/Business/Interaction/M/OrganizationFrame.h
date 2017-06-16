@@ -14,6 +14,7 @@
 
 @property(nonatomic,assign)CGRect coverBoxFrame;        //封面容器
 @property(nonatomic,assign)CGRect coverImageFrame;      //封面
+@property(nonatomic,assign)CGRect logoImageFrame;       //logo
 @property(nonatomic,assign)CGRect coverContentFrame;    //封面下内容容器
 @property(nonatomic,assign)CGRect createTimeIconFrame;  //创立时间图标
 @property(nonatomic,assign)CGRect createTimeFrame;      //创立时间内容

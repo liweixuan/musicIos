@@ -1,5 +1,6 @@
 #import "OrganizationUserViewController.h"
 #import "OrganizationUserCell.h"
+#import "UserDetailViewController.h"
 
 @interface OrganizationUserViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
@@ -13,9 +14,40 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"团体成员";
+    
+    //
+    [self initVar];
 
     //创建表视图
     [self createTableview];
+    
+    //初始化数据
+    [self initData];
+}
+
+-(void)initVar {
+    _tableData = [NSArray array];
+}
+
+-(void)initData {
+    
+    [self startLoading];
+    
+    NSArray * params = @[@{@"key":@"o_id",@"value":@(self.organizationId)}];
+    NSString * url   = [G formatRestful:API_ORGANIZATION_MEMBER Params:params];
+    
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        [self endLoading];
+        
+        _tableData = array;
+        
+        [_tableview reloadData];
+        
+        
+    } errorBlock:^(NSString *error) {
+        [self endLoading];
+    }];
+    
 }
 
 //创建表视图
@@ -46,7 +78,7 @@
 
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 10;
+    return _tableData.count;
 }
 
 //行内容
@@ -54,10 +86,13 @@
     
     OrganizationUserCell * cell = [[OrganizationUserCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     
+    NSDictionary * dictData = _tableData[indexPath.row];
+    
+    cell.dictData = dictData;
+    
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    
-    cell.dictData = @{};
+
     
     return cell;
     
@@ -69,4 +104,15 @@
     return 65;
 }
 
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    NSDictionary * dictData = _tableData[indexPath.row];
+    
+    UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
+    userDetailVC.userId   = [dictData[@"u_id"] integerValue];
+    userDetailVC.username = dictData[@"u_username"];
+    [self.navigationController pushViewController:userDetailVC animated:YES];
+    
+    
+}
 @end

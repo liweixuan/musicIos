@@ -47,11 +47,13 @@
             .L_AddView(_cellBox);
         }];
         
+        
         _coverImageView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(@"test3.jpg")
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_AddView(_coverBoxView);
         }];
+        
         
         _organizationBoxView = [UIView ViewInitWith:^(UIView *view) {
             view
@@ -63,6 +65,7 @@
             .L_BgColor([UIColor colorWithRed:0.0f green:0.0f blue:0.0f alpha: 0.5])
             .L_AddView(_cellBox);
         }];
+        
         
         _createTimeIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
@@ -105,7 +108,7 @@
         
         _userCountIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(@"tuantiguanzhu")
+            .L_ImageName(@"chengyuanshuliang")
             .L_AddView(_organizationBoxView);
         }];
         
@@ -122,8 +125,6 @@
             .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
             .L_AddView(_organizationBoxView);
         }];
-        
-        
 
         
     }
@@ -137,7 +138,7 @@
     [super layoutSubviews];
     
     //行容器大小
-    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP * 2);
+    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP);
 }
 
 
@@ -148,7 +149,7 @@
 
     //封面容器
     _coverBoxView.frame = organizationFrame.coverBoxFrame;
-    _coverBoxView.backgroundColor = [UIColor orangeColor];
+
     
     //封面
     _coverImageView.frame = organizationFrame.coverImageFrame;
@@ -157,8 +158,7 @@
     
     //封面下内容容器
     _coverContentView.frame = organizationFrame.coverContentFrame;
-    
-    
+
     //创建时间图标
     _createTimeIconView.frame = organizationFrame.createTimeIconFrame;
     
@@ -186,7 +186,7 @@
     //人数
     _userCountView.frame = organizationFrame.userCountFrame;
     _userCountView.L_Text([NSString stringWithFormat:@"%ld",(long)dataModel.organizationUserCount]);
-    
+
     //座右铭
     _mottoView.frame = organizationFrame.mottoFrame;
     _mottoView.L_Text(dataModel.organizationMotto);
@@ -194,6 +194,8 @@
     //内容容器
     _organizationBoxView.frame = organizationFrame.organizationBoxFrame;
     _organizationBoxView.backgroundColor = [UIColor whiteColor];
+    _organizationBoxView.L_raius_location(UIRectCornerBottomLeft|UIRectCornerBottomRight,5);
+
     
 }
 @end

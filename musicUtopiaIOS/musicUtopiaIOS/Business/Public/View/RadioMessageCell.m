@@ -100,7 +100,8 @@
     
     //消息图标
     if(frameData.radioMessageModel.messageDirection == 1){
-        
+        _radioPlayerView.frame = frameData.radioPlayerIconFrame;
+        _radioPlayerView.L_ImageName(@"radio_right_3");
     }else{
         _radioPlayerView.frame = frameData.radioPlayerIconFrame;
         _radioPlayerView.L_ImageName(@"radio_left_3");
@@ -119,11 +120,27 @@
 
     [_radioPlayerView stopAnimating];
     
-    //播放时图片动画
-    NSArray * animates = @[
-                           [UIImage imageNamed:@"radio_left_1"],
-                           [UIImage imageNamed:@"radio_left_2"],
-                           [UIImage imageNamed:@"radio_left_3"]];
+    NSArray * animates = [NSArray array];
+
+    //根据方向播放
+    if(_nowFrame.radioMessageModel.messageDirection == 1){
+        
+        animates = @[
+                     [UIImage imageNamed:@"radio_right_1"],
+                     [UIImage imageNamed:@"radio_right_2"],
+                     [UIImage imageNamed:@"radio_right_3"]];
+        
+    }else{
+        
+        animates = @[
+                     [UIImage imageNamed:@"radio_left_1"],
+                     [UIImage imageNamed:@"radio_left_2"],
+                     [UIImage imageNamed:@"radio_left_3"]];
+        
+        
+    }
+    
+    
     _radioPlayerView.animationImages = animates;
     _radioPlayerView.animationDuration = 1;
     _radioPlayerView.animationRepeatCount = 0;
@@ -133,6 +150,13 @@
     dispatch_time_t delayTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(radioLength * NSEC_PER_SEC));
     dispatch_after(delayTime, dispatch_get_main_queue(), ^{
         [_radioPlayerView stopAnimating];
+        
+        if(_nowFrame.radioMessageModel.messageDirection == 1){
+            _radioPlayerView.L_ImageName(@"radio_right_3");
+        }else{
+            _radioPlayerView.L_ImageName(@"radio_left_3");
+        }
+        
     });
     
     

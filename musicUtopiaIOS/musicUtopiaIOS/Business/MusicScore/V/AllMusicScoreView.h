@@ -17,4 +17,7 @@
 
 @interface AllMusicScoreView : Base_UIView
 @property(nonatomic,strong) id<AllMusicScoreViewDelegate> delegate;
+
+//获取动态数据
+-(void)getData:(NSDictionary *)params Type:(NSString *)type;
 @end

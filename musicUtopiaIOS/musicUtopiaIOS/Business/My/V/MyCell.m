@@ -72,7 +72,7 @@
     
     _textLabel.frame = CGRectMake([_leftIcon right]+CONTENT_PADDING_LEFT,0,200, [_cellBox height]);
     
-    _rightIcon.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - MIDDLE_ICON_SIZE, [_cellBox height]/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+    _rightIcon.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - SMALL_ICON_SIZE, [_cellBox height]/2 - SMALL_ICON_SIZE/2, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
     
     
 }
@@ -83,7 +83,7 @@
     
     _textLabel.L_Text(dictData[@"text"]);
     
-    _rightIcon.L_ImageName(ICON_DEFAULT);
+    _rightIcon.L_ImageName(@"fanhui");
     
     
 }

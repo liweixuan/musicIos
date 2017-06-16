@@ -50,7 +50,7 @@
         
         //语音播放图标
          if(messageDirection == 1){
-             self.radioPlayerIconFrame = CGRectMake(self.chatBubbleFrame.size.width - 25,self.chatBubbleFrame.size.height/2 - 25/2,25,25);
+             self.radioPlayerIconFrame = CGRectMake(self.chatBubbleFrame.size.width - 40,self.chatBubbleFrame.size.height/2 - 25/2,25,25);
          }else{
              self.radioPlayerIconFrame = CGRectMake(10,self.chatBubbleFrame.size.height/2 - 25/2,25,25);
          }

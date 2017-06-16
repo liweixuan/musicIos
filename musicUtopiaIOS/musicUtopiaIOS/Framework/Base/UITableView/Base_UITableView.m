@@ -1,5 +1,12 @@
 #import "Base_UITableView.h"
 
+@interface Base_UITableView()
+{
+    MJRefreshNormalHeader * _normalHeader;
+    MJRefreshBackNormalFooter * _normalFooter;
+}
+@end
+
 @implementation Base_UITableView
 
 -(id)init {
@@ -42,6 +49,10 @@
     
 }
 
+-(void)beginHeaderRefresh {
+    [self.mj_header beginRefreshing];
+}
+
 -(void)setMarginBottom:(CGFloat)marginBottom {
     
     //设置底部视图高度
@@ -69,10 +80,18 @@
 
     if(isCreateFooterRefresh){
         //配置上拉加载更多
-        MJRefreshBackNormalFooter *footer = [MJRefreshBackNormalFooter footerWithRefreshingTarget:self refreshingAction:@selector(loadMoreDataFun)];
-        self.mj_footer =footer;
+        _normalFooter = [MJRefreshBackNormalFooter footerWithRefreshingTarget:self refreshingAction:@selector(loadMoreDataFun)];
+        self.mj_footer = _normalFooter;
     }
 
+}
+
+-(void)setHeaderRefreshString:(NSString *)headerRefreshString {
+     [_normalHeader setTitle:headerRefreshString forState:MJRefreshStateIdle];
+}
+
+-(void)setFooterRefreshString:(NSString *)footerRefreshString {
+    [_normalFooter setTitle:footerRefreshString forState:MJRefreshStateIdle];
 }
 
 -(void)setIsCreateHeaderRefresh:(BOOL)isCreateHeaderRefresh {
@@ -94,17 +113,20 @@
              [header setImages:gifArr forState:MJRefreshStateIdle];
              [header setImages:gifArr forState:MJRefreshStatePulling];
              [header setImages:gifArr forState:MJRefreshStateRefreshing];
+             
+             header.lastUpdatedTimeLabel.hidden = YES;
         
              self.mj_header = header;
         
         
-             }else{
+        }else{
         
-                MJRefreshNormalHeader *header = [MJRefreshNormalHeader headerWithRefreshingTarget:self refreshingAction:@selector(loadNewDataFun)];
-                header.lastUpdatedTimeLabel.hidden = YES;
-                self.mj_header = header;
+            _normalHeader = [MJRefreshNormalHeader headerWithRefreshingTarget:self refreshingAction:@selector(loadNewDataFun)];
+            _normalHeader.lastUpdatedTimeLabel.hidden = YES;
+
+            self.mj_header = _normalHeader;
                     
-             }
+        }
         
     }
 

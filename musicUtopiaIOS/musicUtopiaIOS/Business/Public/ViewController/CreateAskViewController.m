@@ -136,17 +136,17 @@
     for(int i =0;i<_tagArr.count;i++){
         
         //内容大小
-        CGSize s = [G labelAutoCalculateRectWith:_tagArr[i] FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(1000, 1000)];
+        //CGSize s = [G labelAutoCalculateRectWith:_tagArr[i] FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(1000, 1000)];
         
         //创建UILabel
-        TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(0,nowY,[_tagBox width],30)];
+        TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(0,nowY,[_tagBox width],36)];
         tagLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
         tagLabel.text = _tagArr[i];
         tagLabel.textColor = [UIColor whiteColor];
         tagLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
         tagLabel.layer.masksToBounds = YES;
-        tagLabel.layer.cornerRadius = 15;
-        tagLabel.insets = UIEdgeInsetsMake(0,15, 0,30);
+        tagLabel.layer.cornerRadius = 18;
+        tagLabel.insets = UIEdgeInsetsMake(0,15, 0,36);
         [_tagBox addSubview:tagLabel];
         
         nowY = [tagLabel bottom] + 10;
@@ -154,7 +154,7 @@
         //删除按钮
         [UIButton ButtonInitWith:^(UIButton *btn) {
             btn
-            .L_Frame(CGRectMake([tagLabel right] - 25, [tagLabel top]+5,20,20))
+            .L_Frame(CGRectMake([tagLabel right] - 30, [tagLabel top]+8,20,20))
             .L_BtnImageName(@"shanchu",UIControlStateNormal)
             .L_TargetAction(self,@selector(deleteTagClick:),UIControlEventTouchUpInside)
             .L_tag(i)
@@ -162,6 +162,8 @@
         } buttonType:UIButtonTypeCustom];
         
     }
+    
+    _tagInput.text = @"";
     
 }
 

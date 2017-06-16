@@ -9,5 +9,5 @@
 #import "Base_UIViewController.h"
 
 @interface MusicScoreCategoryViewController : Base_UIViewController
-
+@property(nonatomic,assign)NSInteger cid; //类别ID
 @end

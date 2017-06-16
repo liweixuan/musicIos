@@ -167,6 +167,7 @@
         
     }
     
+    _tagInput.text = @"";
 }
 
 -(void)deleteTagClick:(UIButton *)sender {
@@ -199,8 +200,10 @@
     //向上一个控制器传值
     NSString * tagStr = [_tagArr componentsJoinedByString:@"|"];
     
+    //@"CreatePartnerVC" 
+    
     //向控制器发送数据通知
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"CreateInteractionVC" object:self userInfo:@{@"tagStr":tagStr}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:self.TAG_NAME object:self userInfo:@{@"tagStr":tagStr}];
     
     [self.navigationController popViewControllerAnimated:YES];
 }

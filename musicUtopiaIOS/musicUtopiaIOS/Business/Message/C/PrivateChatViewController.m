@@ -2,7 +2,7 @@
 #import "VideoRecordingViewController.h"
 #import "ChatView.h"
 
-@interface PrivateChatViewController ()<ChatViewDelegate>
+@interface PrivateChatViewController ()<ChatViewDelegate,VideoRecordingDelegate>
 {
     ChatView       * _chatView;     //聊天视图
     NSMutableArray * _messageData;  //聊天数据
@@ -88,10 +88,7 @@
     
     //截至的消息ID
     id message = [_messageData firstObject];
-    
-    
-    NSMutableArray * historyArr = [NSMutableArray array];
-    
+
     long messageId = 0;
     
     //获取历史消息ID
@@ -215,12 +212,58 @@
     
 }
 
+//发送语音消息
+-(void)sendRadioMessage:(NSData *)radioData TimeLength:(NSInteger)length {
+    
+    RCVoiceMessage * voiceMessage = [RCVoiceMessage messageWithAudio:radioData duration:length];
+
+    
+    //发送消息
+    [[RCIMClient sharedRCIMClient] sendMessage:self.conversation.conversationType targetId:self.conversation.targetId content:voiceMessage pushContent:nil pushData:nil success:^(long messageId) {
+        
+        NSLog(@"%ld",messageId);
+        long nowTime = [[NSDate date] timeIntervalSince1970];
+        NSDictionary * messageDict = @{
+                                       @"type"               : @"RADIO",
+                                       @"radioData"          : radioData,
+                                       @"radioLength"        : @(length),
+                                       @"messageDirection"   : @(1),
+                                       @"messageSendUser"    : [UserData getUsername],
+                                       @"messageReceiveTime" : @(nowTime),
+                                       @"rcMessage"          : @""
+                                       };
+        RadioMessageModel * radioMessageModel = [RadioMessageModel RadioMessageWithDict:messageDict];
+        RadioMessageFrame * frame             = [[RadioMessageFrame alloc] initWithRadioMessage:radioMessageModel];
+        [_messageData addObject:frame];
+        
+        _chatView.messageData = _messageData;
+        
+    } error:^(RCErrorCode nErrorCode, long messageId) {
+        NSLog(@"消息发送失败...");
+        NSLog(@"%ld",nErrorCode);
+        NSLog(@"%ld",messageId);
+    }];
+    
+    
+    
+}
+
 //跳转至视频录制界面
 -(void)goVideoRecord {
     VideoRecordingViewController * videoRecordVC = [[VideoRecordingViewController alloc] init];
+    videoRecordVC.delegate = self;
     [self presentViewController:videoRecordVC animated:YES completion:nil];
 }
 
+//发送小视频
+-(void)sendVideo:(NSString *)videoPath {
+    
+    
+    
+    
+    
+    
+}
 
 -(void)clearMessage {
     NSLog(@"清除消息...");

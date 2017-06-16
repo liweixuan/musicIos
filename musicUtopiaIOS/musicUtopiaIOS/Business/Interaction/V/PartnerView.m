@@ -67,7 +67,7 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(10,0,0,0));
+        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(5,0,0,0));
     }];
     
     //列表视图事件部分
@@ -86,6 +86,8 @@
         [weakSelf loadMoreData];
         
     };
+    
+    _tableview.marginBottom = 10;
     
 }
 
@@ -117,11 +119,14 @@
             [_tableData removeAllObjects];
             [_tableview headerEndRefreshing];
             [_tableview resetNoMoreData];
+            _tableview.mj_footer.hidden = NO;
         }
 
         
         if([type isEqualToString:@"more"] && array.count <= 0){
             [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多动态信息");
             return;
         }
         

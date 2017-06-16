@@ -1,6 +1,7 @@
 #import "ChatView.h"
 #import "PhotoBoxView.h"
 #import "RadioBoxView.h"
+#import "ExpressionBoxView.h"
 
 #define INPUT_BOX_HEIGHT 80   //底部输入容器高度
 
@@ -10,6 +11,8 @@
         UITableViewDataSource,
         UITextViewDelegate,
         PhotoBoxViewDelegate,
+        RadioBoxViewDelegate,
+        ExpressionBoxViewDelegate,
         UIGestureRecognizerDelegate
     >
 {
@@ -19,10 +22,12 @@
     UIView           * _bottomToolMenu;         //菜单容器
     UILabel          * _inputPlaceholderLabel;  //输入框的占位字
     
-    UIView           * _expressionBox;        //表情容器
-    RadioBoxView     * _radioBox;             //语音容器
-    PhotoBoxView     * _photoBox;             //图片容器
-    UIView           * _moreBox;              //更多容器
+    //UIView            * _expressionBox;        //表情容器
+    RadioBoxView      * _radioBox;             //语音容器
+    PhotoBoxView      * _photoBox;             //图片容器
+    ExpressionBoxView * _expressionBox;        //表情容器
+    UIView            * _moreBox;              //更多容器
+    UIView            * _inputTextBox;         //聊天容器框
     
     CGFloat            _keyboardHeight;       //键盘高度
     CGFloat            _inputTextViewHeight;  //输入框高度
@@ -54,16 +59,18 @@
         
         //相关通知监听
         [self createNoti];
+
         
     }
     return self;
 }
 
+
 //初始化变量
 -(void)initVar {
     _nowMode             = 0;
     _keyboardHeight      = 0.0;
-    _inputTextViewHeight = 0.0;
+    _inputTextViewHeight = 40.0;
     _tableData = [NSMutableArray array];
 }
 
@@ -122,8 +129,9 @@
         .L_AddView(self);
     }];
     
+    
     //聊天输入框容器
-    UIView * inputBox = [UIView ViewInitWith:^(UIView *view) {
+    _inputTextBox = [UIView ViewInitWith:^(UIView *view) {
         view
         .L_Frame(CGRectMake(0,0, [_bottomToolBox width], 40))
         .L_BgColor(HEX_COLOR(@"#F5F5F5"))
@@ -139,8 +147,9 @@
     _inputTextView.layer.shadowOpacity = 0.2;
     _inputTextView.layer.shadowOffset = CGSizeMake(3,3);
     _inputTextView.textContainerInset = UIEdgeInsetsMake(10,10,10,10);
-    [inputBox addSubview:_inputTextView];
+    [_inputTextBox addSubview:_inputTextView];
     
+
     //设置输入框默认高度
     _inputTextViewHeight = [_inputTextView height];
     
@@ -158,7 +167,7 @@
     //菜单容器
     _bottomToolMenu = [UIView ViewInitWith:^(UIView *view) {
         view
-        .L_Frame(CGRectMake(0,[inputBox bottom],D_WIDTH,40))
+        .L_Frame(CGRectMake(0,[_inputTextBox bottom],D_WIDTH,40))
         .L_BgColor(HEX_COLOR(@"#F5F5F5"))
         .L_AddView(_bottomToolBox);
     }];
@@ -192,20 +201,18 @@
 
 //创建底部各个菜单项操作容器
 -(void)createBottomMenuItemBox {
-    
-    
+
     
     //表情容器框
-    _expressionBox = [UIView ViewInitWith:^(UIView *view) {
-        view
-        .L_Frame(CGRectMake(0,[_bottomToolBox bottom],D_WIDTH,200))
-        .L_BgColor([UIColor redColor])
-        .L_AddView(self);
-    }];
-    
+    _expressionBox = [[ExpressionBoxView alloc] initWithFrame:CGRectMake(0,[_bottomToolBox bottom],D_WIDTH,200)];
+    _expressionBox.backgroundColor = [UIColor whiteColor];
+    _expressionBox.delegate = self;
+    [self addSubview:_expressionBox];
+   
     //语音容器
     _radioBox = [[RadioBoxView alloc] initWithFrame:CGRectMake(0,[_bottomToolBox bottom],D_WIDTH,200)];
     _radioBox.backgroundColor = [UIColor whiteColor];
+    _radioBox.delegate = self;
     [self addSubview:_radioBox];
 
     //图片容器
@@ -271,7 +278,7 @@
         
         RadioMessageCell  * cell  = [[RadioMessageCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
         RadioMessageFrame * frame = _tableData[indexPath.row];
-        cell.frameData           = frame;
+        cell.frameData            = frame;
         
         //禁止点击
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -321,7 +328,7 @@
 
 //textview内容改变时
 -(void)textViewDidChange:(UITextView *)textView {
-    
+
     //获得textView的初始尺寸
     CGFloat width   = CGRectGetWidth(textView.frame);
     CGFloat height  = CGRectGetHeight(textView.frame);
@@ -341,6 +348,9 @@
     [UIView animateWithDuration:0.2 animations:^{
         [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_bottomToolBox height] - _keyboardHeight];
         [_inputTextView setHeight:_inputTextViewHeight];
+        
+        [_inputTextBox setHeight:_inputTextViewHeight];
+        
         [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - _keyboardHeight];
         [_bottomToolMenu setY:[_inputTextView bottom]];
         //判断内容是否超过了一屏
@@ -358,9 +368,48 @@
     }
 }
 
+
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
 
     _inputPlaceholderLabel.hidden = YES;
+    
+    if(text.length == 0 && range.length == 1){
+        
+        NSLog(@"删除操作");
+        
+        if(_inputTextView.selectedRange.length == 1){
+            return YES;
+        }
+        
+        NSInteger nowloction   = _inputTextView.selectedRange.location;              //获取光标位置
+        NSString *frontContent = [_inputTextView.text substringToIndex:nowloction];  //获取光标位置前的字符串
+        
+        //字符串以结尾比较,存在"]"
+        if([frontContent hasSuffix:@"]"]){
+            
+            NSLog(@"删除表情了...");
+
+            //取出当前删除位置之前的字符串
+            NSString * nowStr = [_inputTextView.text substringWithRange:NSMakeRange(0, nowloction)];
+
+            //从当前删除的位置获取最近的一个结束符号位置
+            NSRange range = [nowStr rangeOfString:@"[" options:NSBackwardsSearch];
+
+            //获取到要删除这段的位置
+            NSRange deleteRange = {(range.location + 1),(nowloction - range.location - 1)};
+
+            NSMutableString * oldStr = [_inputTextView.text mutableCopy];
+ 
+            [oldStr deleteCharactersInRange:deleteRange];
+            
+            //将最终处理的字符串赋值
+            _inputTextView.text = oldStr;
+  
+        
+        }
+        
+    }
+
 
     if ([text isEqualToString:@"\n"]){ //获取键盘中发送事件（回车事件）
         
@@ -388,6 +437,109 @@
     
 }
 
+//点击添加表情时
+-(void)sendExpressMessage:(NSString *)expressImageName {
+    
+    _inputPlaceholderLabel.hidden = YES;
+    
+    _inputTextView.text = [NSString stringWithFormat:@"%@[%@]",_inputTextView.text,expressImageName];
+    
+    UITextView * textview = _inputTextView;
+    CGFloat width         = CGRectGetWidth(textview.frame);
+    CGFloat height        = CGRectGetHeight(textview.frame);
+    CGSize newSize        = [textview sizeThatFits:CGSizeMake(width,MAXFLOAT)];
+    CGRect newFrame       = textview.frame;
+    newFrame.size         = CGSizeMake([_inputTextView width], fmax(height, newSize.height));
+    textview.frame        = newFrame;
+
+    CGFloat tempH = 0.0;
+    if(newSize.height < 40){
+        tempH = 40;
+    }else{
+        tempH = newSize.height;
+    }
+    
+    _inputTextViewHeight = tempH;
+    [_bottomToolBox setHeight:_inputTextViewHeight + 40];
+    [UIView animateWithDuration:0.2 animations:^{
+        [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_bottomToolBox height] - [_expressionBox height]];
+        [_inputTextView setHeight:_inputTextViewHeight];
+        [_inputTextBox setHeight:_inputTextViewHeight];
+        [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - [_expressionBox height]];
+        [_bottomToolMenu setY:[_inputTextView bottom]];
+    }];
+    
+  
+}
+
+//点击表情界面的删除按钮时
+-(void)deleteExpressMessage {
+    NSLog(@"删除按钮....");
+    
+    NSString * inputStr = _inputTextView.text;
+    
+    //取出最后一位
+    NSString * lastStr   = [inputStr substringFromIndex:inputStr.length - 1];
+    NSLog(@"要删除的字符串为：%@",lastStr);
+    
+    //判断删除的是否为表情
+    NSInteger nowloction   = _inputTextView.selectedRange.location;              //获取光标位置
+    NSString *frontContent = [_inputTextView.text substringToIndex:nowloction];  //获取光标位置前的字符串
+    
+    //字符串以结尾比较,存在"]"
+    if([frontContent hasSuffix:@"]"]){
+        
+        NSLog(@"删除表情了...");
+        
+        //取出当前删除位置之前的字符串
+        NSString * nowStr = [_inputTextView.text substringWithRange:NSMakeRange(0, nowloction)];
+        
+        //从当前删除的位置获取最近的一个结束符号位置
+        NSRange range = [nowStr rangeOfString:@"[" options:NSBackwardsSearch];
+        
+        //获取到要删除这段的位置
+        NSRange deleteRange = {range.location,(nowloction - range.location)};
+        
+        NSMutableString * oldStr = [_inputTextView.text mutableCopy];
+        
+        [oldStr deleteCharactersInRange:deleteRange];
+        
+        //将最终处理的字符串赋值
+        _inputTextView.text = oldStr;
+        
+        
+    }else{
+        
+        NSString * resultStr = [inputStr substringToIndex:[inputStr length] - 1];
+        _inputTextView.text  = resultStr;
+        
+    }
+    
+    
+}
+
+//从表情视图中点击发送按钮
+-(void)sendExpressSubmit {
+    
+    if([_inputTextView.text isEqualToString:@""] && _inputTextView.text.length<=0){
+        
+        _inputTextView.text = @"";
+        
+    }else{
+        
+        [self messageSend];  //处理发送事件
+        
+        //清除输入框
+        _inputTextView.text = @"";
+        
+        //恢复输入框
+        _inputTextViewHeight = 40;
+        
+        
+    }
+    
+}
+
 //恢复底部工具栏位置
 -(void)resetBottomTool {
     [self resumeBottomTool];
@@ -400,13 +552,15 @@
 -(void)bottomToolMenuClick:(UITapGestureRecognizer *)tap {
     NSInteger tagV = tap.view.tag;
     
-    NSLog(@"%ld",(long)tagV);
-    NSLog(@"%ld",(long)_nowMode);
-    
+
     if(tagV == 0){
         
         NSLog(@"表情");
+
+        //创建表情视图
+        [_expressionBox createExpressView];
         
+
         [self toPrepareOpenMenuBox];
         
         if(_nowMode == 0){
@@ -572,9 +726,10 @@
     CGRect frame = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
     
     _keyboardHeight = frame.size.height;
-    [_tableview setHeight:D_HEIGHT_NO_NAV - INPUT_BOX_HEIGHT - _keyboardHeight];
+    //[_inputTextView setHeight:_inputTextViewHeight];
+    [_tableview setHeight:D_HEIGHT_NO_NAV - 40 - _inputTextViewHeight - _keyboardHeight];
     [_bottomToolBox setY:[_tableview bottom]];
-    
+
     //判断内容是否超过了一屏
     //if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
         [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:YES];
@@ -591,8 +746,13 @@
     
     if(_nowMode == 1){
         
+        NSLog(@"####%f",_inputTextViewHeight);
+        
         _keyboardHeight = 0;
         [_inputTextView setHeight:_inputTextViewHeight];
+        
+        [_inputTextBox setHeight:_inputTextViewHeight];
+        
         [_bottomToolBox setHeight:_inputTextViewHeight + 40];
         [_tableview setHeight:D_HEIGHT_NO_NAV - [_bottomToolBox height] - _keyboardHeight];
         [_bottomToolBox setY:D_HEIGHT_NO_NAV - [_bottomToolBox height]];
@@ -636,6 +796,15 @@
     
     NSLog(@"消息发送...");
     [self.delegate sendImageMessage:images];
+    
+    
+}
+
+//发送语音消息
+-(void)sendRadioData:(NSData *)radioData TimeLength:(NSInteger)length {
+    
+    NSLog(@"语音消息发送...");
+    [self.delegate sendRadioMessage:radioData TimeLength:length];
     
     
 }
@@ -733,11 +902,7 @@
     //更新列表数据
     _tableData = [messageData mutableCopy];
     
-    NSLog(@"2222222");
-    
-    NSLog(@"%f",_tableview.contentSize.height);
-    NSLog(@"%f",[_tableview height]);
-        [_tableview reloadData];
+    [_tableview reloadData];
     
 //    if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
 //        _tableview.tableHeaderView.hidden = YES;
@@ -745,9 +910,8 @@
     
     //判断内容是否超过了一屏
    // if(_tableview.contentSize.height > _tableview.bounds.size.height || _tableview.contentSize.height == _tableview.bounds.size.height){
-        
-        NSLog(@"111111111");
-        [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:YES];
+ 
+    [_tableview setContentOffset:CGPointMake(0, _tableview.contentSize.height -_tableview.bounds.size.height) animated:YES];
    // }
 
    

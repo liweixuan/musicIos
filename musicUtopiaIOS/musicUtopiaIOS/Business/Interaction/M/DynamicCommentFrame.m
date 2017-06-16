@@ -29,11 +29,11 @@
         
         //内容
         NSString * content = dictData[@"dc_content"];
-        CGSize contentSize = [G labelAutoCalculateRectWith:content FontSize:CONTENT_FONT_SIZE MaxSize:CGSizeMake(cardWidth - CGRectGetMinX(self.nicknameFrame), 1000)];
-        self.contentFrame = CGRectMake(CGRectGetMinX(self.nicknameFrame), CGRectGetMaxY(self.nicknameFrame)+CONTENT_PADDING_TOP, cardWidth - CGRectGetMinX(self.nicknameFrame), contentSize.height);
+        CGSize contentSize = [G labelAutoCalculateRectWith:content FontSize:CONTENT_FONT_SIZE MaxSize:CGSizeMake(cardWidth - CGRectGetMinX(self.nicknameFrame)-10, 1000)];
+        self.contentFrame = CGRectMake(CGRectGetMinX(self.nicknameFrame), CGRectGetMaxY(self.nicknameFrame)+CONTENT_PADDING_TOP, cardWidth - CGRectGetMinX(self.nicknameFrame)-10, contentSize.height);
         
         //操作容器
-        self.actionFrame = CGRectMake(cardWidth - 120 - CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+10, 120,30);
+        self.actionFrame = CGRectMake(cardWidth - 120, CGRectGetMaxY(self.contentFrame)+10, 120,30);
         
         //回复图标
         self.replyIconFrame = CGRectMake(0, self.actionFrame.size.height/2 - SMALL_ICON_SIZE/2 ,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
@@ -44,7 +44,7 @@
         
         self.zanCountFrame = CGRectMake(CGRectGetMaxX(self.zanIconFrame)+ICON_MARGIN_CONTENT,0,40,self.actionFrame.size.height);
     
-        self.cellHeight = CGRectGetMaxY(self.actionFrame) + 15;
+        self.cellHeight = CGRectGetMaxY(self.actionFrame) + 10;
         
     }
     return self;

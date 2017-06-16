@@ -8,6 +8,7 @@
 
 #import "AllMusicScoreView.h"
 #import "AllMusicScoreCell.h"
+#import "LoadingView.h"
 
 @interface AllMusicScoreView()<UITableViewDataSource,UITableViewDelegate>
 {
@@ -26,13 +27,11 @@
         //初始化变量
         [self initVar];
         
-        //获取数据
-        [self initData];
-        
         //创建表视图
         [self createTableView];
         
-        
+        _loadView = [LoadingView createDataLoadingView];
+        [self addSubview:_loadView];
         
     }
     return self;
@@ -42,10 +41,24 @@
     _tableData = [NSArray array];
 }
 
-//获取数据
--(void)initData {
-    _tableData = [LocalData getStandardMusicCategory];
+-(void)getData:(NSDictionary *)params Type:(NSString *)type {
+    
+    //获取曲谱类别
+    [NetWorkTools GET:API_MUSIC_SCORE_CATEGORY params:nil successBlock:^(NSArray *array) {
+        
+        REMOVE_LOADVIEW
+        
+        _tableData = array;
+        
+        [_tableview reloadData];
+        
+    } errorBlock:^(NSString *error) {
+        REMOVE_LOADVIEW
+        SHOW_HINT(error);
+    }];
+    
 }
+
 
 
 -(void)createTableView {
@@ -107,6 +120,6 @@
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     NSDictionary * dictData = _tableData[indexPath.row];
-    [self.delegate musicScoreCategoryClick:[dictData[@"c_id"] integerValue]];
+    [self.delegate musicScoreCategoryClick:[dictData[@"msc_id"] integerValue]];
 }
 @end

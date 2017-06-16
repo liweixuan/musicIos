@@ -11,6 +11,8 @@
 -(UILabel *(^)(CGFloat))L_alpha;
 -(UILabel *(^)(NSInteger))L_numberOfLines;
 -(UILabel *(^)(BOOL))L_isEvent;
+-(UILabel *(^)(id,SEL))L_Click;
+-(UILabel *(^)(UIRectCorner,NSInteger))L_raius_location;
 -(UILabel *(^)(NSInteger))L_lineHeight;
 +(instancetype)LabelinitWith:(void (^)(UILabel *la)) initblock;
 @end

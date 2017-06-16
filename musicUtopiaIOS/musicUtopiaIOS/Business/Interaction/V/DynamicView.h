@@ -18,11 +18,23 @@
 //向外传递网络请求错误
 -(void)requestFaild:(NSInteger)menuIdx;
 
+//删除该条动态信息
+-(void)deleteDynamic:(NSInteger)dynamicId;
+
+//播放视频
+-(void)dynamicVideoPlayer:(NSString *)videoUrl;
+
 @end
 
 @interface DynamicView : Base_UIView<UITableViewDataSource,UITableViewDelegate>
 
 @property(nonatomic,strong) id<DynamicViewDelegate> delegate;
+
+@property(nonatomic,strong)NSDictionary * paramsDict;
+
+@property(nonatomic,assign)BOOL isDeleteBtn; //是否出现删除按钮
+
+-(void)reloadData;
 
 //获取动态数据
 -(void)getData:(NSDictionary *)params Type:(NSString *)type;

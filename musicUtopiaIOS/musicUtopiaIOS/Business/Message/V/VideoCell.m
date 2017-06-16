@@ -53,6 +53,7 @@
             imgv
             .L_AddView(_cellBox);
         }];
+        _videoPlayIcon.hidden = YES;
         
         _videoTitle = [UILabel LabelinitWith:^(UILabel *la) {
            la
@@ -68,7 +69,7 @@
         
         _commentIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"pinglun")
             .L_AddView(_actionView);
         }];
         
@@ -82,7 +83,7 @@
         
         _zanIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"dianzan")
             .L_AddView(_actionView);
         }];
         
@@ -116,26 +117,29 @@
     
     _actionView.frame = CGRectMake([_videoTitle right],[_videoTitle top],[_cellBox width]/2 - CONTENT_PADDING_LEFT,30);
     
-    _commentIcon.frame = CGRectMake(0,0,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
+    _commentIcon.frame = CGRectMake([_actionView width]/2,0,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
 
-    _commentText.frame = CGRectMake([_commentIcon right]+ICON_MARGIN_CONTENT ,0,[_actionView width]/2 - 20,ATTR_FONT_SIZE);
+    _commentText.frame = CGRectMake([_commentIcon right]+ICON_MARGIN_CONTENT ,0,40,ATTR_FONT_SIZE);
 
-    _zanIcon.frame = CGRectMake([_commentText right] + 10,0,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
+    _zanIcon.frame = CGRectMake([_commentText right],0,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
 
-    _zanText.frame = CGRectMake([_zanIcon right]+ICON_MARGIN_CONTENT,0,[_actionView width]/2 - 20,ATTR_FONT_SIZE);
+    _zanText.frame = CGRectMake([_zanIcon right]+ICON_MARGIN_CONTENT,0,40,ATTR_FONT_SIZE);
 }
 
 -(void)setDictData:(NSDictionary *)dictData {
     
-    _videoTitleImage.L_ImageName(@"test4.jpg");
+    NSString * videoImage = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dictData[@"v_title_image"]];
+    [_videoTitleImage sd_setImageWithURL:[NSURL URLWithString:videoImage] placeholderImage:[UIImage imageNamed:RECTANGLE_IMAGE_DEFAULT] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+        _videoPlayIcon.hidden = NO;
+    }];
     
     _videoPlayIcon.L_ImageName(@"wh");
     
-    _videoTitle.L_Text(@"钢琴的初级入门指导");
+    _videoTitle.L_Text(dictData[@"v_title"]);
     
-    _commentText.L_Text(@"9999");
+    _commentText.L_Text([NSString stringWithFormat:@"%@",dictData[@"v_comment_count"]]);
     
-    _zanText.L_Text(@"888");
+    _zanText.L_Text([NSString stringWithFormat:@"%@",dictData[@"v_zan_count"]]);
     
 }
 @end

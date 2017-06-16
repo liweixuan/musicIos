@@ -50,17 +50,19 @@
         _matchCoverView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             
             imgv
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
+            .L_radius(5)
             .L_AddView(_cellBox);
             
         }];
         
         _matchTypeView = [UILabel LabelinitWith:^(UILabel *la) {
             la
-            .L_BgColor([UIColor grayColor])
+            .L_BgColor([UIColor blackColor])
             .L_textAlignment(NSTextAlignmentCenter)
             .L_TextColor([UIColor whiteColor])
-            .L_Alpha(0.5)
-            .L_AddView(_cellBox);
+            .L_Alpha(0.6)
+            .L_AddView(_matchCoverView);
         }];
         
         _matchNameView = [UILabel LabelinitWith:^(UILabel *la) {
@@ -78,12 +80,13 @@
             .L_AddView(_cellBox);
         }];
         
-        _matchCategoryIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-            
-            imgv
-            .L_AddView(_cellBox);
-            
-        }];
+//        _matchCategoryIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+//            
+//            imgv
+//            .L_ImageMode(UIViewContentModeScaleAspectFit)
+//            .L_AddView(_cellBox);
+//            
+//        }];
         
         _matchCategoryView = [UILabel LabelinitWith:^(UILabel *la) {
             la
@@ -156,15 +159,16 @@
     [super layoutSubviews];
     
     //行容器大小
-    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP * 2);
+    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,CARD_MARGIN_TOP,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - CARD_MARGIN_TOP);
 }
 
 -(void)setMatchFrame:(MatchFrame *)matchFrame {
     
     
     //赛事封面
+    NSString * coverImage = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,matchFrame.matchModel.matchCover];
     _matchCoverView.frame = matchFrame.matchCoverFrame;
-    _matchCoverView.L_ImageName(IMAGE_DEFAULT);
+    _matchCoverView.L_ImageUrlName(coverImage,IMAGE_DEFAULT);
     
     //赛事类别
     _matchTypeView.frame = matchFrame.matchTypeFrame;
@@ -178,13 +182,13 @@
     _matchInvolvementCountView.frame = matchFrame.matchInvolvementCountFrame;
     _matchInvolvementCountView.L_Text([NSString stringWithFormat:@"已参与：%ld",(long)matchFrame.matchModel.matchInvolvementCount]);
     
-    //类别图标
-    _matchCategoryIconView.frame = matchFrame.matchCategoryIconFrame;
-    _matchCategoryIconView.L_ImageName(matchFrame.matchModel.cIcon);
+//    //类别图标
+//    _matchCategoryIconView.frame = matchFrame.matchCategoryIconFrame;
+//    _matchCategoryIconView.L_ImageName(matchFrame.matchModel.cIcon);
     
     //类别名称
     _matchCategoryView.frame = matchFrame.matchCategoryFrame;
-    _matchCategoryView.L_Text(matchFrame.matchModel.cName);
+    _matchCategoryView.L_Text([NSString stringWithFormat:@"乐器：[ %@ ]",matchFrame.matchModel.cName]);
     
     //开始时间
     _matchStartTimeView.frame = matchFrame.matchStartTimeFrame;
@@ -192,7 +196,7 @@
     
     //结束时间
     _matchEndTimeView.frame = matchFrame.matchEndTimeFrame;
-    _matchEndTimeView.L_Text([NSString stringWithFormat:@"结束时间：%@",matchFrame.matchModel.matchStartTime]);
+    _matchEndTimeView.L_Text([NSString stringWithFormat:@"结束时间：%@",matchFrame.matchModel.matchEndTime]);
     
     //去投票按钮
     _matchVoteView.frame  = matchFrame.matchVoteFrame;
@@ -211,13 +215,13 @@
     _matchStatusView.L_BgColor(HEX_COLOR(BG_GARY));
 
     if(matchFrame.matchModel.nowStatus == 0){
-        _matchStatusView.L_Title(@"未开始",UIControlStateNormal);
+        _matchStatusView.L_Title(@"抱歉，比赛未开始",UIControlStateNormal);
         _matchStatusView.L_BgColor(HEX_COLOR(@"#E6CA79"));
     }else if(matchFrame.matchModel.nowStatus == 1){
         _matchStatusView.L_BgColor(HEX_COLOR(@"#68D249"));
         _matchStatusView.L_Title(@"进行中",UIControlStateNormal);
     }else{
-        _matchStatusView.L_Title(@"已结束",UIControlStateNormal);
+        _matchStatusView.L_Title(@"抱歉，比赛已结束",UIControlStateNormal);
         _matchStatusView.L_BgColor(HEX_COLOR(BG_GARY));
     }
     
@@ -232,9 +236,20 @@
         _matchActionView.L_TitleColor(HEX_COLOR(APP_MAIN_COLOR),UIControlStateNormal);
         _matchActionView.L_BgColor([UIColor whiteColor]).L_borderWidth(1).L_borderColor(HEX_COLOR(APP_MAIN_COLOR));
         _matchActionView.L_Title(@"比赛结果",UIControlStateNormal);
-    }else{
+    }else if(matchFrame.matchModel.nowStatus == 1){
         _matchActionView.L_Title(@"参与比赛",UIControlStateNormal);
+    }else{
+        _matchActionView.hidden = YES;
     }
+    
+}
+
+-(void)setIsPartakeMatch:(BOOL)isPartakeMatch {
+    
+    if(isPartakeMatch){
+        _matchActionView.L_Title(@"退出比赛",UIControlStateNormal);
+    }
+    
     
 }
 
@@ -248,6 +263,22 @@
 
 //操作按钮
 -(void)matchActionClick:(UIButton *)sender {
+    
+    NSString * btnTitle = sender.titleLabel.text;
+    
+    if([btnTitle isEqualToString:@"参与比赛"]){
+        
+        [self.delegate partakeMatchClick:self];
+        
+    }else if([btnTitle isEqualToString:@"比赛结果"]){
+        
+        [self.delegate matchResultClick:self];
+        
+    }else{
+        
+        [self.delegate quitMatchClick:self];
+        
+    }
     
 }
 

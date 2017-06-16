@@ -88,23 +88,10 @@
             .L_AddView(_categroyBoxView);
         }];
         
-        //重置按钮和确定按钮
-        [UIButton ButtonInitWith:^(UIButton *btn) {
-            btn
-            .L_Frame(CGRectMake(([actionView width]/2)/2 - 120/2,[actionView height]/2 - 30/2,120,30))
-            .L_BgColor([UIColor whiteColor])
-            .L_TitleColor(HEX_COLOR(APP_MAIN_COLOR),UIControlStateNormal)
-            .L_Title(@"重置",UIControlStateNormal)
-            .L_TargetAction(self,@selector(resetBtnClick),UIControlEventTouchUpInside)
-            .L_radius(5)
-            .L_borderWidth(1)
-            .L_borderColor(HEX_COLOR(APP_MAIN_COLOR))
-            .L_AddView(actionView);
-        } buttonType:UIButtonTypeCustom];
         
         [UIButton ButtonInitWith:^(UIButton *btn) {
             btn
-            .L_Frame(CGRectMake(([actionView width]/2)/2 + ([actionView width]/2 - 120/2),[actionView height]/2 - 30/2,120,30))
+            .L_Frame(CGRectMake([actionView width]/2 - 120/2,[actionView height]/2 - 30/2,120,30))
             .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
             .L_TitleColor([UIColor whiteColor],UIControlStateNormal)
             .L_Title(@"确定",UIControlStateNormal)
@@ -123,11 +110,6 @@
         
     }
     return self;
-}
-
-
--(void)resetBtnClick {
-     NSLog(@"222");
 }
 
 -(void)submitBtnClick {

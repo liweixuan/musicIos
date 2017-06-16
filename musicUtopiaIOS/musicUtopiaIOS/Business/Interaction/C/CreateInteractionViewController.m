@@ -5,14 +5,17 @@
 #import "CameraViewController.h"
 #import <TZImagePickerController/TZImagePickerController.h>
 #import <AliyunOSSiOS/AliyunOSSiOS.h>
-#import "GCD.h"
+#import "VideoViewController.h"
+#import "VideoPlayerViewController.h"
+#import <AVFoundation/AVFoundation.h>
 
-@interface CreateInteractionViewController ()<UITextViewDelegate,MusicCategoryPopViewDelegate,TZImagePickerControllerDelegate>
+@interface CreateInteractionViewController ()<UITextViewDelegate,MusicCategoryPopViewDelegate,TZImagePickerControllerDelegate,VideoDelegate,UIScrollViewDelegate>
 {
     UIView       * _dynamicInputView;
     UIView       * _uploadView;
     UIView       * _radioView;                //音频视图
     UIView       * _videoView;                //视频视图
+    UIImageView  * _playerVideoIcon;
     UILabel      * _placeHolder;
     UIScrollView * _scrollBoxView;
     
@@ -23,9 +26,15 @@
     NSMutableArray      * _dynamicTypeBtnArr; //类型数组
     UIView              * _selectViewBox;     //选择视图
     
+    NSString            * _cname;             //类别名称
     NSInteger             _cid;               //当前选择类型
     NSString            * _tagStr;            //当前的标签数据
     NSMutableArray      * _uploadImageArr;    //上传的图片保存数组
+    NSMutableArray      * _uploadImageViewArr;//上传图片视图数组
+    
+    UIImageView * _videoPreview;
+    NSURL       * _videoUrl;
+    NSString    * _videoEndUrl;
 }
 @end
 
@@ -78,7 +87,9 @@
     _dynamicTypeBtnArr = [NSMutableArray array];
     _cid               = -1;
     _tagStr            = @"";
+    _cname             = @"";
     _uploadImageArr    = [NSMutableArray array];
+    _uploadImageViewArr= [NSMutableArray array];
     
     //添加默认的上传图
     [_uploadImageArr addObject:@{@"image":@"shangchuan",@"type":@"default"}];
@@ -151,15 +162,17 @@
         .L_AddView(self.view);
         
     }];
+    
+    _scrollBoxView.delegate = self;
+    
 }
-
 
 -(void)createDynamicInputBox {
     
     _dynamicInputView = [UIView ViewInitWith:^(UIView *view) {
        
         view
-        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,20,D_WIDTH - CARD_MARGIN_LEFT*2,220))
+        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,15,D_WIDTH - CARD_MARGIN_LEFT*2,220))
         .L_BgColor([UIColor whiteColor])
         .L_ShadowColor([UIColor grayColor])
         .L_shadowOffset(CGSizeMake(2,2))
@@ -173,15 +186,16 @@
     _dynamicTextView  = [[UITextView alloc] initWithFrame:CGRectMake(5,0,[_dynamicInputView width]-10,220)];
     _dynamicTextView.delegate      = self;
     _dynamicTextView.returnKeyType = UIReturnKeyDone;
+    _dynamicTextView.font = [UIFont systemFontOfSize:SUBTITLE_FONT_SIZE];
     [_dynamicInputView addSubview:_dynamicTextView];
     
     //模拟placeholder
     _placeHolder = [UILabel LabelinitWith:^(UILabel *la) {
        la
-        .L_Frame(CGRectMake(5,5,100,20))
+        .L_Frame(CGRectMake(5,5,150,20))
         .L_Text(@"想和大家分享什么")
         .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
-        .L_Font(12)
+        .L_Font(SUBTITLE_FONT_SIZE)
         .L_AddView(_dynamicTextView);
     }];
     
@@ -201,8 +215,8 @@
     }];
     
     //创建四种类型的图标
-    NSArray * sendTypeNormal   = @[@"send_text_normal",@"send_image_normal",@"send_radio_normal",@"send_video_normal"];
-    NSArray * sendTypeSelected = @[@"send_text_high",@"send_image_high",@"send_radio_high",@"send_video_high"];
+    NSArray * sendTypeNormal   = @[@"send_text_normal",@"send_image_normal",@"send_video_normal"];
+    NSArray * sendTypeSelected = @[@"send_text_high",@"send_image_high",@"send_video_high"];
     
     for(int i =0;i<sendTypeNormal.count;i++) {
 
@@ -211,9 +225,7 @@
         CGFloat btnSize = 35;
         
         if(i == 2){
-            btnSize = 40;
-        }else if(i == 3){
-            btnSize = 45;
+            btnSize = 48;
         }
         
         UIButton * typeBtn = [UIButton ButtonInitWith:^(UIButton *btn) {
@@ -307,7 +319,7 @@
     }];
     
     //音频预览区
-    UIView * radioPreview = [UIView ViewInitWith:^(UIView *view) {
+    [UIView ViewInitWith:^(UIView *view) {
         view
         .L_Frame(CGRectMake(10, [radioLabel bottom]+5, [_radioView width] - 20,50))
         .L_BgColor(HEX_COLOR(@"#EEEEEE"))
@@ -325,7 +337,7 @@
     
     _videoView = [UIView ViewInitWith:^(UIView *view) {
         view
-        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,[_dynamicInputView bottom] + CARD_MARGIN_TOP,D_WIDTH - CARD_MARGIN_LEFT*2,300))
+        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,[_dynamicInputView bottom] + CARD_MARGIN_TOP,D_WIDTH - CARD_MARGIN_LEFT*2,350))
         .L_BgColor([UIColor whiteColor])
         .L_ShadowColor([UIColor grayColor])
         .L_shadowOffset(CGSizeMake(2,2))
@@ -359,13 +371,27 @@
     }];
     
     //视频预览区
-    UIView * radioPreview = [UIView ViewInitWith:^(UIView *view) {
-        view
-        .L_Frame(CGRectMake(10, [radioLabel bottom]+5, [_radioView width] - 20,200))
+    _videoPreview = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+        imgv
+        .L_Frame(CGRectMake(10, [radioLabel bottom]+5, [_radioView width] - 20,250))
         .L_BgColor(HEX_COLOR(@"#EEEEEE"))
+        .L_Event(YES)
+        .L_ImageMode(UIViewContentModeScaleAspectFill)
         .L_radius(5)
         .L_AddView(_videoView);
     }];
+    
+    _playerVideoIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+        imgv
+        .L_Frame(CGRectMake([_videoPreview width]/2 - 60/2,[_videoPreview height]/2 - 60/2, 60, 60))
+        .L_Event(YES)
+        .L_Click(self,@selector(playerVideoClick))
+        .L_ImageName(@"bofang")
+        .L_radius(30)
+        .L_AddView(_videoPreview);
+    }];
+    
+    _playerVideoIcon.hidden = YES;
     
 }
 
@@ -470,6 +496,16 @@
 
 #pragma mark - 事件处理
 
+//视频播放按钮
+-(void)playerVideoClick {
+    NSLog(@"播放视频");
+    VideoPlayerViewController * videoPlayerVC = [[VideoPlayerViewController alloc] init];
+    videoPlayerVC.videoUrl = [_videoUrl absoluteString];
+   
+    videoPlayerVC.modalPresentationStyle = UIModalTransitionStyleCrossDissolve;
+    [self presentViewController:videoPlayerVC animated:YES completion:nil];
+}
+
 //选择录音
 -(void)radioUploadClick {
     NSLog(@"选择录音...");
@@ -478,6 +514,103 @@
 //选择视频
 -(void)videoUploadClick {
     NSLog(@"选择视频...");
+    
+    UIAlertController *videoAlertController = [UIAlertController alertControllerWithTitle:@"" message:@"选择视频" preferredStyle: UIAlertControllerStyleActionSheet];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"相册选择" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        
+        VideoViewController * videoVC = [[VideoViewController alloc] init];
+        videoVC.delegate = self;
+        [self presentViewController:videoVC animated:YES completion:nil];
+        
+    }];
+    
+    [videoAlertController addAction:cancelAction];
+    [videoAlertController addAction:deleteAction];
+    
+    [self presentViewController:videoAlertController animated:YES completion:nil];
+    
+    
+}
+
+//选择视频回调
+-(void)videoSelectURL:(NSURL *)url thumbnailImage:(UIImage *)image {
+    
+    _videoPreview.image = image;
+    
+    _videoUrl   = url;
+    
+    _playerVideoIcon.hidden = NO;
+    
+    [self startActionLoading:@"正在上传动态视频..."];
+    
+    //上传视频操作,转化成MP4
+    AVURLAsset *avAsset = [AVURLAsset URLAssetWithURL:_videoUrl options:nil];
+    NSArray *compatiblePresets = [AVAssetExportSession exportPresetsCompatibleWithAsset:avAsset];
+    
+    if ([compatiblePresets containsObject:AVAssetExportPresetLowQuality]){
+        
+        AVAssetExportSession *exportSession = [[AVAssetExportSession alloc]initWithAsset:avAsset presetName:AVAssetExportPresetMediumQuality];
+        NSString *exportPath = [NSString stringWithFormat:@"%@/%@.mp4",[NSHomeDirectory() stringByAppendingString:@"/tmp"],[NSString stringWithFormat:@"%u",arc4random() % 99999]];
+        exportSession.outputURL = [NSURL fileURLWithPath:exportPath];
+        exportSession.outputFileType = AVFileTypeMPEG4;
+        exportSession.shouldOptimizeForNetworkUse= YES;
+        [exportSession exportAsynchronouslyWithCompletionHandler:^{
+            
+            switch ([exportSession status]) {
+                case AVAssetExportSessionStatusFailed:
+                    NSLog(@"Export failed: %@", [[exportSession error] localizedDescription]);
+                {
+                    SHOW_HINT(@"视频上传失败，请重新尝试");
+                }
+                    
+                    break;
+                case AVAssetExportSessionStatusCancelled:
+                {
+                    SHOW_HINT(@"视频上传失败，请重新尝试");
+                }
+                    
+                    NSLog(@"Export canceled");
+                    break;
+                case AVAssetExportSessionStatusCompleted:
+                    NSLog(@"转换成功");
+                {
+                    
+                    //上传视频
+                    NSData * videoData = [NSData dataWithContentsOfFile:exportPath];
+                    
+                    [NetWorkTools uploadVideo:@{@"video":videoData,@"videoDir":@"dynamicVideo"} Result:^(BOOL results, NSString *fileName) {
+                        
+                        dispatch_sync(dispatch_get_main_queue(), ^{
+                            [self endActionLoading];
+                        });
+                        
+                        if(!results){
+                            dispatch_sync(dispatch_get_main_queue(), ^{
+                                SHOW_HINT(@"视频上传失败，请重新尝试");
+                            });
+                            return;
+                        }
+                        
+                        _videoEndUrl = fileName;
+                        
+                        //上传升级申请
+                        dispatch_sync(dispatch_get_main_queue(), ^{
+                            [self endActionLoading];
+                        });
+                        
+                    }];
+                    
+                    
+                }
+                    break;
+                default:
+                    break;
+            }
+        }];
+    }
+    
+
 }
 
 //发布动态
@@ -535,8 +668,12 @@
             [self.view endEditing:YES];
             SHOW_HINT(@"动态发布成功");
             
+            [self.navigationController popViewControllerAnimated:YES];
+            
             //重置所有输入
-            [self clearDynamicData];
+            //[self clearDynamicData];
+            
+            
             
         } errorBlock:^(NSString *error) {
             SHOW_HINT(@"动态发布失败，请重新尝试");
@@ -568,9 +705,10 @@
             
                 [self.view endEditing:YES];
                 SHOW_HINT(@"动态发布成功");
-            
+                
+                [self.navigationController popViewControllerAnimated:YES];
                 //重置所有输入
-                [self clearDynamicData];
+                //[self clearDynamicData];
             
             } errorBlock:^(NSString *error) {
                 SHOW_HINT(@"动态发布失败，请重新尝试");
@@ -579,6 +717,51 @@
             
         }];
 
+    }else if(_nowDynamicType == 2){
+        
+        NSLog(@"处理视频类型的动态上传");
+        
+        //上传第一帧图片
+        [NetWorkTools uploadImage:@{@"image":_videoPreview.image,@"imageDir":@"dynamicVideo"} Result:^(BOOL results, NSString *fileName) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                if(!results){
+                    [self endActionLoading];
+                    SHOW_HINT(@"动态发布失败");
+                    return;
+                }
+                
+                
+                //发布图片动态
+                [dynamicParams setObject:fileName forKey:@"d_video_image"];
+                [dynamicParams setObject:_videoEndUrl forKey:@"d_video_url"];
+                
+                
+                //发布动态
+                [NetWorkTools POST:API_DYNAMIC_ADD params:dynamicParams successBlock:^(NSArray *array) {
+                    
+                    [self endActionLoading];
+                    
+                    [self.view endEditing:YES];
+                    SHOW_HINT(@"动态发布成功");
+                    
+                    [self.navigationController popViewControllerAnimated:YES];
+                    //重置所有输入
+                    //[self clearDynamicData];
+                    
+                } errorBlock:^(NSString *error) {
+                    SHOW_HINT(@"动态发布失败，请重新尝试");
+                    NSLog(@"%@",error);
+                }];
+  
+                
+            });
+            
+        }];
+        
+        
+        
     }
 
 }
@@ -600,7 +783,7 @@
     //选择标签
     }else if(TAG == 3){
         
-        PUSH_VC(CreateTagViewController, YES, @{});
+        PUSH_VC(CreateTagViewController, YES, @{@"TAG_NAME":@"CreateInteractionVC"});
         
     }
     
@@ -648,17 +831,6 @@
         //隐藏上传图片视图
         [self hideUploadView];
         
-        //隐藏上传视频视图
-        [self hideVideoView];
-        
-        //显示上传语音视图
-        [self showRadioView];
-        
-    }else if(_nowDynamicType == 3){
-        
-        //隐藏上传图片视图
-        [self hideUploadView];
-        
         //隐藏语音视图
         [self hideRadioView];
         
@@ -668,6 +840,21 @@
     }else{
         NSLog(@"类型错误...");
     }
+    
+    /*
+     else if(_nowDynamicType == 2){
+     
+     //隐藏上传图片视图
+     [self hideUploadView];
+     
+     //隐藏上传视频视图
+     [self hideVideoView];
+     
+     //显示上传语音视图
+     [self showRadioView];
+     
+     }
+     */
 }
 
 //显示上传视频视图
@@ -726,6 +913,7 @@
         
       
     }];
+    
     [alertController addAction:cancelAction];
     [alertController addAction:deleteAction];
     [alertController addAction:archiveAction];
@@ -759,7 +947,8 @@
     UILabel * selectLabel = [self.view viewWithTag:101];
     selectLabel.text = c_name;
     
-    _cid = c_id;
+    _cid   = c_id;
+    _cname = c_name;
 }
 
 //相册图片选择代理
@@ -791,6 +980,9 @@
     for(UIView * view in _uploadView.subviews){
         [view removeFromSuperview];
     }
+    
+    //清除保存的图片视图数组
+    [_uploadImageViewArr removeAllObjects];
     
     CGFloat lastBottomY = 0.0;
 
@@ -831,12 +1023,40 @@
         UIImageView * uploadImageView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
             .L_Frame(CGRectMake(cItemX+10,cItemY+10,cItemWidth,cItemWidth))
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_Event(YES)
             .L_tag(i)
             .L_radius(5)
             .L_Click(self,@selector(uploadBtnClick:))
             .L_AddView(_uploadView);
         }];
+        
+        
+
+        
+        //创建删除号
+        
+        if(i != _uploadImageArr.count - 1){
+           [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+                imgv
+                .L_Frame(CGRectMake([uploadImageView width]/2 - 30/2,[uploadImageView height]/2- 30/2,30,30))
+                .L_ImageName(@"shanchu")
+                .L_Event(YES)
+                .L_Alpha(0.5)
+                .L_tag(i)
+                .L_Click(self,@selector(removeUploadImage:))
+                .L_AddView(uploadImageView);
+            }];
+            
+            //添加图片上滑手势
+            UISwipeGestureRecognizer * recognizer = [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(handleSwipeFrom:)];
+            [recognizer setDirection:(UISwipeGestureRecognizerDirectionUp)];
+            [uploadImageView addGestureRecognizer:recognizer];
+
+            
+            [_uploadImageViewArr addObject:uploadImageView];
+        }
+        
         
         if([dictData[@"type"] isEqualToString:@"uploadImage"]){
             uploadImageView.image = dictData[@"image"];
@@ -849,6 +1069,44 @@
     
     [_uploadView setHeight:lastBottomY + 10];
     [_selectViewBox setY:[_uploadView bottom] + 10];
+    
+}
+
+//图片上滑手势
+-(void)handleSwipeFrom:(UISwipeGestureRecognizer *)swip {
+    NSInteger tagValue = swip.view.tag;
+    
+    
+    UIImageView * uploadImage = _uploadImageViewArr[tagValue];
+    [UIView animateWithDuration:0.3 animations:^{
+        [uploadImage setY:-100];
+        uploadImage.alpha = 0;
+    } completion:^(BOOL finished) {
+        //删除数组的图片
+        [_uploadImageArr removeObjectAtIndex:tagValue];
+        
+        [self createPhotosPreview];
+    }];
+}
+
+//删除某个图片
+-(void)removeUploadImage:(UITapGestureRecognizer *)tap {
+    NSInteger tagValue = tap.view.tag;
+  
+    
+    UIImageView * uploadImage = _uploadImageViewArr[tagValue];
+    [UIView animateWithDuration:0.2 animations:^{
+        [uploadImage setWidth:0];
+        [uploadImage setHeight:0];
+        uploadImage.alpha = 0;
+    } completion:^(BOOL finished) {
+        //删除数组的图片
+        [_uploadImageArr removeObjectAtIndex:tagValue];
+        
+        [self createPhotosPreview];
+    }];
+    
+    
 }
 
 
@@ -919,11 +1177,15 @@
 
 #pragma mark - 通知相关,获取标签数据
 -(void)selectedTags:(NSNotification *)notification{
+
     UILabel * selectLabel = [self.view viewWithTag:102];
     _tagStr = notification.userInfo[@"tagStr"];
     selectLabel.text = _tagStr;
 }
 
-
+//屏幕将要开始滚动
+-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    NSLog(@"视图准备开始滚动...");
+}
 
 @end

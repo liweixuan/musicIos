@@ -23,6 +23,14 @@
     };
 }
 
+
+-(UIImageView *(^)(NSInteger))L_Tag {
+    return ^UIImageView *(NSInteger r){
+        self.tag  = r;
+        return self;
+    };
+}
+
 -(UIImageView *(^)(NSString *))L_ImageName {
     return ^UIImageView *(NSString *imageName){
         self.image = [UIImage imageNamed:imageName];
@@ -87,4 +95,15 @@
 }
 
 
+-(UIImageView *(^)(UIRectCorner,NSInteger))L_raius_location {
+    return ^UIImageView *(UIRectCorner rc,NSInteger rv){
+        
+        UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds byRoundingCorners:rc cornerRadii:CGSizeMake(rv,rv)];
+        CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];
+        maskLayer.frame = self.bounds;
+        maskLayer.path = maskPath.CGPath;
+        self.layer.mask = maskLayer;
+        return self;
+    };
+}
 @end

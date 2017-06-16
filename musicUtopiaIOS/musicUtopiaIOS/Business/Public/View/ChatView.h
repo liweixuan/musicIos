@@ -19,6 +19,9 @@
 //发送图片消息
 -(void)sendImageMessage:(NSArray *)images;
 
+//发送语音消息
+-(void)sendRadioMessage:(NSData *)radioData TimeLength:(NSInteger)length;
+
 //进入视频录制界面
 -(void)goVideoRecord;
 

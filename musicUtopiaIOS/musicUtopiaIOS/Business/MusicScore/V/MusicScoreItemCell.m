@@ -12,14 +12,12 @@
 {
     UIView      * _cellBox;
     UILabel     * _hotCount;
+    UIImageView * _deleteMusicImage;
     UILabel     * _hotCountTitle;
     UIImageView * _middleLineIcon;
     UILabel     * _categoryTitleLabel;
     UILabel     * _musicScoreName;
     UILabel     * _pageCount;
-//    UILabel     * _musicCategoryView;
-//    UIImageView * _buyCountIconView;
-//    UILabel     * _buyCountView;
     UIImageView * _iconRightView;
 }
 @end
@@ -55,14 +53,23 @@
             .L_AddView(_cellBox);
         }];
         
-        
-        _hotCountTitle = [UILabel LabelinitWith:^(UILabel *la) {
-            la
-            .L_Font(12)
-            .L_textAlignment(NSTextAlignmentCenter)
-            .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+        _deleteMusicImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+            imgv
+            .L_ImageName(@"shanchu")
+            .L_Event(YES)
+            .L_Click(self,@selector(deleteMusicScoreClick))
             .L_AddView(_cellBox);
         }];
+        _deleteMusicImage.hidden = YES;
+        
+        
+//        _hotCountTitle = [UILabel LabelinitWith:^(UILabel *la) {
+//            la
+//            .L_Font(12)
+//            .L_textAlignment(NSTextAlignmentCenter)
+//            .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+//            .L_AddView(_cellBox);
+//        }];
         
         
         _middleLineIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
@@ -110,9 +117,11 @@
     //行容器大小
     _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,INLINE_CARD_MARGIN,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - INLINE_CARD_MARGIN * 2);
     
-    _hotCount.frame = CGRectMake(CONTENT_PADDING_LEFT,8,24,24);
+    _hotCount.frame = CGRectMake(CONTENT_PADDING_LEFT,[_cellBox height]/2 - 24/2,24,24);
     
-    _hotCountTitle.frame = CGRectMake([_hotCount left]-3,[_hotCount bottom]+3,30,12);
+    _deleteMusicImage.frame = CGRectMake(10,[_cellBox height]/2 - 30/2,30,30);
+//    
+//    _hotCountTitle.frame = CGRectMake([_hotCount left]-3,[_hotCount bottom]+3,30,12);
     
     _middleLineIcon.frame = CGRectMake([_hotCount right]+ICON_MARGIN_CONTENT, [_cellBox height]/2- 36/2, 14,36);
     
@@ -123,24 +132,41 @@
     //右侧箭头
     _iconRightView.frame = CGRectMake([_cellBox width] - SMALL_ICON_SIZE - CONTENT_PADDING_LEFT,[_cellBox height]/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE,SMALL_ICON_SIZE);
     
-    _pageCount.frame = CGRectMake([_iconRightView left] - 40,[_cellBox height]/2 - ATTR_FONT_SIZE/2, 40,ATTR_FONT_SIZE);
+    _pageCount.frame = CGRectMake([_iconRightView left] -45,[_cellBox height]/2 - ATTR_FONT_SIZE/2, 40,ATTR_FONT_SIZE);
     
 }
 
 -(void)setDictData:(NSDictionary *)dictData {
+
+    _hotCount.text           = [NSString stringWithFormat:@"%@",dictData[@"ms_hot_count"]];
     
-    _hotCount.text = dictData[@"hotCount"];
+//    _hotCountTitle.text      = @"热度";
     
-    _hotCountTitle.text = @"热度";
+    NSString * typeStr = [BusinessEnum getMusicScoreTypeString:[dictData[@"ms_type"] integerValue]];
+    _categoryTitleLabel.text = [NSString stringWithFormat:@"[%@]",typeStr];
     
-    _categoryTitleLabel.text = [NSString stringWithFormat:@"[%@]",dictData[@"titleType"]];
+    _musicScoreName.text     = dictData[@"ms_name"];
     
-    _musicScoreName.text     = dictData[@"name"];
-    
-    _pageCount.text = [NSString stringWithFormat:@"%@页",dictData[@"page"]];
-    
+    _pageCount.text          = [NSString stringWithFormat:@"%@页",dictData[@"mu_page"]];
 
     
 }
 
+-(void)setIsEdit:(BOOL)isEdit {
+    
+    if(isEdit){
+        _deleteMusicImage.hidden = NO;
+        _hotCount.hidden = YES;
+    }else{
+        _deleteMusicImage.hidden = YES;
+        _hotCount.hidden = NO;
+    }
+    
+    
+}
+
+-(void)deleteMusicScoreClick {
+    [self.delegate deleteMyMusicScore:self];
+    
+}
 @end

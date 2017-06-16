@@ -51,6 +51,44 @@
     
 }
 
++(NSDictionary *)getCategoryId:(NSInteger)cid {
+    
+    if(cid == 9){
+        return @{@"icon":@"cc_minyaojita",@"c_id":@(9) ,@"c_name":@"民谣吉他"};
+    }else if(cid == 10){
+        return @{@"icon":@"cc_gangqin",@"c_id":@(10),@"c_name":@"钢琴"};
+    }else if(cid == 11){
+        return @{@"icon":@"cc_xiaotiqin",@"c_id":@(11),@"c_name":@"小提琴"};
+    }else if(cid == 12){
+        return @{@"icon":@"cc_erhu",@"c_id":@(12),@"c_name":@"二胡"};
+    }else if(cid == 16){
+        return @{@"icon":@"cc_datiqin",@"c_id":@(16),@"c_name":@"大提琴"};
+    }else if(cid == 19){
+        return @{@"icon":@"cc_gudianjita",@"c_id":@(19),@"c_name":@"古典吉他"};
+    }else if(cid == 20){
+        return @{@"icon":@"cc_dianjita",@"c_id":@(20),@"c_name":@"电声吉他"};
+    }else if(cid == 22){
+        return @{@"icon":@"cc_xiaohao",@"c_id":@(22),@"c_name":@"小号"};
+    }else if(cid == 23){
+        return @{@"icon":@"cc_dianbeisi",@"c_id":@(23),@"c_name":@"电声贝斯"};
+    }else if(cid == 24){
+        return @{@"icon":@"cc_changdi",@"c_id":@(24),@"c_name":@"长笛"};
+    }else if(cid == 25){
+        return @{@"icon":@"cc_sakesi",@"c_id":@(25),@"c_name":@"萨克斯管"};
+    }else if(cid == 26){
+        return @{@"icon":@"cc_danhuangguan",@"c_id":@(26),@"c_name":@"单簧管"};
+    }else if(cid == 27){
+        return @{@"icon":@"cc_kouqin",@"c_id":@(27),@"c_name":@"口琴"};
+    }else if(cid == 28){
+        return @{@"icon":@"cc_youkelili",@"c_id":@(28),@"c_name":@"尤克里里"};
+    }else if(cid == 29){
+        return @{@"icon":@"cc_jiazigu",@"c_id":@(29),@"c_name":@"架子鼓"};
+    }
+    
+    return nil;
+    
+}
+
 +(NSString *)getSexIcon:(NSInteger)sex {
     
     if(sex == 0){
@@ -100,6 +138,28 @@
         return @"月赛";
     }else{
         return @"季赛";
+    }
+    
+    return @"";
+    
+}
+
++(NSString *)getMusicScoreTypeString:(NSInteger)type {
+    
+    if(type == 0){
+        return @"乐曲";
+    }else if(type == 1){
+        return @"弹唱";
+    }else if(type == 2){
+        return @"指弹";
+    }else if(type == 3){
+        return @"合奏";
+    }else if(type == 4){
+        return @"二重奏";
+    }else if(type == 5){
+        return @"乐队";
+    }else{
+        return @"";
     }
     
     return @"";

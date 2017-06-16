@@ -60,19 +60,25 @@
         
         _imageOne = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageMode(UIViewContentModeScaleAspectFit)
+            .L_BgColor(HEX_COLOR(@"#F5F5F5"))
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
+            .L_radius(5)
             .L_AddView(_imageBox);
         }];
         
         _imageTwo = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageMode(UIViewContentModeScaleAspectFit)
+            .L_BgColor(HEX_COLOR(@"#F5F5F5"))
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
+            .L_radius(5)
             .L_AddView(_imageBox);
         }];
         
         _imageThree = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageMode(UIViewContentModeScaleAspectFit)
+            .L_BgColor(HEX_COLOR(@"#F5F5F5"))
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
+            .L_radius(5)
             .L_AddView(_imageBox);
         }];
         
@@ -85,7 +91,7 @@
         
         _commentIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"pinglun")
             .L_AddView(_cellBox);
         }];
         
@@ -105,39 +111,50 @@
     [super layoutSubviews];
     
     //行容器大小
-    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,5,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - 5*2);
+    _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,5,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - 7);
     
     _title.frame = CGRectMake(CONTENT_PADDING_LEFT, CONTENT_PADDING_TOP, [_cellBox width], SUBTITLE_FONT_SIZE);
     
     _imageBox.frame = CGRectMake(CONTENT_PADDING_LEFT, [_title bottom]+CONTENT_PADDING_TOP, [_cellBox width] - CONTENT_PADDING_LEFT * 2, 80);
     
     CGFloat imageItemW = [_imageBox width] / 3 - 5;
-    _imageOne.frame = CGRectMake(0,0,imageItemW,[_imageBox height]);
+    _imageOne.frame     = CGRectMake(0,0,imageItemW,[_imageBox height]);
     
-    _imageTwo.frame = CGRectMake(imageItemW+7.5,0,imageItemW,[_imageBox height]);
+    _imageTwo.frame     = CGRectMake(imageItemW+7.5,0,imageItemW,[_imageBox height]);
     
-    _imageThree.frame = CGRectMake(imageItemW * 2+15,0,imageItemW,[_imageBox height]);
+    _imageThree.frame   = CGRectMake(imageItemW * 2+15,0,imageItemW,[_imageBox height]);
     
-    _time.frame =  CGRectMake(CONTENT_PADDING_LEFT, [_imageBox bottom]+10, 100,ATTR_FONT_SIZE);
+    _time.frame         =  CGRectMake(CONTENT_PADDING_LEFT, [_imageBox bottom]+10, 100,ATTR_FONT_SIZE);
+
+    _commentCount.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - 10 ,[_cellBox height] - SUBTITLE_FONT_SIZE - CONTENT_PADDING_TOP, 30,ATTR_FONT_SIZE);
     
-    _commentCount.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - 30 , [_time top], 30,ATTR_FONT_SIZE);
+    _commentIcon.frame = CGRectMake([_commentCount left] - SMALL_ICON_SIZE - ICON_MARGIN_CONTENT,[_cellBox height] - SUBTITLE_FONT_SIZE - CONTENT_PADDING_TOP, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
     
-    _commentIcon.frame = CGRectMake([_commentCount left] - SMALL_ICON_SIZE - ICON_MARGIN_CONTENT, [_time top], SMALL_ICON_SIZE, SMALL_ICON_SIZE);
+    
 }
 
 -(void)setDictData:(NSDictionary *)dictData {
     
-    _title.L_Text(dictData[@"title"]);
+    _title.L_Text(dictData[@"a_title"]);
     
-    NSArray * images = dictData[@"image"];
-    _imageOne.L_ImageName(images[0][@"imageUrl"]);
-    _imageTwo.L_ImageName(images[1][@"imageUrl"]);
-    _imageThree.L_ImageName(images[2][@"imageUrl"]);
+    NSArray * images = dictData[@"images"];
     
-    _time.L_Text(@"2天前");
     
-    _commentCount.L_Text(@"999");
+    NSString * imageOneUrl   = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,images[0][@"ai_img_url"]];
+    NSString * imageTwoUrl   = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,images[1][@"ai_img_url"]];
+    NSString * imageThreeUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,images[2][@"ai_img_url"]];
+    
+    _imageOne.L_ImageUrlName(imageOneUrl,RECTANGLE_IMAGE_DEFAULT);
+    _imageTwo.L_ImageUrlName(imageTwoUrl,RECTANGLE_IMAGE_DEFAULT);
+    _imageThree.L_ImageUrlName(imageThreeUrl,RECTANGLE_IMAGE_DEFAULT);
+    
+    NSString * timeStr = [G formatData:[dictData[@"a_create_time"] integerValue] Format:@"MM-dd"];
+    _time.L_Text(timeStr);
+    
+    _commentCount.L_Text([NSString stringWithFormat:@"%@",dictData[@"a_comment_count"]]);
 
     
 }
+
+
 @end

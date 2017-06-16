@@ -66,16 +66,44 @@
         //模式1
         if(type == 1){
             
+            NSLog(@"1111");
+            
             NSURL *url = [NSURL URLWithString:imageName];
+            
             UIImageView *imageView = [[UIImageView alloc] init];
-            [imageView sd_setImageWithURL:url placeholderImage:[UIImage imageNamed:IMAGE_DEFAULT]];
+            
             imageView.frame = containerView.bounds;
             imageView.contentMode = UIViewContentModeScaleAspectFit;
             [containerView addSubview:imageView];
             _imageView = imageView;
             
+            [imageView sd_setImageWithURL:url placeholderImage:[UIImage imageNamed:IMAGE_DEFAULT] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+ 
+                CGSize imageSize = _imageView.contentSize;
+                self.containerView.frame = CGRectMake(0, 0, imageSize.width, imageSize.height);
+                //_imageView.bounds = CGRectMake(0, 0, imageSize.width, imageSize.height);
+                _imageView.bounds = CGRectMake(-30,0,D_WIDTH+60,D_HEIGHT);
+                _imageView.center = CGPointMake(imageSize.width / 2, imageSize.height / 2);
+                
+                self.contentSize = imageSize;
+                self.minSize = imageSize;
+                
+                
+                [self setMaxMinZoomScale];
+                [self centerContent];
+                [self setupGestureRecognizer];
+                [self setupRotationNotification];
+            }];
+            
+            
+            
+            NSLog(@"######%@",imageView);
+            
+            
         //模式2
         }else{
+            
+            NSLog(@"2222");
             
             UIImageView *imageView = [[UIImageView alloc] init];
             imageView.frame = containerView.bounds;
@@ -87,22 +115,24 @@
             
             [containerView addSubview:imageView];
             _imageView = imageView;
+            
+            CGSize imageSize = _imageView.contentSize;
+            self.containerView.frame = CGRectMake(0, 0, imageSize.width, imageSize.height);
+            //_imageView.bounds = CGRectMake(0, 0, imageSize.width, imageSize.height);
+            _imageView.bounds = CGRectMake(-30,0,D_WIDTH+60,D_HEIGHT);
+            _imageView.center = CGPointMake(imageSize.width / 2, imageSize.height / 2);
+            
+            self.contentSize = imageSize;
+            self.minSize = imageSize;
+            
+            
+            [self setMaxMinZoomScale];
+            [self centerContent];
+            [self setupGestureRecognizer];
+            [self setupRotationNotification];
         }
         
-        CGSize imageSize = _imageView.contentSize;
-        self.containerView.frame = CGRectMake(0, 0, imageSize.width, imageSize.height);
-        //_imageView.bounds = CGRectMake(0, 0, imageSize.width, imageSize.height);
-        _imageView.bounds = CGRectMake(-30,0,D_WIDTH+60,D_HEIGHT);
-        _imageView.center = CGPointMake(imageSize.width / 2, imageSize.height / 2);
         
-        self.contentSize = imageSize;
-        self.minSize = imageSize;
-        
-        
-        [self setMaxMinZoomScale];
-        [self centerContent];
-        [self setupGestureRecognizer];
-        [self setupRotationNotification];
     }
     
     return self;
@@ -173,9 +203,11 @@
 - (void)tapHandler:(UITapGestureRecognizer *)recognizer
 {
 
+    
     if (self.zoomScale > self.minimumZoomScale) {
         [self setZoomScale:self.minimumZoomScale animated:YES];
     } else if (self.zoomScale < self.maximumZoomScale) {
+        NSLog(@"shuangji....");
         CGPoint location = [recognizer locationInView:recognizer.view];
         CGRect zoomToRect = CGRectMake(0, 0, 50, 50);
         zoomToRect.origin = CGPointMake(location.x - CGRectGetWidth(zoomToRect)/2, location.y - CGRectGetHeight(zoomToRect)/2);

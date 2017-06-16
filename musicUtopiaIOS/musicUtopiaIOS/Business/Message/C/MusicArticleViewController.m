@@ -10,14 +10,20 @@
 #import "ArticleNormalCell.h"
 #import "ArticleBigImageCell.h"
 #import "ArticleMoreImageCell.h"
+#import "MusicArticleDetailViewController.h"
+#import "MusicArticlePreviewImageViewController.h"
 
 @interface MusicArticleViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
     UIScrollView     * _filterScrollView;
-    NSArray          * _categoryArr;
+    NSMutableArray   * _categoryArr;
     NSMutableArray   * _categoryLabelArr;
-    NSArray          * _articleArr;
+    NSMutableArray   * _articleArr;
     Base_UITableView * _tableview;
+    
+    NSInteger          _nowSelectCid;  //当前选择类别ID
+    
+    NSInteger          _skip;
     
 }
 @end
@@ -28,14 +34,20 @@
     [super viewDidLoad];
     self.title = @"音乐文章";
     
-    //获取相应数据
-    [self initData];
+    //初始化变量
+    [self initVar];
     
+ 
     //创建顶部筛选菜单
     [self createFilterView];
     
     //创建列表视图
     [self createTableview];
+    
+    
+    //获取相应数据
+    [self initData:@"init"];
+    
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -44,6 +56,18 @@
 
 -(void)viewWillAppear:(BOOL)animated {
     self.navigationController.navigationBar.layer.shadowOpacity = 0.0;
+}
+
+-(void)initVar {
+    _skip         = 0;
+    _nowSelectCid = 0;
+    _categoryArr  = [NSMutableArray array];
+    _articleArr   = [NSMutableArray array];
+    
+    _categoryLabelArr = [NSMutableArray array];
+    _categoryArr      = [LocalData getStandardMusicCategory];
+    [_categoryArr insertObject:@{@"icon":@"",@"c_id":@(0) ,@"c_name":@"全部"} atIndex:0];
+    
 }
 
 -(void)createFilterView {
@@ -94,8 +118,8 @@
         UILabel * categoryLabel = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake(0,0, [categoryView width],categoryItemH))
-            .L_Text(dictData[@"text"])
-            .L_Tag(i)
+            .L_Text(dictData[@"c_name"])
+            .L_Tag([dictData[@"c_id"] integerValue])
             .L_Font(CONTENT_FONT_SIZE)
             .L_textAlignment(NSTextAlignmentCenter)
             .L_isEvent(YES)
@@ -113,29 +137,72 @@
     
 }
 
--(void)initData {
+-(void)initData:(NSString *)type {
     
-    _categoryLabelArr = [NSMutableArray array];
+
+    //获取文章列表信息
+    NSArray * params = @[
+                         @{@"key":@"a_cid",@"value":@(_nowSelectCid)},
+                         @{@"key":@"skip" ,@"value":@(_skip)},
+                         @{@"key":@"limit",@"value":@(PAGE_LIMIT)}
+    ];
+    NSString * url = [G formatRestful:API_ARTICLE_SEARCH Params:params];
     
-    _categoryArr = @[
-                     @{@"text":@"全部"},
-                     @{@"text":@"民谣吉他"},
-                     @{@"text":@"钢琴"},
-                     @{@"text":@"古典吉他"},
-                     @{@"text":@"小提琴"},
-                     @{@"text":@"二胡"},
-                     @{@"text":@"电音吉他"},
-                     @{@"text":@"大提琴"},
-                     @{@"text":@"小号"},
-                     @{@"text":@"电声贝斯"},
-                     @{@"text":@"长笛"},
-                     @{@"text":@"萨克斯管"},
-                     @{@"text":@"单簧管"},
-                     @{@"text":@"口琴"},
-                     @{@"text":@"尤克里里"},
-                     @{@"text":@"架子鼓"}
-                     ];
     
+    if([type isEqualToString:@"init"]){
+        [self startLoading];
+    }
+    
+    if([type isEqualToString:@"selectCategory"]){
+        [self startActionLoading:@"文章获取中..."];
+    }
+    
+    [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        if([type isEqualToString:@"init"]){
+            [self endLoading];
+        }
+        
+        if([type isEqualToString:@"selectCategory"]){
+            [self endActionLoading];
+        }
+        
+        if([type isEqualToString:@"reload"]){
+            [_articleArr removeAllObjects];
+            [_tableview  headerEndRefreshing];
+            _tableview.mj_footer.hidden = NO;
+            [_tableview  resetNoMoreData];
+        }
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多文章信息");
+            return;
+        }
+        
+        
+        if([type isEqualToString:@"more"]){
+            [_articleArr addObjectsFromArray:[array mutableCopy]];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _articleArr = [array mutableCopy];
+            
+        }
+        
+        
+        [_tableview reloadData];
+        
+        
+        
+        
+    } errorBlock:^(NSString *error) {
+        [self endLoading];
+    }];
+    
+    /*
     _articleArr = @[
                     @{@"type":@(1),@"image":RECTANGLE_IMAGE_DEFAULT,@"title":@"钢琴入门指导，钢琴入门指导钢琴入门指导钢琴入门指导钢琴入门指导钢琴入门指导钢琴入门指导"},
                     @{@"type":@(2),@"image":RECTANGLE_IMAGE_DEFAULT,@"title":@"钢琴入门指导"},
@@ -151,14 +218,14 @@
                     @{@"type":@(1),@"image":RECTANGLE_IMAGE_DEFAULT,@"title":@"钢琴入门指导，钢琴入门指导钢琴入门指导钢琴入门指导钢琴入门指导钢琴入门指导钢琴入门指导"}
                     ];
     
-    
+    */
 }
 
 //创建列表视图
 -(void)createTableview {
     
     //创建列表视图
-    _tableview  = [[Base_UITableView alloc] initWithFrame:CGRectMake(0,[_filterScrollView bottom]+15,D_WIDTH,D_HEIGHT_NO_NAV_STATUS - 15) style:UITableViewStylePlain];
+    _tableview  = [[Base_UITableView alloc] initWithFrame:CGRectMake(0,[_filterScrollView bottom]+10,D_WIDTH,D_HEIGHT_NO_NAV_STATUS - 15) style:UITableViewStylePlain];
     _tableview.backgroundColor = HEX_COLOR(VC_BG);
     _tableview.delegate = self;
     _tableview.dataSource = self;
@@ -190,6 +257,8 @@
     
     [self.view addSubview:_tableview];
     
+    _tableview.marginBottom = 10;
+    
     
     
 }
@@ -205,14 +274,14 @@
 
     NSDictionary * dictData = _articleArr[indexPath.row];
     
-    if([dictData[@"type"] integerValue] == 1){
+    if([dictData[@"a_type"] integerValue] == 1){
         
         ArticleNormalCell    * cell = [[ArticleNormalCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
         cell.dictData = dictData;
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
         
-    }else if([dictData[@"type"] integerValue] == 2){
+    }else if([dictData[@"a_type"] integerValue] == 2){
         
         ArticleBigImageCell  * cell = [[ArticleBigImageCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
         cell.dictData = dictData;
@@ -227,7 +296,6 @@
         return cell;
         
     }
-    
 
     return nil;
 }
@@ -237,9 +305,9 @@
     
     NSDictionary * dictData = _articleArr[indexPath.row];
     
-    if([dictData[@"type"] integerValue] == 1){
+    if([dictData[@"a_type"] integerValue] == 1){
         return 100;
-    }else if([dictData[@"type"] integerValue] == 2){
+    }else if([dictData[@"a_type"] integerValue] == 2){
         return 240;
     }else{
         return 165;
@@ -248,6 +316,33 @@
     return 80;
 }
 
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    NSDictionary * dictData = _articleArr[indexPath.row];
+    
+    //图片展示
+    if([dictData[@"a_type"] integerValue] == 3){
+
+        MusicArticlePreviewImageViewController * musciArticlePImageVC = [[MusicArticlePreviewImageViewController alloc] init];
+        musciArticlePImageVC.aid = [dictData[@"a_id"] integerValue];
+        musciArticlePImageVC.imageType = 1;
+        musciArticlePImageVC.imageArr  = dictData[@"images"];
+        musciArticlePImageVC.imageIdx  = 0;
+        
+        musciArticlePImageVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+        [self presentViewController:musciArticlePImageVC animated:YES completion:nil];
+        
+
+    //普通文章
+    }else{
+        
+        PUSH_VC(MusicArticleDetailViewController,YES,@{@"newsDetail":dictData});
+
+    }
+    
+    
+}
 
 #pragma mark - 事件
 
@@ -266,17 +361,32 @@
     UILabel * nowLabel = (UILabel *)tap.view;
     nowLabel.textColor = HEX_COLOR(APP_MAIN_COLOR);
     
-    NSLog(@"%ld",(long)vTag);
+    _nowSelectCid = vTag;
+    
+    _skip = 0;
+    
+    _tableview.mj_footer.hidden = NO;
+    [_tableview resetNoMoreData];
+    
+    [self initData:@"selectCategory"];
+ 
     
 }
 
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    _skip = 0;
+    [self initData:@"reload"];
+    
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    
+    _skip += PAGE_LIMIT;
+    [self initData:@"more"];
+    
 }
 
 @end

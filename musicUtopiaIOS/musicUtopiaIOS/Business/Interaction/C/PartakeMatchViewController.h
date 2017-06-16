@@ -9,5 +9,8 @@
 #import "Base_UIViewController.h"
 
 @interface PartakeMatchViewController : Base_UIViewController
-
+@property(nonatomic,assign)NSInteger matchId;
+@property(nonatomic,strong)NSString * musicScoreName;
+@property(nonatomic,assign)NSInteger  musicScorePage;
+@property(nonatomic,assign)NSInteger  musicScoreId;
 @end

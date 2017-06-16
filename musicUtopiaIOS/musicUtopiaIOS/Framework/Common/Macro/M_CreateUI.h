@@ -32,10 +32,13 @@ HUD.label.text = MSG;\
 HUD.margin = 10.0;\
 HUD.offset = CGPointMake(0,150.0);\
 HUD.removeFromSuperViewOnHide = YES;\
-[HUD hideAnimated:YES afterDelay:1.0];\
+[HUD hideAnimated:YES afterDelay:1.5];\
 
 //更新TAB角标数
 #define TAB_UNMESSAGE_COUNT(COUNT) UITabBarItem * item=[self.tabBarController.tabBar.items objectAtIndex:2]; \
 if(COUNT > 0){ item.badgeValue= [NSString stringWithFormat:@"%ld",COUNT]; }else{ item.badgeValue=nil; }  \
+
+//1像素的线
+#define PX_1 1.0f / [UIScreen mainScreen].scale
 
 #endif

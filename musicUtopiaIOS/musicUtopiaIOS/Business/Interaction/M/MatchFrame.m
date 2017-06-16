@@ -23,7 +23,7 @@
         self.matchCoverFrame = CGRectMake(CONTENT_PADDING_LEFT, CONTENT_PADDING_TOP, 100,100);
         
         //赛事类别
-        self.matchTypeFrame  = CGRectMake(CONTENT_PADDING_LEFT,CONTENT_PADDING_TOP + 100 - 30,100,30);
+        self.matchTypeFrame  = CGRectMake(0,self.matchCoverFrame.size.height - 30,100,30);
         
         //曲目名称
         self.matchNameFrame = CGRectMake(CGRectGetMaxX(self.matchCoverFrame)+CONTENT_MARGIN_LEFT,CGRectGetMinY(self.matchCoverFrame),cardWidth - CGRectGetMaxX(self.matchCoverFrame) - 100,TITLE_FONT_SIZE);
@@ -32,10 +32,10 @@
         self.matchInvolvementCountFrame = CGRectMake(CGRectGetMaxX(self.matchNameFrame)+10, CGRectGetMinY(self.matchCoverFrame), 80,ATTR_FONT_SIZE);
         
         //类别图标
-        self.matchCategoryIconFrame = CGRectMake(CGRectGetMaxX(self.matchCoverFrame)+CONTENT_MARGIN_LEFT, CGRectGetMaxY(self.matchNameFrame) + CONTENT_PADDING_TOP, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+        self.matchCategoryIconFrame = CGRectMake(CGRectGetMaxX(self.matchCoverFrame)+CONTENT_MARGIN_LEFT, CGRectGetMaxY(self.matchNameFrame) + CONTENT_PADDING_TOP-5, BIG_ICON_SIZE, BIG_ICON_SIZE);
         
         //类别
-        self.matchCategoryFrame = CGRectMake(CGRectGetMaxX(self.matchCategoryIconFrame)+10, CGRectGetMinY(self.matchCategoryIconFrame), 100,MIDDLE_ICON_SIZE);
+        self.matchCategoryFrame = CGRectMake(CGRectGetMaxX(self.matchCoverFrame)+CONTENT_MARGIN_LEFT, CGRectGetMinY(self.matchCategoryIconFrame)+5, 150,MIDDLE_ICON_SIZE);
         
         //开始时间
         self.matchStartTimeFrame = CGRectMake(CGRectGetMaxX(self.matchCoverFrame)+CONTENT_MARGIN_LEFT, CGRectGetMaxY(self.matchCategoryIconFrame) + CONTENT_PADDING_TOP, 150,CONTENT_FONT_SIZE);
@@ -50,12 +50,12 @@
         self.middleLineFrame = CGRectMake(0, CGRectGetMaxY(self.matchCoverFrame) + CONTENT_PADDING_TOP, cardWidth , 1);
         
         //状态按钮
-        self.matchStatusFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.middleLineFrame) + CONTENT_PADDING_TOP, 60 , 30);
+        self.matchStatusFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.middleLineFrame) + CONTENT_PADDING_TOP, 120 , 30);
         
         //操作按钮
         self.matchActionFrame = CGRectMake(cardWidth - CONTENT_PADDING_LEFT - 80, CGRectGetMaxY(self.middleLineFrame) + CONTENT_PADDING_TOP, 80 , 30);
         
-        self.cellHeight = 200;
+        self.cellHeight = 190;
         
         
     }

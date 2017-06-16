@@ -1,9 +1,10 @@
 #import "InteractionCommentViewController.h"
-#import "DynamicCell.h"
+#import "DynamicContentCell.h"
 #import "DynamicCommentCell.h"
 #import "DynamicCommentFrame.h"
+#import "UserDetailViewController.h"
 
-@interface InteractionCommentViewController ()<UITableViewDelegate,UITableViewDataSource,UITextViewDelegate>
+@interface InteractionCommentViewController ()<UITableViewDelegate,UITableViewDataSource,UITextViewDelegate,DynamicContentCellDelegate,DynamicCommentCellDelegate>
 {
     Base_UITableView * _tableview;
     UIView           * _replyView;
@@ -12,7 +13,11 @@
     UILabel          * _inputPlaceholderLabel;
     CGFloat            _inputTextViewHeight;
     CGFloat            _keyboardHeight;
-    UIView          *  _maskView; //遮罩
+    UIView           * _maskView;   //遮罩
+    NSInteger          _replyMode;  //0-回复动态 1-回复动态评论
+    NSInteger          _replyUid;   //被回复人ID
+    
+    NSInteger          _skip;
 }
 @end
 
@@ -28,8 +33,7 @@
     
     //创建表视图
     [self createTableview];
-    
-    
+
     //创建底部回复框
     [self createReplyView];
     
@@ -46,11 +50,20 @@
     
 }
 
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [_maskView removeFromSuperview];
+    _maskView = nil;
+}
+
 -(void)initVar {
     _tableData = [NSMutableArray array];
     [_tableData addObject:@{}];
     _keyboardHeight      = 0.0;
     _inputTextViewHeight = 0.0;
+    _replyMode           = 0;
+    _replyUid            = 0;
+    _skip                = 0;
 }
 
 -(void)initData:(NSString *)type {
@@ -62,25 +75,39 @@
     
     
     //请求动态评论数据
-    NSArray  * params = @[@{@"key":@"dc_did",@"value":@(self.dynamicFrame.dynamicModel.dynamicId)}];
+    NSArray  * params = @[@{@"key":@"skip",@"value":@(_skip)},
+                          @{@"key":@"limit",@"value":@(PAGE_LIMIT)},
+                          @{@"key":@"dc_did",@"value":@(self.dynamicFrame.dynamicModel.dynamicId)}];
     NSString * apiUrl = [G formatRestful:API_DYNAMIC_COMMENT_SEARCH Params:params];
     [NetWorkTools GET:apiUrl params:nil successBlock:^(NSArray *array) {
         
         NSLog(@"%@",array);
+        
+        NSMutableArray *tempArr = [NSMutableArray array];
+        
 
         //删除加载动画
         if([type isEqualToString:@"init"]){
             [self endLoading];
+           
         }
         
         if([type isEqualToString:@"reload"]){
             [_tableData removeAllObjects];
             [_tableData addObject:@{}];
+            [_tableview resetNoMoreData];
+            _tableview.mj_footer.hidden = NO;
             [_tableview headerEndRefreshing];
         }
         
-        NSMutableArray *tempArr = [NSMutableArray array];
-        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多评论信息");
+            return;
+        }
+
+
         //将数据转化为数据模型
         for(NSDictionary * dict in array){
             
@@ -89,11 +116,20 @@
 
         }
         
-        //更新数据数据
-        [_tableData addObjectsFromArray:tempArr];
+        if([type isEqualToString:@"more"]){
+            
+            //更新数据数据
+            [_tableData addObjectsFromArray:tempArr];
+            [_tableview footerEndRefreshing];
+            
+        }else{
+            
+            _tableData = tempArr;
+            [_tableData insertObject:@{} atIndex:0];
+        }
         
-        NSLog(@"!!!!%@",_tableData);
-        
+
+
         //更新表视图
         [_tableview reloadData];
         
@@ -172,6 +208,9 @@
     _tableview.isCreateHeaderRefresh = YES;
     _tableview.isCreateFooterRefresh = YES;
     
+    _tableview.headerRefreshString = @"下拉刷新评论信息";
+    _tableview.footerRefreshString = @"加载更多评论";
+
     //去除分割线
     _tableview.separatorStyle = UITableViewCellSeparatorStyleNone;
     
@@ -218,9 +257,11 @@
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if(indexPath.row == 0){
-        DynamicCell * cell  = [[DynamicCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+        DynamicContentCell * cell  = [[DynamicContentCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
         cell.dynamicFrame   = self.dynamicFrame;
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        cell.delegate       = self;
+        
         return cell;
     }else{
         DynamicCommentCell * cell = [[DynamicCommentCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
@@ -229,6 +270,7 @@
         //数据
         DynamicCommentFrame * frame = _tableData[indexPath.row];
         cell.dynamicCommentFrame = frame;
+        cell.delegate = self;
         return cell;
     }
 }
@@ -241,18 +283,23 @@
     }
 
     DynamicCommentFrame * frame = _tableData[indexPath.row];
-    NSLog(@"###%f",frame.cellHeight);
     return frame.cellHeight;
 }
 
+
 -(void)loadNewData {
     
+    _skip = 0;
     [self initData:@"reload"];
-
-    
 }
 
 -(void)loadMoreData {
+    
+    _skip += PAGE_LIMIT;
+    
+    [self initData:@"more"];
+    
+    
     [_tableview footerEndRefreshing];
 }
 
@@ -319,32 +366,118 @@
 
 -(void)messageSend:(NSString *)msg {
     
-    //发布动态评论信息
-    NSDictionary * params = @{
-                              @"dc_uid"     :@(1),
-                              @"dc_did"     :@(self.dynamicFrame.dynamicModel.dynamicId),
-                              @"dc_content" :msg
-                            };
+    //判断回复的类型
+    NSDictionary * params = [NSDictionary dictionary];
+    NSString     * apiUrl = @"";
+    
+    if(_replyMode == 0){
+        
+        apiUrl = API_DYNAMIC_REPLY;
+        
+        //发布动态评论信息
+        params = @{
+                   @"dc_uid"     : @([UserData getUserId]),
+                   @"dc_did"     : @(self.dynamicFrame.dynamicModel.dynamicId),
+                   @"dc_content" : msg
+                   };
+        
+        
+    }else{
+        
+        apiUrl = API_DYNAMIC_COMMENT_REPLY;
+        
+        //发布动态回复评论信息
+        params = @{
+                   
+                   @"dc_uid"       : @([UserData getUserId]),
+                   @"dc_did"       : @(self.dynamicFrame.dynamicModel.dynamicId),
+                   @"dc_content"   : msg,
+                   @"dc_reply_uid" : @(_replyUid)
+                   };
+ 
+    }
+    
+    
     
     [self startActionLoading:@"评论发布中..."];
     
-    [NetWorkTools POST:API_DYNAMIC_REPLY params:params successBlock:^(NSArray *array) {
+    [NetWorkTools POST:apiUrl params:params successBlock:^(NSArray *array) {
         
         [self endActionLoading];
         
         SHOW_HINT(@"评论发布成功");
         [self maskBoxClick];
         
+        [_tableview beginHeaderRefresh];
+        
         
     } errorBlock:^(NSString *error) {
-        SHOW_HINT(@"评论发布失败");
-        NSLog(@"%@",error);
+        SHOW_HINT(error);
     }];
     
     
     
 }
 
+//用户头像点击
+-(void)userHeaderClick:(DynamicContentCell *)cell {
+
+     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
+     userDetailVC.userId   = self.dynamicFrame.dynamicModel.userId;
+     userDetailVC.username = self.dynamicFrame.dynamicModel.username;
+     [self.navigationController pushViewController:userDetailVC animated:YES];
+
+}
+
+-(void)commentUserHeaderClick:(DynamicCommentCell *)cell {
+    
+    NSIndexPath * indexPath = [_tableview indexPathForCell:cell];
+    DynamicCommentFrame * dcFrame = _tableData[indexPath.row];
+
+    UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
+    userDetailVC.userId   = [dcFrame.dynamicCommentDict[@"dc_uid"] integerValue];
+    userDetailVC.username = dcFrame.dynamicCommentDict[@"u1_username"];
+    [self.navigationController pushViewController:userDetailVC animated:YES];
+
+    
+    
+}
+
+-(void)commentZanClick:(DynamicCommentCell *)cell {
+    
+    //API_DYNAMIC_COMMENT_ZAN
+    
+    NSIndexPath * indexPath = [_tableview indexPathForCell:cell];
+    DynamicCommentFrame * dcFrame = _tableData[indexPath.row];
+    
+    NSDictionary * params = @{@"dc_id":dcFrame.dynamicCommentDict[@"dc_id"]};
+    
+    [self startActionLoading:@"点赞处理中..."];
+    [NetWorkTools POST:API_DYNAMIC_COMMENT_ZAN params:params successBlock:^(NSArray *array) {
+        [self endActionLoading];
+        SHOW_HINT(@"点赞成功");
+    } errorBlock:^(NSString *error) {
+        SHOW_HINT(error);
+    }];
+    
+    
+}
+
+-(void)commentReplyClick:(DynamicCommentCell *)cell {
+    
+    //回复评论模式
+    _replyMode = 1;
+    
+    NSIndexPath * indexPath = [_tableview indexPathForCell:cell];
+    DynamicCommentFrame * dcFrame = _tableData[indexPath.row];
+    
+    //当前被回复的用户ID
+    _replyUid = [dcFrame.dynamicCommentDict[@"dc_uid"] integerValue];
+    
+    [_inputTextView becomeFirstResponder];
+    
+    
+}
 
 #pragma mark - 通知相关事件
 //键盘将要打开

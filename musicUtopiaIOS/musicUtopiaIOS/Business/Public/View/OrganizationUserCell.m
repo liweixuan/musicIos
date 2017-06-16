@@ -15,6 +15,7 @@
     UILabel     * _nickname;
     UILabel     * _goodMusic;
     UIImageView * _rightIconView;
+    UILabel     * _isOrganizationCreate;
 }
 @end
 
@@ -61,10 +62,22 @@
         //右侧箭头
         _rightIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"fanhui")
             .L_AddView(_cellBox);
             
         }];
+        
+        _isOrganizationCreate = [UILabel LabelinitWith:^(UILabel *la) {
+           la
+            .L_Font(12)
+            .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
+            .L_Text(@"团长")
+            .L_textAlignment(NSTextAlignmentCenter)
+            .L_TextColor([UIColor whiteColor])
+            .L_radius(5)
+            .L_AddView(_cellBox);
+        }];
+        _isOrganizationCreate.hidden = YES;
 
         
         
@@ -85,18 +98,25 @@
     
     _goodMusic.frame = CGRectMake([_headerView right]+CONTENT_PADDING_LEFT, [_nickname bottom]+5,200,ATTR_FONT_SIZE);
     
-    _rightIconView.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - MIDDLE_ICON_SIZE,[_cellBox height]/2 - MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+    _rightIconView.frame = CGRectMake([_cellBox width] - CONTENT_PADDING_LEFT - SMALL_ICON_SIZE,[_cellBox height]/2 - SMALL_ICON_SIZE/2, SMALL_ICON_SIZE, SMALL_ICON_SIZE);
+    
+    _isOrganizationCreate.frame = CGRectMake([_rightIconView left] - 60, [_cellBox height]/2 - 25/2,50,25);
 }
 
 -(void)setDictData:(NSDictionary *)dictData {
     
-    _headerView.L_ImageName(HEADER_DEFAULT);
+    NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dictData[@"u_header_url"]];
+    _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+    _headerView.L_radius(5);
     
-    _nickname.L_Text(@"桃子小姐");
+    _nickname.L_Text(dictData[@"u_nickname"]);
     
-    _goodMusic.L_Text(@"擅长乐器：古典吉他");
+    NSArray * instrumentArr = [dictData[@"u_good_instrument"] componentsSeparatedByString:@"|"];
+    _goodMusic.L_Text([NSString stringWithFormat:@"擅长乐器：%@",instrumentArr[1]]);
     
-    
+    if([dictData[@"om_is_create_user"] integerValue] == 1){
+        _isOrganizationCreate.hidden = NO;
+    }
     
 }
 

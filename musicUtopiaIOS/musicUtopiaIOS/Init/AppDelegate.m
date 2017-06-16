@@ -3,6 +3,7 @@
 #import "HintManager.h"
 #import "LoginViewController.h"
 #import "CustomNavigationController.h"
+#import "GuideViewController.h"
 
 @interface AppDelegate ()<RCIMClientReceiveMessageDelegate>
 
@@ -18,59 +19,83 @@
     //初始化window
     [self initWindow];
     
+    //初始化融云SDK
+    [self initRongCloud];
+    
     //初始化启动界面
     [self initLaunchScreen:^{
-
-        //初始化地图SDK
-        [self initMap];
         
-        //初始化融云SDK
-        [self initRongCloud];
         
-        //初始化应用相关配置
-        [self initAppConfig];
+        //是否进入引导界面
+        [self isGuide:^(BOOL isGoGuide) {
 
-        
-        //设置状态栏相关
-        [self setStatusStyle];
-
-        //判断登录状态
-        if([self isLogin]){
-            
-            NSLog(@"已登录");
-            
-            //更新位置信息
-            [self updateNowLocation];
-            
-            //连接融云
-            [self connentRongCloud:^{
+            if(isGoGuide){
                 
-                NSLog(@"融云服务器连接成功，进入界面...");
+                //进入引导页
+                GuideViewController * guideVC = [[GuideViewController alloc] init];
+                self.window.rootViewController = guideVC;
                 
-                dispatch_sync(dispatch_get_main_queue(), ^{
+            }else{
+                
+                
+                //初始化地图SDK
+                [self initMap];
+
+                //初始化应用相关配置
+                [self initAppConfig];
+                
+                //设置状态栏相关
+                [self setStatusStyle];
+                
+                //判断是否有更新
+                [self isNewVersion:^{
                     
-                    //初始化底部菜单
-                    [self initTabBar];
+                    //判断登录状态
+                    if([self isLogin]){
+                        
+                        
+                        //更新位置信息
+                        [self updateNowLocation];
+                        
+                        //连接融云
+                        [self connentRongCloud:^{
+                            
+                            NSLog(@"融云服务器连接成功，进入界面...");
+                            
+                            dispatch_sync(dispatch_get_main_queue(), ^{
+                                
+                                //初始化底部菜单
+                                [self initTabBar];
+                                
+                                //是否弹出更新提示
+                                [self updateVersionHint];
+                                
+                            });
+                            
+                            // 设置消息接收监听
+                            [[RCIMClient sharedRCIMClient] setReceiveMessageDelegate:self object:nil];
+                            
+                        }];
+                        
+                    }else{
+                        
+                        
+                        NSLog(@"未登录");
+                        LoginViewController * loginVC = [[LoginViewController alloc] init];
+                        CustomNavigationController * customNav = [[CustomNavigationController alloc] initWithRootViewController:loginVC];
+                        self.window.rootViewController = customNav;
+                        
+                    }
                     
-                });
+                    
+                }];
                 
-                // 设置消息接收监听
-                [[RCIMClient sharedRCIMClient] setReceiveMessageDelegate:self object:nil];
-
-            }];
+                
+                
+            }
             
-        }else{
-            
-            
-            NSLog(@"未登录");
-            
-            NSLog(@"进入登录的画面...");
-            LoginViewController * loginVC = [[LoginViewController alloc] init];
-            CustomNavigationController * customNav = [[CustomNavigationController alloc] initWithRootViewController:loginVC];
-            self.window.rootViewController = customNav;
-  
-        }
- 
+        }];
+        
     }];
 
     return YES; 

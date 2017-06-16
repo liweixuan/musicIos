@@ -15,9 +15,13 @@
     UIImageView * _headerView;
     UILabel     * _nickname;
     UIImageView * _playVideo;
+    UILabel     * _playHint;
     UIView      * _progressBox;
+    UIView      * _progressValue;
     UILabel     * _progressText;
     UIButton    * _voteButton;
+    
+    NSInteger     _nowVoteCount;
 }
 @end
 
@@ -42,15 +46,18 @@
             
         }];
         
-        _orderLabel = [UILabel LabelinitWith:^(UILabel *la) {
-            la
-            .L_Font(TITLE_FONT_SIZE)
-            .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
-            .L_AddView(_cellBox);
-        }];
+//        _orderLabel = [UILabel LabelinitWith:^(UILabel *la) {
+//            la
+//            .L_Font(TITLE_FONT_SIZE)
+//            .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
+//            .L_TextColor([UIColor whiteColor])
+//            .L_textAlignment(NSTextAlignmentCenter)
+//            .L_AddView(_cellBox);
+//        }];
         
         _headerView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
+            .L_radius(5)
             .L_AddView(_cellBox);
         }];
         
@@ -67,10 +74,25 @@
             .L_AddView(_cellBox);
         }];
         
+        _playHint = [UILabel LabelinitWith:^(UILabel *la) {
+           la
+            .L_Font(CONTENT_FONT_SIZE)
+            .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+            .L_textAlignment(NSTextAlignmentRight)
+            .L_AddView(_cellBox);
+        }];
+        
         _progressBox = [UIView ViewInitWith:^(UIView *view) {
            view
             .L_radius(5)
             .L_AddView(_cellBox);
+        }];
+        
+        _progressValue = [UIView ViewInitWith:^(UIView *view) {
+            view
+            .L_radius(5)
+            .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
+            .L_AddView(_progressBox);
         }];
         
         _progressText = [UILabel LabelinitWith:^(UILabel *la) {
@@ -99,15 +121,20 @@
     //行容器大小
     _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,INLINE_CARD_MARGIN,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - INLINE_CARD_MARGIN * 2);
     
-    _headerView.frame = CGRectMake(CONTENT_PADDING_LEFT + 20,CONTENT_PADDING_TOP,50,50);
+    _headerView.frame = CGRectMake(CONTENT_PADDING_LEFT,CONTENT_PADDING_TOP,50,50);
     
-    _orderLabel.frame = CGRectMake([_headerView left] - 20, [_headerView top] + 20,10,10);
+//    _orderLabel.frame = CGRectMake([_headerView left] - 30, [_headerView top] + 20,16,16);
+//    _orderLabel.L_radius(8);
     
     _nickname.frame = CGRectMake([_headerView right]+CONTENT_PADDING_LEFT, [_headerView top] + 15, [_cellBox width] - 50 - CONTENT_PADDING_LEFT, TITLE_FONT_SIZE);
     
-    _playVideo.frame = CGRectMake([_cellBox width] - 50 - CONTENT_PADDING_LEFT, [_headerView top], 50,50);
+    _playVideo.frame = CGRectMake([_cellBox width] - BIG_ICON_SIZE - CONTENT_PADDING_LEFT, [_headerView top]+10, BIG_ICON_SIZE,BIG_ICON_SIZE);
+    
+    _playHint.frame = CGRectMake([_playVideo left] - 100, [_playVideo top]+6, 100, CONTENT_FONT_SIZE);
     
     _progressBox.frame = CGRectMake(CONTENT_PADDING_LEFT, [_headerView bottom] + 20, [_cellBox width] - 120 - CONTENT_PADDING_LEFT, TITLE_FONT_SIZE);
+    
+   
     
     _progressText.frame = CGRectMake([_progressBox right]+ICON_MARGIN_CONTENT, [_progressBox top],40,TITLE_FONT_SIZE);
     
@@ -115,23 +142,55 @@
     
 }
 
+//-(void)setIdx:(NSInteger)idx {
+//    _orderLabel.L_Text([NSString stringWithFormat:@"%ld",((long)idx + 1)]);
+//}
+
 -(void)setDictData:(NSDictionary *)dictData {
+
+    NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,dictData[@"u_header_url"]];
+    _headerView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
     
-    _orderLabel.L_Text(@"1");
+    _nickname.L_Text(dictData[@"u_nickname"]);
     
-    _headerView.L_ImageName(HEADER_DEFAULT);
+    _playVideo.L_ImageName(@"fanhui");
     
-    _nickname.L_Text(@"桃子小姐");
-    
-    _playVideo.L_ImageName(IMAGE_DEFAULT);
+    _playHint.L_Text(@"去看看比赛视频");
     
     _progressBox.L_BgColor(HEX_COLOR(@"#EEEEEE"));
-    
-    _progressText.L_Text(@"999");
+ 
+    _progressText.L_Text([NSString stringWithFormat:@"%@票",dictData[@"mpu_vote_count"]]);
     
     _voteButton.L_Title(@"投票",UIControlStateNormal);
     _voteButton.L_TitleColor([UIColor whiteColor],UIControlStateNormal);
     
+    _nowVoteCount = [dictData[@"mpu_vote_count"] floatValue];
+    
+    CGFloat progressBoxWidth   = [self.contentView width] - CARD_MARGIN_LEFT * 2  - 100;
+    CGFloat progressValueWidth = (float)_nowVoteCount/14 * progressBoxWidth;
+    _progressValue.frame = CGRectMake(0,0,0,TITLE_FONT_SIZE);
+    [UIView animateWithDuration:0.8 animations:^{
+        [_progressValue setWidth:progressValueWidth];
+    }];
+
+}
+
+
+
+-(void)setIsVote:(NSInteger)isVote {
+    
+    if(isVote == 1){
+        _voteButton.L_TargetAction(self,@selector(voteBtnClick),UIControlEventTouchUpInside);
+    }else{
+        _voteButton.L_BgColor(HEX_COLOR(BG_GARY));
+        _voteButton.L_TitleColor([UIColor whiteColor],UIControlStateNormal);
+    }
+    
+    
+}
+
+-(void)voteBtnClick {
+    [self.delegate voteBtnClick:self];
 }
 
 @end
