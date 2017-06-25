@@ -40,9 +40,7 @@
     
     //创建内容主视图
     [self createMenuMainView];
-    
-    //初始化数据
-    [self initData];
+
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -51,6 +49,10 @@
 
 -(void)viewWillAppear:(BOOL)animated {
     self.navigationController.navigationBar.layer.shadowOpacity = 0.0;
+    
+    
+    //初始化数据
+    [self initData];
 }
 
 //初始化变量

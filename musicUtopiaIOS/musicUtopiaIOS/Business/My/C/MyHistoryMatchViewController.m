@@ -5,7 +5,7 @@
 @interface MyHistoryMatchViewController ()<UITableViewDelegate,UITableViewDataSource,MatchCellDelegate>
 {
     Base_UITableView * _tableview;
-    NSArray          * _tableData;
+    NSMutableArray   * _tableData;
     NSInteger          _skip;
 }
 @end
@@ -23,18 +23,21 @@
     [self createTableView];
     
     //初始化数据
-    [self initData];
+    [self initData:@"init"];
 }
 
 -(void)initVar {
-    _tableData = [NSArray array];
+    _tableData = [NSMutableArray array];
     _skip      = 0;
 }
 
--(void)initData {
+-(void)initData:(NSString *)type {
     
     //加载开始动画
-    [self startLoading];
+    if([type isEqualToString:@"init"]){
+        [self startLoading];
+    }
+
     
     //参数拼接
     NSArray * params = @[
@@ -49,10 +52,30 @@
     //请求动态数据
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
         
-        NSLog(@"####%@",array);
-        
         //删除加载动画
-        [self endLoading];
+        if([type isEqualToString:@"init"]){
+            [self endLoading];
+            
+            if(array.count < PAGE_LIMIT){
+                [_tableview footerEndRefreshingNoData];
+                _tableview.mj_footer.hidden = YES;
+            }
+        }
+        
+        if([type isEqualToString:@"reload"]){
+            [_tableData removeAllObjects];
+            [_tableview headerEndRefreshing];
+            _tableview.mj_footer.hidden = NO;
+            [_tableview resetNoMoreData];
+        }
+        
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多比赛信息");
+            return;
+        }
         
         NSMutableArray *tempArr = [NSMutableArray array];
         
@@ -66,8 +89,15 @@
             [tempArr addObject:frame];
         }
         
-        //更新数据数据
-        _tableData = tempArr;
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:tempArr];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = tempArr;
+            
+        }
         
         //更新表视图
         [_tableview reloadData];
@@ -125,11 +155,18 @@
 }
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    _skip = 0;
+    [self initData:@"reload"];
+    
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    
+    _skip += PAGE_LIMIT;
+    [self initData:@"more"];
+    
 }
 
 //行数
@@ -145,9 +182,7 @@
     
     //设置位置
     cell.matchFrame = frameData;
-    
-    cell.isPartakeMatch = YES;
-    
+
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     

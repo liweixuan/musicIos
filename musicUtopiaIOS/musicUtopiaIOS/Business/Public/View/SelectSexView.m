@@ -42,8 +42,15 @@
 
 -(void)initVar {
     
-    _selectedSex    = 0;
-    _selectedSexStr = @"男";
+    if([self.defaultSex isEqualToString:@"男"]){
+        _selectedSex    = 0;
+        _selectedSexStr = @"男";
+    }else{
+        _selectedSex    = 1;
+        _selectedSexStr = @"女";
+    }
+    
+        
     _sexBtnArr = [NSMutableArray array];
 }
 

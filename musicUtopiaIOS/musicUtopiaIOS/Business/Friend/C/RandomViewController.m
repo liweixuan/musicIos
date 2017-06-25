@@ -9,6 +9,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"随机抽选";
+    
+    [self createView];
+}
+
+-(void)createView {
+    
 }
 
 @end

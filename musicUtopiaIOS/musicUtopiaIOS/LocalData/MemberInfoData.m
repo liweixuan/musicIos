@@ -85,4 +85,23 @@
   
 }
 
++(void)updateMemberInfo:(NSDictionary *)userDict {
+    
+    NSLog(@"更新用户信息");
+    
+    //打开数据表
+    FMDatabase * db = [FMDatabase databaseWithPath:[Db getDatabasePath]];
+    if(![db open]){
+        LOG(@"本地数据库打开失败...");
+        return;
+    }
+    
+    
+    if([db executeUpdate:@"update MemberInfoModel set m_headerUrl = ?,m_nickName = ? where m_id = ?",userDict[@"m_headerUrl"],userDict[@"m_nickName"],userDict[@"m_id"]]){
+        NSLog(@"用户信息更新成功");
+    }else{
+        NSLog(@"用户信息更新失败");
+    }
+}
+
 @end

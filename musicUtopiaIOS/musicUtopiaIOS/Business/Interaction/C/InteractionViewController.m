@@ -13,8 +13,17 @@
 #import "CreateOrganizationViewController.h"
 #import "PartakeMatchViewController.h"
 #import "VideoPlayerViewController.h"
+#import "PartnerFilterView.h"
+#import "OrganizationFilterView.h"
+#import "MatchFilterView.h"
 
-@interface InteractionViewController ()<UIScrollViewDelegate,DynamicViewDelegate,PartnerViewDelegate,OrganizationViewDelegate,MatchViewDelegate>
+@interface InteractionViewController ()<
+    UIScrollViewDelegate,
+    DynamicViewDelegate,
+    PartnerViewDelegate,
+    OrganizationViewDelegate,
+    MatchViewDelegate,
+    DynamicFilterViewDelegate>
 {
     
     NSArray      * _menuArr;                 //菜单项数组
@@ -33,10 +42,13 @@
     DynamicFilterView * _dynamicFilterView;
     
     PartnerView       * _partnerView;
+    PartnerFilterView * _partnerFilterView;
     
     OrganizationView  * _organizationView;
+    OrganizationFilterView * _organizationFilterView;
     
     MatchView         * _matchView;
+    MatchFilterView   * _matchFilterView;
 }
 @end
 
@@ -327,10 +339,31 @@
 //创建各个菜单筛选项视图
 -(void)createMenuFilterView {
     
+    //动态筛选菜单
     _dynamicFilterView                 = [[DynamicFilterView alloc] initWithFrame:CGRectMake(D_WIDTH,0,D_WIDTH-80,D_HEIGHT)];
     _dynamicFilterView.backgroundColor = HEX_COLOR(VC_BG);
+    _dynamicFilterView.delegate        = self;
     _dynamicFilterView.hidden          = YES;
     [self.navigationController.view addSubview:_dynamicFilterView];
+    
+    //朋友筛选菜单
+    _partnerFilterView = [[PartnerFilterView alloc] initWithFrame:CGRectMake(D_WIDTH,0,D_WIDTH-80,D_HEIGHT)];
+    _partnerFilterView.backgroundColor = HEX_COLOR(VC_BG);
+    _partnerFilterView.hidden          = YES;
+    [self.navigationController.view addSubview:_partnerFilterView];
+    
+    //团体筛选
+    _organizationFilterView = [[OrganizationFilterView alloc] initWithFrame:CGRectMake(D_WIDTH,0,D_WIDTH-80,D_HEIGHT)];
+    _organizationFilterView.backgroundColor = HEX_COLOR(VC_BG);
+    _organizationFilterView.hidden          = YES;
+    [self.navigationController.view addSubview:_organizationFilterView];
+    
+    //比赛筛选
+    _matchFilterView = [[MatchFilterView alloc] initWithFrame:CGRectMake(D_WIDTH,0,D_WIDTH-80,D_HEIGHT)];
+    _matchFilterView.backgroundColor = HEX_COLOR(VC_BG);
+    _matchFilterView.hidden          = YES;
+    [self.navigationController.view addSubview:_matchFilterView];
+
     
     
 }
@@ -364,21 +397,75 @@
 -(void)filterClick {
     NSLog(@"筛选...");
     
-    _dynamicFilterView.hidden = NO;
-    [UIView animateWithDuration:0.4 animations:^{
-        _maskBoxView.alpha = 0.3;
-        [_dynamicFilterView setX:80];
-    }];
+    if(_nowSelectViewIdx == 0){
+        
+        _dynamicFilterView.hidden = NO;
+        [UIView animateWithDuration:0.4 animations:^{
+            _maskBoxView.alpha = 0.3;
+            [_dynamicFilterView setX:80];
+        }];
+        
+    }else if(_nowSelectViewIdx == 1){
+        
+        _partnerFilterView.hidden = NO;
+        [UIView animateWithDuration:0.4 animations:^{
+            _maskBoxView.alpha = 0.3;
+            [_partnerFilterView setX:80];
+        }];
+        
+        
+    }else if(_nowSelectViewIdx == 2){
+        
+        _organizationFilterView.hidden = NO;
+        [UIView animateWithDuration:0.4 animations:^{
+            _maskBoxView.alpha = 0.3;
+            [_organizationFilterView setX:80];
+        }];
+
+        
+    }else if(_nowSelectViewIdx == 3){
+        
+        _matchFilterView.hidden = NO;
+        [UIView animateWithDuration:0.4 animations:^{
+            _maskBoxView.alpha = 0.3;
+            [_matchFilterView setX:80];
+        }];
+
+        
+    }
+    
 }
 
 //遮罩视图点击时
 -(void)maskBoxClick {
 
     [UIView animateWithDuration:0.4 animations:^{
+        
         _maskBoxView.alpha = 0.0;
-        [_dynamicFilterView setX:D_WIDTH];
+        
+        if(_nowSelectViewIdx == 0){
+            [_dynamicFilterView setX:D_WIDTH];
+        }else if(_nowSelectViewIdx == 1){
+            [_partnerFilterView setX:D_WIDTH];
+        }else if(_nowSelectViewIdx == 2){
+            [_organizationFilterView setX:D_WIDTH];
+        }else if(_nowSelectViewIdx == 3){
+            [_matchFilterView setX:D_WIDTH];
+        }
+        
+        
     } completion:^(BOOL finished) {
-        _dynamicFilterView.hidden = YES;
+        
+        if(_nowSelectViewIdx == 0){
+            _dynamicFilterView.hidden = YES;
+        }else if(_nowSelectViewIdx == 1){
+            _partnerFilterView.hidden = YES;
+        }else if(_nowSelectViewIdx == 2){
+            _organizationFilterView.hidden = YES;
+        }else if(_nowSelectViewIdx == 3){
+            _matchFilterView.hidden = YES;
+        }
+        
     }];
 }
 
@@ -465,11 +552,17 @@
 
 //动态评论按钮点击时
 -(void)dynamicCommentClick:(DynamicFrame *)dynamicFrame {
-    PUSH_VC(InteractionCommentViewController, YES, @{@"dynamicFrame":dynamicFrame});
+    
+    InteractionCommentViewController * interactionCommentVC = [[InteractionCommentViewController alloc] init];
+    interactionCommentVC.dynamicFrame = dynamicFrame;
+    interactionCommentVC.isDeleteBtn  = NO;
+    interactionCommentVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:interactionCommentVC animated:YES];
 }
 
 //动态点赞按钮点击时
--(void)dynamicZanClick:(NSInteger)dynamicId NowView:(UILabel *)label NowZanCount:(NSInteger)zanCount{
+-(void)dynamicZanClick:(NSInteger)dynamicId NowView:(UILabel *)label NowZanCount:(NSInteger)zanCount ZanBlock:(void (^)())zanBlock
+{
     
     [self startActionLoading:@"处理中..."];
     
@@ -478,10 +571,8 @@
         
         [self endActionLoading];
         SHOW_HINT(@"点赞成功");
-        
-        //增加赞数
-        NSInteger nowZan = zanCount + 1;
-        label.text = [NSString stringWithFormat:@"点赞(%ld)",nowZan];
+        zanBlock();
+ 
 
     } errorBlock:^(NSString *error) {
         SHOW_HINT(@"点赞失败");
@@ -492,25 +583,28 @@
 }
 
 //动态头像点击时
--(void)publicUserHeaderClick:(NSInteger)userId UserName:(NSString *)username {
+-(void)publicUserHeaderClick:(NSInteger)userId UserName:(NSString *)username{
     
     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
     userDetailVC.userId   = userId;
     userDetailVC.username = username;
+    userDetailVC.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:userDetailVC animated:YES];
 }
 
 //动态关注点击时
--(void)dynamicConcernClick:(NSInteger)userId {
+-(void)dynamicConcernClick:(NSInteger)userId ConcernBlock:(void (^)())concernBlock
+{
 
     [self startActionLoading:@"处理中..."];
     
-    NSDictionary * params = @{@"uc_uid":@(1),@"uc_concern_id":@(userId)};
+    NSDictionary * params = @{@"uc_uid":@([UserData getUserId]),@"uc_concern_id":@(userId)};
     [NetWorkTools POST:API_USER_CONCERN params:params successBlock:^(NSArray *array) {
         
         [self endActionLoading];
         SHOW_HINT(@"关注成功");
-        
+        concernBlock();
+
     } errorBlock:^(NSString *error) {
         
         [self endActionLoading];
@@ -564,6 +658,18 @@
 //错误后点击重新加载
 -(void)dataReset {
     [self initData];
+}
+
+//动态条件筛选
+-(void)dynamicFilterResult:(NSMutableDictionary *)filterParams {
+    
+    NSLog(@"###%@",filterParams);
+
+    [self maskBoxClick];
+    
+
+    [_dynamicView getData:filterParams Type:@"search"];
+    
 }
 
 @end

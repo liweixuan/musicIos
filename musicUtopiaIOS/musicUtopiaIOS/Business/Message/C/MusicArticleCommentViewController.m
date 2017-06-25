@@ -432,6 +432,7 @@
     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
     userDetailVC.userId   = [dcFrame.articleCommentDict[@"ac_uid"] integerValue];
     userDetailVC.username = dcFrame.articleCommentDict[@"u1_username"];
+    userDetailVC.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:userDetailVC animated:YES];
     
     

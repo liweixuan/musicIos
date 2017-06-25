@@ -11,9 +11,9 @@
 
 @interface CreateAskViewController ()
 {
-    UITextField * _tagInput;
-    UILabel     * _maxHint;
-    UIView      * _tagBox;
+    UITextField    * _tagInput;
+    UILabel        * _maxHint;
+    UIView         * _tagBox;
     
     NSMutableArray * _tagArr;
 }
@@ -101,6 +101,25 @@
     }];
     
     
+    //是否有默认需要创建的标签
+    if(self.nowTags != nil && ![self.nowTags isEqualToString:@"点击设置"]){
+        
+        NSArray * askArr = [self.nowTags componentsSeparatedByString:@"|"];
+        
+        for(int i = 0;i<askArr.count;i++){
+            
+            [_tagArr addObject:askArr[i]];
+
+            
+        }
+        
+        [self createTag];
+        
+        
+        
+    }
+    
+    
 }
 
 
@@ -135,12 +154,11 @@
     
     for(int i =0;i<_tagArr.count;i++){
         
-        //内容大小
-        //CGSize s = [G labelAutoCalculateRectWith:_tagArr[i] FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(1000, 1000)];
-        
+
         //创建UILabel
         TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(0,nowY,[_tagBox width],36)];
         tagLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
+        tagLabel.userInteractionEnabled = YES;
         tagLabel.text = _tagArr[i];
         tagLabel.textColor = [UIColor whiteColor];
         tagLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
@@ -151,6 +169,7 @@
         
         nowY = [tagLabel bottom] + 10;
 
+
         //删除按钮
         [UIButton ButtonInitWith:^(UIButton *btn) {
             btn
@@ -160,8 +179,11 @@
             .L_tag(i)
             .L_AddView(_tagBox);
         } buttonType:UIButtonTypeCustom];
+
         
     }
+    
+    [_tagBox setHeight:_tagArr.count * 40];
     
     _tagInput.text = @"";
     
@@ -170,6 +192,8 @@
 -(void)deleteTagClick:(UIButton *)sender {
     
     NSInteger tagv = sender.tag;
+    
+    NSLog(@"####%ld",(long)tagv);
     
     
     //删除数组中的当前元素

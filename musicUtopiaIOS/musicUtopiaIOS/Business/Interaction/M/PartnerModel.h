@@ -13,6 +13,7 @@
 @property(nonatomic,assign) NSInteger  partnerId;               //找伙伴ID
 @property(nonatomic,copy)   NSString * partnerTitle;            //找伙伴标题
 @property(nonatomic,assign) NSInteger  userId;                  //用户ID
+@property(nonatomic,assign) NSInteger  userAge;                 //用户年龄
 @property(nonatomic,assign) NSInteger  partnerStatus;           //状态
 @property(nonatomic,copy)   NSString * partnerTags;             //标签
 @property(nonatomic,copy)   NSString * partnerProvinceName;     //省份名称

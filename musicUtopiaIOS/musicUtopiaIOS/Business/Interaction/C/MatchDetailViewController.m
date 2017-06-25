@@ -3,6 +3,7 @@
 #import "MatchUserVideoViewController.h"
 #import "UserDetailViewController.h"
 #import "MusicScoreDetailViewController.h"
+#import "MatchPrizeDetailViewController.h"
 
 @interface MatchDetailViewController ()<UITableViewDelegate,UITableViewDataSource,MatchDetailCellDelegate>
 {
@@ -195,6 +196,10 @@
     NSString * firstName  = prizaDict[@"mp_first_name"]  == nil ? @"--" : prizaDict[@"mp_first_name"];
     NSString * secondName = prizaDict[@"mp_second_name"] == nil ? @"--" : prizaDict[@"mp_second_name"];
     NSString * thridName  = prizaDict[@"mp_third_name"]  == nil ? @"--" : prizaDict[@"mp_third_name"];
+    
+    NSString * firstRank  =  [BusinessEnum getEmptyString:prizaDict[@"mp_first_rank"]];
+    NSString * secondRank =  [BusinessEnum getEmptyString:prizaDict[@"mp_second_rank"]];
+    NSString * thridRank  = [BusinessEnum getEmptyString:prizaDict[@"mp_third_rank"]]; 
 
     
     //创建前三名奖品+用户信息
@@ -204,7 +209,8 @@
                               @"uid":prizaDict[@"mp_first_uid"],
                               @"username":[BusinessEnum getEmptyString:prizaDict[@"u1_username"]],
                               @"nickname":[BusinessEnum getEmptyString:prizaDict[@"u1_nickname"]],
-                              @"headerUrl":[BusinessEnum getEmptyString:prizaDict[@"u1_header_url"]]
+                              @"headerUrl":[BusinessEnum getEmptyString:prizaDict[@"u1_header_url"]],
+                              @"rank":firstRank
                             },
                             @{@"image":prizaDict[@"mp_second_image"],
                               @"text":secondName,
@@ -212,7 +218,8 @@
                               @"uid":prizaDict[@"mp_second_uid"],
                               @"username":[BusinessEnum getEmptyString:prizaDict[@"u2_username"]],
                               @"nickname":[BusinessEnum getEmptyString:prizaDict[@"u2_nickname"]],
-                              @"headerUrl":[BusinessEnum getEmptyString:prizaDict[@"u2_header_url"]]
+                              @"headerUrl":[BusinessEnum getEmptyString:prizaDict[@"u2_header_url"]],
+                              @"rank":secondRank
                             },
                             @{@"image":prizaDict[@"mp_third_image"],
                               @"text":thridName,
@@ -220,7 +227,8 @@
                               @"uid":prizaDict[@"mp_third_uid"],
                               @"username":[BusinessEnum getEmptyString:prizaDict[@"u3_username"]],
                               @"nickname":[BusinessEnum getEmptyString:prizaDict[@"u3_nickname"]],
-                              @"headerUrl":[BusinessEnum getEmptyString:prizaDict[@"u3_header_url"]]
+                              @"headerUrl":[BusinessEnum getEmptyString:prizaDict[@"u3_header_url"]],
+                              @"rank":thridRank
                             }
                             ];
     
@@ -245,6 +253,8 @@
             view
             .L_Frame(CGRectMake(ax, 0, awardsItemW, 120))
             .L_BgColor([UIColor grayColor])
+            .L_Click(self,@selector(awardsItemClick:))
+            .L_tag(i)
             .L_ShadowColor([UIColor grayColor])
             .L_shadowOffset(CGSizeMake(2,2))
             .L_shadowOpacity(0.2)
@@ -271,7 +281,7 @@
             .L_textAlignment(NSTextAlignmentCenter)
             .L_TextColor([UIColor whiteColor])
             .L_numberOfLines(2)
-            .L_Text(dictData[@"text"])
+            .L_Text(@"查看奖品详细")
             .L_AddView(awardsItem);
         }];
         
@@ -285,6 +295,7 @@
             .L_Text(dictData[@"order"])
             .L_AddView(awardsItem);
         }];
+        
         
 //        //获奖人信息
 //        UIView * smallRect = [UIView ViewInitWith:^(UIView *view) {
@@ -469,13 +480,19 @@
 
 //点击获奖用户头像
 -(void)prizaUserHeaderClick:(UITapGestureRecognizer *)tap{
+    
     NSInteger tagValue = tap.view.tag;
     
     NSDictionary * dictData = _awardsArr[tagValue];
     
+    if([dictData[@"uid"] integerValue] == 0){
+        return;
+    }
+    
     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
     userDetailVC.userId   = [dictData[@"uid"] integerValue];
     userDetailVC.username = dictData[@"username"];
+    userDetailVC.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:userDetailVC animated:YES];
 
 }
@@ -490,6 +507,19 @@
     musicScoreDetailVC.musicScoreId   = [_tableData[@"m_msid"] integerValue];
     musicScoreDetailVC.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:musicScoreDetailVC animated:YES];
+
+}
+
+//奖品点击时
+-(void)awardsItemClick:(UITapGestureRecognizer *)tap {
+    
+    
+    NSInteger tagValue = tap.view.tag;
+ 
+    MatchPrizeDetailViewController * matchPrizeDetailVC = [[MatchPrizeDetailViewController alloc] init];
+    matchPrizeDetailVC.prizeArr = _awardsArr;
+    matchPrizeDetailVC.nowIdx   = tagValue;
+    [self.navigationController pushViewController:matchPrizeDetailVC animated:YES];
 
 }
 @end

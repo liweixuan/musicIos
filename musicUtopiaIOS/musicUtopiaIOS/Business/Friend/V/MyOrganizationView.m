@@ -9,6 +9,7 @@
 #import "MyOrganizationView.h"
 #import "MyOrganizationCell.h"
 #import "LoadingView.h"
+#import "OrganizationChatViewController.h"
 
 @interface MyOrganizationView()<UITableViewDelegate,UITableViewDataSource>
 {
@@ -85,7 +86,7 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(15,0,0,0));
+        make.edges.equalTo(self).with.insets(UIEdgeInsetsMake(10,0,0,0));
     }];
     
     
@@ -119,4 +120,28 @@
     return 65;
 }
 
+//行点击
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    OrganizationChatViewController * organizationChatVC = [[OrganizationChatViewController alloc] init];
+    organizationChatVC.hidesBottomBarWhenPushed = YES;
+    [[self viewController].navigationController pushViewController:organizationChatVC animated:YES];
+    
+    
+}
+
+
+- (UIViewController *)viewController
+{
+    //获取当前view的superView对应的控制器
+    UIResponder *next = [self nextResponder];
+    do {
+        if ([next isKindOfClass:[UIViewController class]]) {
+            return (UIViewController *)next;
+        }
+        next = [next nextResponder];
+    } while (next != nil);
+    return nil;
+    
+}
 @end

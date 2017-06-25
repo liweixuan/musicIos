@@ -42,6 +42,7 @@
         
         _headerView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_AddView(_cellBox);
         }];
         
@@ -254,6 +255,10 @@
         }else if([dictData[@"operation"] isEqualToString:@"REFUSE_FRIEND_ACTION"]){
             [MemberInfoData getMemberInfo:dictData[@"sourceUserId"] MemberEnd:^(NSDictionary *memberInfo) {
                 _messageContentView.L_Text([NSString stringWithFormat:@"您同意了[%@]的好友请求",memberInfo[@"m_nickName"]]);
+            }];
+        }else if([dictData[@"operation"] isEqualToString:@"AGREE_FRIEND_ACTION"]){
+            [MemberInfoData getMemberInfo:dictData[@"sourceUserId"] MemberEnd:^(NSDictionary *memberInfo) {
+                _messageContentView.L_Text([NSString stringWithFormat:@"%@同意了您的好友请求",memberInfo[@"m_nickName"]]);
             }];
         }
     }else if([conversaction.targetId isEqualToString:@"JOIN_ORGANIZATION_SYSTEM_USER"]){

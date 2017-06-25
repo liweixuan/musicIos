@@ -3,6 +3,7 @@
 #import "LoadingView.h"
 #import "DynamicModel.h"
 #import "DynamicFrame.h"
+#import "Base_UIViewController.h"
 
 @interface DynamicView()<DynamicCellDelegate>
 {
@@ -11,6 +12,7 @@
     NSMutableArray   * _tableData;
     NSInteger          _skip;
     
+    NSDictionary     * _filterParams;
 }
 @end
 
@@ -36,8 +38,9 @@
 //初始化变量
 -(void)initVar {
     
-    _skip      = 0;
-    _tableData = [NSMutableArray array];
+    _skip         = 0;
+    _tableData    = [NSMutableArray array];
+    _filterParams = [NSDictionary dictionary];
     
 }
 
@@ -48,6 +51,7 @@
     
     //创建加载中遮罩
     if([type isEqualToString:@"init"]){
+        _skip = 0;
         _loadView = [LoadingView createDataLoadingView];
         [self addSubview:_loadView];
     }
@@ -55,12 +59,33 @@
     NSMutableArray  * getParams = [NSMutableArray array];
     [getParams addObject:@{@"key":@"skip",@"value":@(_skip)}];
     [getParams addObject:@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
-
+    
     if(self.paramsDict != nil){
         [getParams addObject:self.paramsDict];
     }
+
     
-    NSString * url       = [G formatRestful:API_DYNAMIC_SEARCH Params:getParams];
+    if([type isEqualToString:@"search"]){
+        
+        if(params!=nil){
+            _filterParams = [params copy];
+        }
+        
+        [[self viewController] startActionLoading:@"正在筛选..."];
+ 
+    }
+    
+    if(_filterParams != nil){
+        for(int i =0;i<_filterParams.allKeys.count;i++){
+            NSDictionary * tempDict = @{@"key":_filterParams.allKeys[i],@"value":_filterParams.allValues[i]};
+            [getParams addObject:tempDict];
+            
+        }
+    }
+    
+
+    NSString * url = [G formatRestful:API_DYNAMIC_SEARCH Params:getParams];
+
 
     //请求动态数据
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
@@ -72,8 +97,13 @@
         if([type isEqualToString:@"init"]){
             REMOVE_LOADVIEW
         }
+
         
+        if([type isEqualToString:@"search"]){
+            [[self viewController] endActionLoading];
+        }
         
+
         if([type isEqualToString:@"reload"]){
             [_tableData removeAllObjects];
             [_tableview headerEndRefreshing];
@@ -81,6 +111,7 @@
             [_tableview resetNoMoreData];
         }
         
+
         if([type isEqualToString:@"more"] && array.count <= 0){
             [_tableview footerEndRefreshingNoData];
             _tableview.mj_footer.hidden = YES;
@@ -97,7 +128,7 @@
             
             [tempArr addObject:frame];
         }
-        
+
         
         if([type isEqualToString:@"more"]){
             [_tableData addObjectsFromArray:tempArr];
@@ -111,7 +142,6 @@
 
         //更新表视图
         [_tableview reloadData];
-        
         
         
     } errorBlock:^(NSString *error) {
@@ -174,6 +204,7 @@
 -(void)loadNewData {
     
     _skip = 0;
+    _filterParams  = nil;
     [self getData:nil Type:@"reload"];
     
     
@@ -183,7 +214,7 @@
     
     _skip += PAGE_LIMIT;
     [self getData:nil Type:@"more"];
-    
+
 }
 
 //行数
@@ -200,7 +231,7 @@
     //设置位置
     cell.dynamicFrame = frameData;
     
-    cell.isDeleteBtn  = NO;
+    cell.isDeleteBtn  = self.isDeleteBtn;
     
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -268,8 +299,13 @@
     NSInteger dynamicId         = dynamicFrame.dynamicModel.dynamicId;
     NSInteger dynamicZanCount   = dynamicFrame.dynamicModel.zanCount;
     
+
     //向外传递
-    [self.delegate dynamicZanClick:dynamicId NowView:label NowZanCount:dynamicZanCount];
+    [self.delegate dynamicZanClick:dynamicId NowView:label NowZanCount:dynamicZanCount ZanBlock:^{
+        dynamicFrame.dynamicModel.isZan = YES;
+        dynamicFrame.dynamicModel.zanCount = dynamicFrame.dynamicModel.zanCount + 1;
+        [_tableview reloadData];
+    }];
     
 }
 
@@ -280,12 +316,16 @@
     NSIndexPath  * indxPath     = [_tableview indexPathForCell:cell];
     DynamicFrame * dynamicFrame = _tableData[indxPath.row];
     NSInteger      userId       = dynamicFrame.dynamicModel.userId;
-    
-    [self.delegate dynamicConcernClick:userId];
+
+    [self.delegate dynamicConcernClick:userId ConcernBlock:^{
+        dynamicFrame.dynamicModel.isGuanZhu = YES;
+        [_tableview reloadData];
+    }];
 }
 
 //删除动态
 -(void)deleteBtnClick:(DynamicCell *)cell {
+
     
     //获取当前动态ID
     NSIndexPath  * indxPath     = [_tableview indexPathForCell:cell];
@@ -318,5 +358,17 @@
     [_tableview beginHeaderRefresh];
 }
 
-
+- (Base_UIViewController *)viewController
+{
+    //获取当前view的superView对应的控制器
+    UIResponder *next = [self nextResponder];
+    do {
+        if ([next isKindOfClass:[Base_UIViewController class]]) {
+            return (Base_UIViewController *)next;
+        }
+        next = [next nextResponder];
+    } while (next != nil);
+    return nil;
+    
+}
 @end

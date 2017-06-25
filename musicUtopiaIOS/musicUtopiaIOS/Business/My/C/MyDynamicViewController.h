@@ -9,5 +9,5 @@
 #import "Base_UIViewController.h"
 
 @interface MyDynamicViewController : Base_UIViewController
-
+@property(nonatomic,assign)NSInteger userid;
 @end

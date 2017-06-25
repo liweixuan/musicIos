@@ -363,7 +363,7 @@
     UILabel * radioLabel = [UILabel LabelinitWith:^(UILabel *la) {
         la
         .L_Frame(CGRectMake(0,[uploadRadioView bottom]+5,[_radioView width],ATTR_FONT_SIZE))
-        .L_Text(@"您可以进行视频的上传")
+        .L_Text(@"您可在此处进行视频的上传/修改操作")
         .L_Font(ATTR_FONT_SIZE)
         .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
         .L_textAlignment(NSTextAlignmentCenter)
@@ -521,6 +521,7 @@
         
         VideoViewController * videoVC = [[VideoViewController alloc] init];
         videoVC.delegate = self;
+        //[self.navigationController pushViewController:videoVC animated:YES];
         [self presentViewController:videoVC animated:YES completion:nil];
         
     }];
@@ -626,12 +627,15 @@
         return;
     }
     
-    if(_cid == -1){
+    
+    
+    if(_cid == -1 || _cid == 0){
         SHOW_HINT(@"请选择动态类型");
         [self.view endEditing:YES];
         return;
     }
     
+    NSLog(@"!!!!%ld",(long)_cid);
     
     if([_tagStr isEqualToString:@""]){
         SHOW_HINT(@"请添加动态标签");
@@ -656,10 +660,11 @@
         [dynamicParams setObject:_nowLocation   forKey:@"d_location"];
     }
     
-    //图片类型，需要先进行图片上传操作
-    [self startActionLoading:@"动态发布中..."];
+    
     
     if(_nowDynamicType == 0){
+
+        [self startActionLoading:@"动态发布中..."];
         
         [NetWorkTools POST:API_DYNAMIC_ADD params:dynamicParams successBlock:^(NSArray *array) {
             
@@ -683,8 +688,16 @@
         
     }else if(_nowDynamicType == 1){
         
+        if(_uploadImageArr.count == 1){
+            SHOW_HINT(@"请选择需要分享的图片");
+            return;
+        }
+        
         //清除最后一张上传显示用图
         [_uploadImageArr removeLastObject];
+        
+        [self startActionLoading:@"动态发布中..."];
+
         
         [NetWorkTools uploadMoreImage:_uploadImageArr Result:^(BOOL results, NSArray *fileNames) {
   
@@ -720,6 +733,16 @@
     }else if(_nowDynamicType == 2){
         
         NSLog(@"处理视频类型的动态上传");
+        if(_videoPreview.image == nil){
+            SHOW_HINT(@"请选择需要分享的视频");
+            return;
+        }
+        
+        
+        [self startActionLoading:@"动态发布中..."];
+        
+        
+
         
         //上传第一帧图片
         [NetWorkTools uploadImage:@{@"image":_videoPreview.image,@"imageDir":@"dynamicVideo"} Result:^(BOOL results, NSString *fileName) {
@@ -783,7 +806,11 @@
     //选择标签
     }else if(TAG == 3){
         
-        PUSH_VC(CreateTagViewController, YES, @{@"TAG_NAME":@"CreateInteractionVC"});
+        CreateTagViewController * createTagVC = [[CreateTagViewController alloc] init];
+        createTagVC.TAG_NAME    = @"CreateInteractionVC";
+        createTagVC.defaultTags = _tagStr;
+        createTagVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:createTagVC animated:YES];
         
     }
     
@@ -813,6 +840,10 @@
         //隐藏上传图片视图
         [self hideUploadView];
         
+        
+        //设置SCROLL的内容高度
+        [_scrollBoxView setContentSize:CGSizeMake(D_WIDTH,[_selectViewBox bottom] + 10)];
+        
     }else if(_nowDynamicType == 1){
         
         NSLog(@"图片类型...");
@@ -824,6 +855,9 @@
         
         //显示图片视图
         [self showUploadView];
+        
+        //设置SCROLL的内容高度
+        [_scrollBoxView setContentSize:CGSizeMake(D_WIDTH,[_selectViewBox bottom] + 10)];
 
         
     }else if(_nowDynamicType == 2){
@@ -840,6 +874,7 @@
     }else{
         NSLog(@"类型错误...");
     }
+
     
     /*
      else if(_nowDynamicType == 2){

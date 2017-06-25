@@ -8,6 +8,7 @@
 
 #import "LookAroundViewController.h"
 #import "LookAroundCell.h"
+#import "UserDetailViewController.h"
 
 @interface LookAroundViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
@@ -62,6 +63,8 @@
     
     NSString * url = [G formatRestful:API_LOOKAROUND_USER Params:paramsArr];
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        NSLog(@"####%@",array);
         
         //删除加载动画
         if([type isEqualToString:@"init"]){
@@ -177,5 +180,18 @@
 //行高
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return 65;
+}
+
+//行点击
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    //获取好友信息
+    NSDictionary * dictData = _tableData[indexPath.row];
+    
+    UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
+    userDetailVC.userId   = [dictData[@"userid"] integerValue];
+    userDetailVC.username = dictData[@"username"];
+    userDetailVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:userDetailVC animated:YES];
+
 }
 @end

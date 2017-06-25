@@ -11,12 +11,16 @@
 #import "TagLabel.h"
 #import "MyPlayVideoViewController.h"
 #import "LookUserUpgradeVideoViewController.h"
+#import "PrivateChatViewController.h"
+#import "MyDynamicViewController.h"
 
 @interface UserDetailViewController ()<UITableViewDelegate,UITableViewDataSource>
 {
     Base_UITableView * _tableview;
     NSDictionary     * _tableData;
     NSArray          * _levelArr;
+    NSArray          * _rankArr;
+    NSInteger          _isFriend;
 }
 @end
 
@@ -34,6 +38,10 @@
  
     //创建表视图
     [self createTableview];
+    
+    //创建右侧导航按钮
+    [self createNav];
+
     
     [self startLoading];
 }
@@ -64,12 +72,43 @@
         if([_tableData[@"isFriend"] integerValue] == 0){
             
             //创建导航按钮
-            [self createNav];
+           // [self createNav];
+            _isFriend = 0; //不是好友
+            
+            //创建打招呼按钮
+            [self greetMessageBtn];
+
+            
+        }else if([_tableData[@"isFriend"] integerValue] == 1){
+            
+           // [self createDeleteNav];
+            
+            _isFriend = 1; //是好友
+            
+            //创建发消息按钮
+            [self sendMessageBtn];
+            
+        }else {
+            
+            _isFriend = 2; //是自己
+            
+            //创建发消息按钮
+            [self sendMessageBtn];
             
         }
         
+        //更新本地存储的用户资料信息
+        NSDictionary * userInfoDict = @{
+                                        @"m_id"        : _tableData[@"u_id"],
+                                        @"m_headerUrl" : _tableData[@"u_header_url"],
+                                        @"m_userName"  : _tableData[@"u_username"],
+                                        @"m_nickName"  : _tableData[@"u_nickname"],
+                                    };
         
-        NSLog(@"%@",array);
+        //更新用户信息
+        [MemberInfoData updateMemberInfo:userInfoDict];
+   
+      
         
     } errorBlock:^(NSString *error) {
         [self endLoading];
@@ -80,8 +119,112 @@
 }
 
 -(void)createNav {
-    R_NAV_TITLE_BTN(@"R",@"添加好友",addFriends);
+    //R_NAV_TITLE_BTN(@"R",@"添加好友",addFriends);
+    
+    UIImageView * moreAction = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+        imgv
+        .L_Frame(CGRectMake(0,0,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
+        .L_Click(self,@selector(moreActionClick))
+        .L_ImageName(@"gengduocaozuo");
+    }];
+    
+    UIBarButtonItem * rightBtn = [[UIBarButtonItem alloc] initWithCustomView:moreAction];
+    self.navigationItem.rightBarButtonItem = rightBtn;
+    
 }
+
+-(void)moreActionClick {
+    
+    UIAlertController *videoAlertController = [UIAlertController alertControllerWithTitle:@"用户操作" message:@"对该用户的相关操作" preferredStyle: UIAlertControllerStyleActionSheet];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    [videoAlertController addAction:cancelAction];
+    
+    if(_isFriend == 0){
+        
+        UIAlertAction *replyFriendAction = [UIAlertAction actionWithTitle:@"申请好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            
+            NSLog(@"申请好友");
+            [self addFriends];
+            
+        }];
+        
+        [videoAlertController addAction:replyFriendAction];
+        
+    }else if(_isFriend == 1){
+        
+        UIAlertAction *deleteFriendAction = [UIAlertAction actionWithTitle:@"删除好友" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            
+            NSLog(@"删除好友");
+            [self deleteFriends];
+            
+        }];
+        
+        [videoAlertController addAction:deleteFriendAction];
+        
+    }else{
+        
+        //自己，没有任何操作
+        
+    }
+    
+    if(self.isCacnelConcernAction){
+        
+        UIAlertAction *cancelConcernAction = [UIAlertAction actionWithTitle:@"取消关注" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            
+            NSLog(@"取消关注操作");
+            
+            
+        }];
+        
+        [videoAlertController addAction:cancelConcernAction];
+
+        
+    }
+ 
+    [self presentViewController:videoAlertController animated:YES completion:nil];
+    
+}
+
+-(void)createDeleteNav {
+    //R_NAV_TITLE_BTN(@"R",@"删除好友",deleteFriends);
+}
+
+//删除好友
+-(void)deleteFriends {
+    
+    //判断是否强制更新
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"删除确认" message:@"您确定要将该用户从您的好友列表中删除吗？" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"确认" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        NSLog(@"删除好友操作");
+        
+        [self startActionLoading:@"正在删除该好友..."];
+        NSDictionary * params = @{
+                                @"f_username"  : [UserData getUsername],
+                                @"f_fusername" : self.username
+                                };
+        [NetWorkTools POST:API_DELETE_FRIEND params:params successBlock:^(NSArray *array) {
+            [self endActionLoading];
+            
+            SHOW_HINT(@"已删除该好友");
+            
+            [self createNav];
+            
+            
+        } errorBlock:^(NSString *error) {
+            [self endActionLoading];
+            SHOW_HINT(error);
+        }];
+        
+        
+    }];
+    
+    [alertController addAction:cancelAction];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
 
 -(void)createTableview {
     //创建列表视图
@@ -101,16 +244,64 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(15,0,0,0));
+        make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(10,0,60,0));
     }];
     
     _tableview.marginBottom = 10;
 
 }
 
+-(void)greetMessageBtn {
+    
+    [UIButton ButtonInitWith:^(UIButton *btn) {
+        btn
+        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,D_HEIGHT_NO_NAV - BOTTOM_BUTTON_HEIGHT-8 ,D_WIDTH - CARD_MARGIN_LEFT * 2, BOTTOM_BUTTON_HEIGHT))
+        .L_BgColor(HEX_COLOR(@"#3CB371"))
+        .L_Title(@"打招呼",UIControlStateNormal)
+        .L_TargetAction(self,@selector(greetMessage),UIControlEventTouchUpInside)
+        .L_shadowOffset(CGSizeMake(3,3))
+        .L_shadowOpacity(0.2)
+        .L_ShadowColor([UIColor grayColor])
+        .L_radius_NO_masksToBounds(20)
+        .L_AddView(self.view);
+    } buttonType:UIButtonTypeCustom];
+    
+}
+
+-(void)greetMessage {
+    NSLog(@"打招呼");
+}
+
+-(void)sendMessageBtn {
+    
+    [UIButton ButtonInitWith:^(UIButton *btn) {
+        btn
+        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,D_HEIGHT_NO_NAV - BOTTOM_BUTTON_HEIGHT-8 ,D_WIDTH - CARD_MARGIN_LEFT * 2, BOTTOM_BUTTON_HEIGHT))
+        .L_BgColor(HEX_COLOR(@"#3CB371"))
+        .L_Title(@"发消息",UIControlStateNormal)
+        .L_TargetAction(self,@selector(sendMessage),UIControlEventTouchUpInside)
+        .L_shadowOffset(CGSizeMake(3,3))
+        .L_shadowOpacity(0.2)
+        .L_ShadowColor([UIColor grayColor])
+        .L_radius_NO_masksToBounds(20)
+        .L_AddView(self.view);
+    } buttonType:UIButtonTypeCustom];
+    
+    
+    
+}
+
+//发送消息
+-(void)sendMessage {
+    
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    PUSH_VC(PrivateChatViewController,YES,@{@"target":self.username});
+    
+}
+
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 6;
+    return 7;
 }
 
 //行内容
@@ -131,10 +322,23 @@
             .L_AddView(cell.contentView);
         }];
         
+        //年龄
+        TagLabel * _ageLabel = [[TagLabel alloc] init];
+        _ageLabel.frame = CGRectMake([headerImage right]+CONTENT_MARGIN_LEFT, [headerImage top]+8, 30, 15);
+        _ageLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
+        _ageLabel.textColor = [UIColor whiteColor];
+        _ageLabel.textAlignment = NSTextAlignmentCenter;
+        _ageLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
+        _ageLabel.layer.masksToBounds = YES;
+        _ageLabel.layer.cornerRadius  = 5;
+        _ageLabel.insets = UIEdgeInsetsMake(2,5,2,5);
+        _ageLabel.text = [NSString stringWithFormat:@"%@",_tableData[@"u_age"]];
+        [cell.contentView addSubview:_ageLabel];
+        
         //昵称
         UILabel * nickname = [UILabel LabelinitWith:^(UILabel *la) {
            la
-            .L_Frame(CGRectMake([headerImage right]+CONTENT_MARGIN_LEFT,[headerImage top]+8,100,TITLE_FONT_SIZE))
+            .L_Frame(CGRectMake([_ageLabel right]+5,[headerImage top]+8,100,TITLE_FONT_SIZE))
             .L_TextColor(HEX_COLOR(TITLE_FONT_COLOR))
             .L_Font(TITLE_FONT_SIZE)
             .L_Text(_tableData[@"u_nickname"])
@@ -155,13 +359,13 @@
         //性别图标
         UIImageView * sexIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
-            .L_Frame(CGRectMake([nickname left],[nickname bottom]+8,SMALL_ICON_SIZE, SMALL_ICON_SIZE))
+            .L_Frame(CGRectMake([_ageLabel left],[nickname bottom]+8,SMALL_ICON_SIZE, SMALL_ICON_SIZE))
             .L_ImageName(sexIconValue)
             .L_AddView(cell.contentView);
         }];
         
         //性别
-        UILabel * sex = [UILabel LabelinitWith:^(UILabel *la) {
+        [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([sexIcon right]+ICON_MARGIN_CONTENT,[sexIcon top],20,ATTR_FONT_SIZE))
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
@@ -182,6 +386,8 @@
         for(int i = 0;i<_levelArr.count;i++){
             
             NSDictionary * dictData = _levelArr[i];
+            
+            NSLog(@"&&&&&%@",dictData);
             
             //创建UILabel
             TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(0,i*30 + i*5,130,30)];
@@ -230,7 +436,7 @@
             .L_AddView(cell.contentView);
         }];
         
-        UILabel * titlelabel = [UILabel LabelinitWith:^(UILabel *la) {
+        [UILabel LabelinitWith:^(UILabel *la) {
            la
             .L_Frame(CGRectMake([titleIcon right]+ICON_MARGIN_CONTENT,[titleIcon top],100,ATTR_FONT_SIZE))
             .L_Font(ATTR_FONT_SIZE)
@@ -240,10 +446,10 @@
         }];
         
         //地址
-        NSString * addressStr = [NSString stringWithFormat:@"所在地区：%@-%@-%@",_tableData[@"u_province_name"],_tableData[@"u_city_name"],_tableData[@"u_district_name"]];
+        NSString * addressStr = [NSString stringWithFormat:@"所在地区：%@%@%@",_tableData[@"u_province_name"],_tableData[@"u_city_name"],_tableData[@"u_district_name"]];
         UILabel * addressLabel = [UILabel LabelinitWith:^(UILabel *la) {
             la
-            .L_Frame(CGRectMake([titleIcon left],[titleIcon bottom]+8,300,CONTENT_FONT_SIZE))
+            .L_Frame(CGRectMake([titleIcon left],[titleIcon bottom]+12,300,CONTENT_FONT_SIZE))
             .L_Font(CONTENT_FONT_SIZE)
             .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
             .L_Text(addressStr)
@@ -263,12 +469,12 @@
         }];
         
         //琴龄
-        UILabel * ageLabel = [UILabel LabelinitWith:^(UILabel *la) {
+        [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([titleIcon left],[goodsLabel bottom]+8,300,CONTENT_FONT_SIZE))
             .L_Font(CONTENT_FONT_SIZE)
             .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
-            .L_Text([NSString stringWithFormat:@"琴龄：%@ 年",_tableData[@"u_qin_age"]])
+            .L_Text([NSString stringWithFormat:@"乐器琴龄：%@ 年",_tableData[@"u_qin_age"]])
             .L_AddView(cell.contentView);
         }];
         
@@ -283,7 +489,7 @@
             .L_AddView(cell.contentView);
         }];
         
-        [UILabel LabelinitWith:^(UILabel *la) {
+       UILabel * userRank = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([titleIcon right]+ICON_MARGIN_CONTENT,[titleIcon top],100,ATTR_FONT_SIZE))
             .L_Font(ATTR_FONT_SIZE)
@@ -300,25 +506,49 @@
             .L_AddView(cell.contentView);
         }];
         
-        NSArray * tempArr = @[@"钢琴小王子"];
         
-        for(int i = 0;i<tempArr.count;i++){
-
-            //创建UILabel
-            TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(0,i*30 + i*5,120,30)];
-            tagLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
-            tagLabel.text = tempArr[i];
-            tagLabel.textColor = [UIColor whiteColor];
-            tagLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
-            tagLabel.layer.masksToBounds = YES;
-            tagLabel.layer.cornerRadius = 15;
-            tagLabel.insets = UIEdgeInsetsMake(0,15, 0,20);
-            [rankBox addSubview:tagLabel];
-
+        NSArray * ranksArr = _tableData[@"ranks"];
+        if(ranksArr.count > 0){
+            
+            _rankArr = ranksArr;
+            
+            for(int i = 0;i<_rankArr.count;i++){
+                
+                NSDictionary * rankDict = _rankArr[i];
+                
+                //创建UILabel
+                TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(0,i*30 + i*5,120,30)];
+                tagLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
+                tagLabel.text = rankDict[@"ur_name"];
+                tagLabel.textColor = [UIColor whiteColor];
+                tagLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
+                tagLabel.layer.masksToBounds = YES;
+                tagLabel.layer.cornerRadius = 15;
+                tagLabel.insets = UIEdgeInsetsMake(0,15, 0,20);
+                [rankBox addSubview:tagLabel];
+                
+                
+            }
+            
+            [rankBox setHeight:30 * _rankArr.count + (_rankArr.count - 1) * 5];
+            
+        }else{
+            
+            _rankArr = @[@""];
+            
+            [UILabel LabelinitWith:^(UILabel *la) {
+               la
+                .L_Frame(CGRectMake([titleIcon left],[userRank bottom]+15,100,20))
+                .L_Font(CONTENT_FONT_SIZE)
+                .L_Text(@"暂无头衔")
+                .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+                .L_AddView(cell.contentView);
+            }];
+            
             
         }
         
-        [rankBox setHeight:30 * tempArr.count + (tempArr.count - 1) * 5];
+        
         
     }else if(indexPath.row == 3){
         
@@ -390,9 +620,42 @@
             .L_AddView(cell.contentView);
         }];
 
-        
-        
     }else if(indexPath.row == 5){
+        
+        UIImageView * titleIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+            imgv
+            .L_Frame(CGRectMake(CARD_MARGIN_LEFT + 15,15,SMALL_ICON_SIZE, SMALL_ICON_SIZE))
+            .L_ImageName(@"dongtai")
+            .L_AddView(cell.contentView);
+        }];
+        
+        [UILabel LabelinitWith:^(UILabel *la) {
+            la
+            .L_Frame(CGRectMake([titleIcon right]+ICON_MARGIN_CONTENT,[titleIcon top],100,ATTR_FONT_SIZE))
+            .L_Font(ATTR_FONT_SIZE)
+            .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
+            .L_Text(@"用户动态")
+            .L_AddView(cell.contentView);
+        }];
+        
+        [UILabel LabelinitWith:^(UILabel *la) {
+            la
+            .L_Frame(CGRectMake([titleIcon left],[titleIcon bottom]+10,300,CONTENT_FONT_SIZE))
+            .L_Font(CONTENT_FONT_SIZE)
+            .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
+            .L_Text(@"该用户发布的动态信息")
+            .L_AddView(cell.contentView);
+        }];
+        
+        //右侧箭头
+        [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+            imgv
+            .L_Frame(CGRectMake(D_WIDTH - CARD_MARGIN_LEFT - 30,70/2-SMALL_ICON_SIZE/2,SMALL_ICON_SIZE, SMALL_ICON_SIZE))
+            .L_ImageName(@"fanhui")
+            .L_AddView(cell.contentView);
+        }];
+        
+    }else if(indexPath.row == 6){
         
         UIImageView * titleIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
@@ -438,12 +701,14 @@
     }else if(indexPath.row == 1){
         return 110;
     }else if(indexPath.row == 2){
-        return 40 + (1 *30) + (2 * 5) ;
+        return 45 + (_rankArr.count *30) + ((_rankArr.count+1) * 5) ;
     }else if(indexPath.row == 3){
         return 80;
     }else if(indexPath.row == 4){
         return 70;
     }else if(indexPath.row == 5){
+        return 70;
+    }else if(indexPath.row == 6){
         return 70;
     }
     return 65;
@@ -454,10 +719,18 @@
     if(indexPath.row == 4){
 
         PUSH_VC(MyPlayVideoViewController, YES, @{@"userid":@(self.userId)});
+    
+    }else if(indexPath.row == 5){
+        
+
+        PUSH_VC(MyDynamicViewController, YES, @{@"userid":@(self.userId)});
+        
     }
     
     
 }
+
+
 
 -(void)addFriends {
     NSLog(@"添加好友");

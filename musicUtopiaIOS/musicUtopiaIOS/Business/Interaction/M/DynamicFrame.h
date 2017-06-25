@@ -8,6 +8,7 @@
 @property(nonatomic,assign)CGRect       nickNameFrame;      //用户昵称
 @property(nonatomic,assign)CGRect       sexIconFrame;       //性别图标
 @property(nonatomic,assign)CGRect       sexFrame;           //性别内容
+@property(nonatomic,assign)CGRect       ageFrame;           //年龄
 @property(nonatomic,assign)CGRect       locationIconFrame;  //地理位置图标
 @property(nonatomic,assign)CGRect       locationFrame;      //地理位置信息
 @property(nonatomic,assign)CGRect       categoryIconFrame;  //乐器类别图标

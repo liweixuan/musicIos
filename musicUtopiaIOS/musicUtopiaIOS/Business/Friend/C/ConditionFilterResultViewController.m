@@ -15,6 +15,7 @@
     Base_UITableView * _tableview;
     UIView           * _loadView;
     NSMutableArray   * _tableData;
+    NSInteger          _skip;
 }
 @end
 
@@ -26,28 +27,49 @@
     
     [self initVar];
     
-    [self initData];
-    
     [self createView];
+
+    [self initData:@"init"];
 }
 
 -(void)initVar {
     _tableData = [NSMutableArray array];
+    _skip = 0;
 }
 
--(void)initData {
+-(void)initData:(NSString *)type {
     
-    [self startLoading];
+    if([type isEqualToString:@"init"]){
+        [self startLoading];
+    }
+    
+    [self.filterParams addObject:@{@"key":@"skip",@"value":@(_skip)}];
+    [self.filterParams addObject:@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
     NSString * url = [G formatRestful:API_ACCURATE_USER Params:self.filterParams];
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
+        
+        if([type isEqualToString:@"init"]){
+            [self endLoading];
+        }
+        
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多用户");
+            return;
+        }
 
-        [self endLoading];
-        
-        _tableData = [array mutableCopy];
-        
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:[array mutableCopy]];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = [array mutableCopy];
+            
+        }
+
         [_tableview reloadData];
-        
-        NSLog(@"%lu",(unsigned long)array.count);
     
     } errorBlock:^(NSString *error) {
             NSLog(@"%@",error);
@@ -64,7 +86,7 @@
     
     //创建上下拉刷新
     _tableview.isCreateHeaderRefresh = NO;
-    _tableview.isCreateFooterRefresh = NO;
+    _tableview.isCreateFooterRefresh = YES;
     
     //去除分割线
     _tableview.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -73,8 +95,28 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view).with.insets(UIEdgeInsetsMake(15,0,0,0));
+        make.edges.equalTo(self.view).with.insets(UIEdgeInsetsMake(10,0,0,0));
     }];
+    
+    
+    //列表视图事件部分
+    __weak typeof(self) weakSelf = self;
+    
+    //上拉加载更多
+    _tableview.loadMoreData = ^(){
+        NSLog(@"loadMoreData...");
+        [weakSelf loadMoreData];
+        
+    };
+    
+    _tableview.marginBottom = 10;
+}
+
+-(void)loadMoreData {
+    
+    _skip += PAGE_LIMIT;
+    [self initData:@"more"];
+    
 }
 
 //行数
@@ -105,7 +147,14 @@
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    PUSH_VC(UserDetailViewController,YES, @{});
+    //获取好友信息
+    NSDictionary * dictData = _tableData[indexPath.row];
+    
+    UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
+    userDetailVC.userId   = [dictData[@"u_id"] integerValue];
+    userDetailVC.username = dictData[@"u_username"];
+    userDetailVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:userDetailVC animated:YES];
 }
 
 @end

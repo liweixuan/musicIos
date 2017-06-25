@@ -9,6 +9,7 @@
 #import "MyPartakeMatchViewController.h"
 #import "MyHistoryMatchViewController.h"
 #import "MyUpgradeViewController.h"
+#import "MyOrganizationViewController.h"
 
 @interface MyViewController()<UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate>
 {
@@ -28,13 +29,11 @@
     
     //创建导航按钮
     R_NAV_TITLE_BTN(@"R",@"编辑",editInfoClick)
-
+  
     //初始化数据
     [self initData];
-    
 
-    //开始加载
-    [self startLoading];
+
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -48,6 +47,9 @@
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES];
     self.navigationController.navigationBar.layer.shadowOpacity = 0.0;
+
+    
+
 }
 
 -(void)initVar {
@@ -63,6 +65,7 @@
     NSArray * params = @[@{@"key":@"u_id",@"value":@(uid)},@{@"key":@"u_username",@"value":username}];
     NSString * url   = [G formatRestful:API_USER_DETAIL_INFO Params:params];
     
+    [self startLoading];
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
         [self endLoading];
         
@@ -163,10 +166,10 @@
     //昵称
     UILabel * nicknameLabel = [UILabel LabelinitWith:^(UILabel *la) {
         la
-        .L_Frame(CGRectMake(D_WIDTH/2 - 80 / 2,[headerImage bottom]+CONTENT_PADDING_TOP,80,SUBTITLE_FONT_SIZE))
+        .L_Frame(CGRectMake(D_WIDTH/2 - 200 / 2,[headerImage bottom]+CONTENT_PADDING_TOP,200,SUBTITLE_FONT_SIZE))
         .L_Text(_tableDictData[@"u_nickname"])
         .L_textAlignment(NSTextAlignmentCenter)
-        .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
+        .L_TextColor(HEX_COLOR(@"#666666"))
         .L_AddView(headerBox);
     }];
     
@@ -189,8 +192,8 @@
         .L_AddView(headerBox);
     }];
     
-    //乐币
-    NSString *musicMoney = [NSString stringWithFormat:@"M币: <color value='#FFA500'>%@</>",_tableDictData[@"u_money"]];
+    //积分
+    NSString *musicPoints = [NSString stringWithFormat:@"积分: <color value='#FFA500'>%@</>",_tableDictData[@"u_points"]];
     
     UILabel * musicMoneyTitle = [UILabel LabelinitWith:^(UILabel *la) {
         la
@@ -201,7 +204,7 @@
         .L_AddView(headerBox);
     }];
     
-    NSAttributedString *musicMoneyStr = [[GONMarkupParserManager sharedParser] attributedStringFromString:musicMoney error:nil];
+    NSAttributedString *musicMoneyStr = [[GONMarkupParserManager sharedParser] attributedStringFromString:musicPoints error:nil];
     musicMoneyTitle.attributedText = musicMoneyStr;
     
     //当前最高乐器级别
@@ -340,26 +343,35 @@
         .L_AddView(personalDataView);
     }];
     
+ 
+    CGFloat progressValue = [_tableDictData[@"percentage"] floatValue];
+    CGFloat pValue = [personalDataPercentage width] * progressValue;
+    
+
     //容器进度
     UIView * progressValueView = [UIView ViewInitWith:^(UIView *view) {
        view
-        .L_Frame(CGRectMake(0,0,100,30))
+        .L_Frame(CGRectMake(0,0,0,30))
         .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
         .L_radius(5)
         .L_AddView(personalDataPercentage);
     }];
     
+    [UIView animateWithDuration:1 animations:^{
+        [progressValueView setWidth:pValue];
+    }];
+    
     //容器进度显示
-    UILabel * progressValueLabel = [UILabel LabelinitWith:^(UILabel *la) {
+    [UILabel LabelinitWith:^(UILabel *la) {
        la
         .L_Frame(CGRectMake(0,0,[progressValueView width],[progressValueView height]))
         .L_textAlignment(NSTextAlignmentCenter)
-        .L_Text(@"20%")
+        .L_Text([NSString stringWithFormat:@"%%%d",(int)(progressValue * 100)])
         .L_TextColor([UIColor whiteColor])
         .L_AddView(progressValueView);
     }];
     
-    //去完善按钮
+    //去完善按钮x
     [UIButton ButtonInitWith:^(UIButton *btn) {
         
         btn
@@ -483,7 +495,7 @@
         }else if(indexPath.row == 1){
             cell.dictData = @{@"icon":@"wodeyanzouji",@"text":@"我的演奏"};
         }else{
-            cell.dictData = @{@"icon":@"wodeshoucang",@"text":@"我的收藏"};
+            cell.dictData = @{@"icon":@"chengyuanshuliang",@"text":@"我的团体（我是团长）"};
         }
     }else if(indexPath.section == 1){
         if(indexPath.row == 0){
@@ -561,11 +573,11 @@
             
         }else if(indexPath.row == 1){
             
-            PUSH_VC(MyPlayVideoViewController, YES, @{});
+            PUSH_VC(MyPlayVideoViewController, YES, @{@"userid":@([UserData getUserId])});
             
         }else if(indexPath.row == 2){
             
-            
+            PUSH_VC(MyOrganizationViewController, YES,@{});
             
         }
     }else if(indexPath.section == 1){
@@ -612,7 +624,7 @@
 #pragma mark - 事件
 //编辑用户信息
 -(void)editInfoClick {
-    PUSH_VC(MyEditViewController, YES, @{});
+    PUSH_VC(MyEditViewController, YES, @{@"userDict":_tableDictData});
 }
 
 @end

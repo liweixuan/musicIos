@@ -20,4 +20,5 @@
 
 @interface SelectSexView : Base_UIView
 @property(nonatomic,strong)id<SelectSexDelegate> delegate;
+@property(nonatomic,strong)NSString * defaultSex;
 @end

@@ -7,7 +7,11 @@
 
 #import "AppDelegate.h"
 
+#import <AMapFoundationKit/AMapFoundationKit.h>
+#import <AMapLocationKit/AMapLocationKit.h>
 @interface AppDelegate (Expand)
+
+//@property(nonatomic,strong)AMapLocationManager * appLocationManager;
 
 -(void)initWindow;        //初始化窗口
 

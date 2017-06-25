@@ -5,9 +5,9 @@
  *      例如：版本验证，三方SDK植入并初始化，主界面初始化等操作
  */
 
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
-
 @end
 

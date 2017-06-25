@@ -59,6 +59,7 @@
         imgv
         .L_Frame(CGRectMake(CARD_MARGIN_LEFT,[_videoNameInput bottom]+15,D_WIDTH - CARD_MARGIN_LEFT * 2,280))
         .L_BgColor([UIColor whiteColor])
+        .L_ImageMode(UIViewContentModeScaleAspectFill)
         .L_radius(5)
         .L_AddView(self.view);
     }];
@@ -76,7 +77,7 @@
     
     _playerVideoIcon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
         imgv
-        .L_Frame(CGRectMake(D_WIDTH/2 - 60/2,[_videoCover height]/2 - 60/2, 60, 60))
+        .L_Frame(CGRectMake(D_WIDTH/2 - 60/2,[_videoNameInput bottom]+15 + (280/2 - 60/2 - 20), 60, 60))
         .L_Event(YES)
         .L_Click(self,@selector(playerVideoClick))
         .L_ImageName(@"bofang")
@@ -133,7 +134,7 @@
 -(void)addVideoClick {
     
     
-    UIAlertController *videoAlertController = [UIAlertController alertControllerWithTitle:@"" message:@"选择图片" preferredStyle: UIAlertControllerStyleActionSheet];
+    UIAlertController *videoAlertController = [UIAlertController alertControllerWithTitle:@"" message:@"选择视频" preferredStyle: UIAlertControllerStyleActionSheet];
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
     UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"相册选择" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         
@@ -245,6 +246,8 @@
                 }
             }];
         }
+    }else {
+        SHOW_HINT(@"您还没有上传演奏视频");
     }
     
 }
@@ -278,6 +281,8 @@
                 [self endActionLoading];
                 
                 SHOW_HINT(@"演奏视频添加成功");
+                
+                [self.navigationController popViewControllerAnimated:YES];
                 
             } errorBlock:^(NSString *error) {
                 [self endActionLoading];

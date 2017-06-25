@@ -37,6 +37,7 @@
         view
         .L_Frame(self.view.frame)
         .L_contentSize(CGSizeMake(D_WIDTH,1000))
+        .L_Click(self,@selector(bgClick))
         .L_AddView(self.view);
         
     }];
@@ -51,9 +52,15 @@
     UIView * logoView = [UIView ViewInitWith:^(UIView *view) {
        view
         .L_Frame(CGRectMake(D_WIDTH/2 - 150/2,40, 150,150))
-        .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
-        .L_radius(5)
         .L_AddView(_scrollBoxView);
+    }];
+    
+    [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+       imgv
+        .L_Frame(CGRectMake(15,15,120,120))
+        .L_ImageMode(UIViewContentModeScaleAspectFit)
+        .L_ImageName(@"yue_logo")
+        .L_AddView(logoView);
     }];
     
     //创建输入容器框
@@ -133,7 +140,7 @@
     //注册提示文字
     [UILabel LabelinitWith:^(UILabel *la) {
        la
-        .L_Frame(CGRectMake(0,0,100,ATTR_FONT_SIZE))
+        .L_Frame(CGRectMake(10,0,100,ATTR_FONT_SIZE))
         .L_Font(ATTR_FONT_SIZE)
         .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
         .L_isEvent(YES)
@@ -145,7 +152,7 @@
     //忘记密码提示文字
     [UILabel LabelinitWith:^(UILabel *la) {
         la
-        .L_Frame(CGRectMake([ForgetPasswordAndRegsiterBox width] - 100,0,100,ATTR_FONT_SIZE))
+        .L_Frame(CGRectMake([ForgetPasswordAndRegsiterBox width] - 110,0,100,ATTR_FONT_SIZE))
         .L_Font(ATTR_FONT_SIZE)
         .L_textAlignment(NSTextAlignmentRight)
         .L_isEvent(YES)
@@ -237,6 +244,8 @@
 
         NSDictionary * dictData = (NSDictionary *)array;
         
+        NSLog(@"&&&&&%@",dictData);
+        
         [UserData saveUserInfo:dictData];
   
         //获取TOKEN所需参数
@@ -253,9 +262,12 @@
             
             NSDictionary * dictData = (NSDictionary *)array;
             
+            NSLog(@"^^^^%@",dictData);
+            
             //融云TOKEN
             NSString * rToken = dictData[@"rongCloudToken"];
             
+       
             //保存在本地
             [UserData saveRongCloudToken:rToken];
             
@@ -310,6 +322,10 @@
 -(void)threeIconClick:(UITapGestureRecognizer *)tap {
     NSInteger vTag = tap.view.tag;
     NSLog(@"%ld",(long)vTag);
+}
+
+-(void)bgClick {
+    [self.view endEditing:YES];
 }
 
 @end

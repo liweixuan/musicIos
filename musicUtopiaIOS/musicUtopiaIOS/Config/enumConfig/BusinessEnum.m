@@ -124,6 +124,8 @@
         return @"";
     }else if([v isEqualToString:@"0"]){
         return @"";
+    }else if([v isEqualToString:@"不限"]){
+        return @"";
     }else{
         return v;
     }

@@ -1,7 +1,7 @@
 #import "Api.h"
 
 //服务器地址
-#define SERVER_IP @"http://192.168.13.242:3200"
+#define SERVER_IP @"http://192.168.0.107:3200"
 
 NSString * const API_DYNAMIC_SEARCH               = SERVER_IP @"/_dynamic/search";
 NSString * const API_DYNAMIC_ADD                  = SERVER_IP @"/_dynamic/add";
@@ -22,6 +22,7 @@ NSString * const API_ORGANIZATION_MEMBER          = SERVER_IP @"/_organization/m
 NSString * const API_ORGANIZATION_APPLY_SEARCH    = SERVER_IP @"/_organization/applySearch";
 NSString * const API_ORGANIZATION_AGREE_OR_REFUSE = SERVER_IP @"/_organization/agreeOrRefuse";
 NSString * const API_ORGANIZATION_PHOTOS          = SERVER_IP @"/_organization/photos";
+NSString * const API_ORGANIZATION_UPDATE          = SERVER_IP @"/_organization/updateInfo";
 NSString * const API_USER_CONCERN                 = SERVER_IP @"/_user/addUserConcern";
 NSString * const API_USER_LOGIN                   = SERVER_IP @"/_user/login";
 NSString * const API_COMMENT_LOCATION             = SERVER_IP @"/_common/location";
@@ -51,8 +52,11 @@ NSString * const API_USER_ALL_INSTRUMENT_LEVEL    = SERVER_IP @"/_user/allInstru
 NSString * const API_USER_UPGRADE_MUSIC_SCORE     = SERVER_IP @"/_user/upgradeMusicScore";
 NSString * const API_USER_UPGRADE_APPLY           = SERVER_IP @"/_user/upgradeApply";
 NSString * const API_USER_UPGRADE_VIDEO           = SERVER_IP @"/_user/upgradeVideo";
+NSString * const API_USER_UPDATE_INFO             = SERVER_IP @"/_user/updateInfo";
+NSString * const API_USER_CREATE_USER_ORGANIZATION= SERVER_IP @"/_user/createUserOrganization";
 NSString * const API_APPLY_FRIENDS_SEARCH         = SERVER_IP @"/_friends/applySearch";
 NSString * const API_AGREE_OR_REFUSE              = SERVER_IP @"/_friends/agreeOrRefuse";
+NSString * const API_DELETE_FRIEND                = SERVER_IP @"/_friends/delete";
 NSString * const API_APPLY_FRIENDS                = SERVER_IP @"/_friends/apply";
 NSString * const API_MATCH_PARTAKE                = SERVER_IP @"/_match/partake";
 NSString * const API_MATCH_DETAIL                 = SERVER_IP @"/_match/detail";

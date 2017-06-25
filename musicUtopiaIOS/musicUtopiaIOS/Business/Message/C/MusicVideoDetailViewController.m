@@ -100,6 +100,11 @@
         
         if([type isEqualToString:@"init"]){
             [self endActionLoading];
+            
+            if(array.count < PAGE_LIMIT){
+                [_tableview footerEndRefreshingNoData];
+                _tableview.mj_footer.hidden = YES;
+            }
         }
         
         if([type isEqualToString:@"reload"]){
@@ -112,7 +117,7 @@
         if([type isEqualToString:@"more"] && array.count <= 0){
             [_tableview footerEndRefreshingNoData];
             _tableview.mj_footer.hidden = YES;
-            SHOW_HINT(@"已无更多动态信息");
+            SHOW_HINT(@"已无更多评论信息");
             return;
         }
         
@@ -441,6 +446,7 @@
     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
     userDetailVC.userId   = [dcFrame.videoCommentDict[@"vc_uid"] integerValue];
     userDetailVC.username = dcFrame.videoCommentDict[@"u1_username"];
+    userDetailVC.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:userDetailVC animated:YES];
     
     

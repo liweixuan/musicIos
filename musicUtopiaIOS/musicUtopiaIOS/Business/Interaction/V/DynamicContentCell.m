@@ -32,10 +32,11 @@
     UIView      * _concernBoxView;
     UIImageView * _commentIconView;
     UILabel     * _commentCountView;
-    UIImageView * _zanIconView;
+    UIButton * _zanIconView;
     UILabel     * _zanCountView;
-    UIImageView * _concernIconView;
+    UIButton * _concernIconView;
     UILabel     * _concernTextView;
+    TagLabel    * _ageLabel;
     
     UIImageView * _deleteDynamicBtn;
     
@@ -85,6 +86,16 @@
             .L_Font(ATTR_FONT_SIZE)
             .L_AddView(_cellBox);
         }];
+        
+        _ageLabel = [[TagLabel alloc] init];
+        _ageLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
+        _ageLabel.textColor = [UIColor whiteColor];
+        _ageLabel.textAlignment = NSTextAlignmentCenter;
+        _ageLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
+        _ageLabel.layer.masksToBounds = YES;
+        _ageLabel.layer.cornerRadius  = 5;
+        _ageLabel.insets = UIEdgeInsetsMake(2,5,2,5);
+        [_cellBox addSubview:_ageLabel];
         
         _nicknameView = [UILabel LabelinitWith:^(UILabel *la) {
             la
@@ -168,11 +179,14 @@
             .L_AddView(_commentBoxView);
         }];
         
-        _zanIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-            imgv
-            .L_ImageName(@"dianzan")
+        _zanIconView = [UIButton ButtonInitWith:^(UIButton *btn) {
+            btn
+            .L_BtnImageName(@"dianzan",UIControlStateNormal)
+            .L_BtnImageName(@"selected_dianzan",UIControlStateSelected)
+            .L_TargetAction(self,@selector(zanClick),UIControlEventTouchUpInside)
             .L_AddView(_zanBoxView);
-        }];
+        } buttonType:UIButtonTypeCustom];
+
         
         _zanCountView = [UILabel LabelinitWith:^(UILabel *la) {
             la
@@ -181,11 +195,13 @@
             .L_AddView(_zanBoxView);
         }];
         
-        _concernIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-            imgv
-            .L_ImageName(@"guanzhu")
+        _concernIconView = [UIButton ButtonInitWith:^(UIButton *btn) {
+            btn
+            .L_BtnImageName(@"guanzhu",UIControlStateNormal)
+            .L_BtnImageName(@"selected_guanzhu",UIControlStateSelected)
+            .L_TargetAction(self,@selector(concernClick),UIControlEventTouchUpInside)
             .L_AddView(_concernBoxView);
-        }];
+        } buttonType:UIButtonTypeCustom];
         
         _concernTextView = [UILabel LabelinitWith:^(UILabel *la) {
             la
@@ -214,7 +230,7 @@
         
         _deleteDynamicBtn = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"shanchu")
             .L_Event(YES)
             .L_Click(self,@selector(deleteDynamicClick))
             .L_AddView(_cellBox);
@@ -262,6 +278,9 @@
     //性别
     _sexView.frame     = dynamicFrame.sexFrame;
     _sexView.L_Text(dataModel.sex);
+    
+    _ageLabel.frame = dynamicFrame.ageFrame;
+    _ageLabel.text = [NSString stringWithFormat:@"%ld",(long)dynamicFrame.dynamicModel.userAge];
     
     //昵称
     _nicknameView.frame = dynamicFrame.nickNameFrame;
@@ -460,6 +479,11 @@
     
     //点赞图标
     _zanIconView.frame = dynamicFrame.zanIconFrame;
+    if(dynamicFrame.dynamicModel.isZan){
+        _zanIconView.selected = YES;
+    }else{
+        _zanIconView.selected = NO;
+    }
     
     //点赞内容
     _zanCountView.frame = dynamicFrame.zanCountFrame;
@@ -473,6 +497,11 @@
     
     //关注图标
     _concernIconView.frame = dynamicFrame.zanIconFrame;
+    if(dynamicFrame.dynamicModel.isGuanZhu){
+        _concernIconView.selected = YES;
+    }else{
+        _concernIconView.selected = NO;
+    }
     
     //关注内容
     _concernTextView.frame = dynamicFrame.zanCountFrame;
@@ -514,17 +543,22 @@
 
 //评论点击
 -(void)commentClick {
-    [self.delegate commentClick:self];
+   
 }
 
 //赞点击
 -(void)zanClick {
-    [self.delegate zanClick:self NowView:_zanCountView];
+    if(!_zanIconView.isSelected){
+        [self.delegate zanClick:self NowView:_zanCountView];
+    }
 }
 
 //关注
 -(void)concernClick  {
-    [self.delegate concernClick:self];
+    
+    if(!_concernIconView.isSelected){
+        [self.delegate concernClick:self];
+    }
 }
 
 //头像点击

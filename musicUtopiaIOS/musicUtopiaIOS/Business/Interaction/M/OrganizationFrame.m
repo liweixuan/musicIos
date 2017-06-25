@@ -53,7 +53,7 @@
         
         
         //团体人数图标
-        self.userCountIconFrame = CGRectMake(cardWidth - 60,CGRectGetMinY(self.nameIconFrame)-6,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+        self.userCountIconFrame = CGRectMake(cardWidth - 50,CGRectGetMinY(self.nameIconFrame)-6,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
         
         //团体人数
         self.userCountFrame = CGRectMake(CGRectGetMaxX(self.userCountIconFrame) + ICON_MARGIN_CONTENT,CGRectGetMinY(self.nameFrame),60, SUBTITLE_FONT_SIZE);

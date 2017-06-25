@@ -2,6 +2,7 @@
 #import "UpgradeMusicScoreViewController.h"
 #import <AVFoundation/AVFoundation.h>
 #import "VideoViewController.h"
+#import "VideoPlayerViewController.h"
 
 @interface InstrumentEvaluationViewController ()<VideoDelegate>
 {
@@ -197,6 +198,13 @@
 
 
 -(void)playerVideoClick {
+    
+//    NSString *videoUrl= [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,]
+//    VideoPlayerViewController * videoPlayerVC = [[VideoPlayerViewController alloc] init];
+//    videoPlayerVC.videoUrl = [_videoUrl absoluteString];
+//    
+//    videoPlayerVC.modalPresentationStyle = UIModalTransitionStyleCrossDissolve;
+//    [self presentViewController:videoPlayerVC animated:YES completion:nil];
     
 }
 

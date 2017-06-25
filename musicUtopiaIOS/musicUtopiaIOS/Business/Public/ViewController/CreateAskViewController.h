@@ -11,4 +11,5 @@
 @interface CreateAskViewController : Base_UIViewController
 @property(nonatomic,strong)NSString * VCTitle;
 @property(nonatomic,assign)NSInteger  inputTag;
+@property(nonatomic,strong)NSString * nowTags;  //当前值
 @end

@@ -10,4 +10,5 @@
 
 @interface OrganizationUserViewController : Base_UIViewController
 @property(nonatomic,assign)NSInteger organizationId; //团体ID
+@property(nonatomic,assign)BOOL isShowManager;       //是否显示管理菜单
 @end

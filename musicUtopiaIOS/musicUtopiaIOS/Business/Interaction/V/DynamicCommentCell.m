@@ -20,7 +20,7 @@
     UIView      * _actionView;
     UIImageView * _replyIconView;
     UILabel     * _replyTitleView;
-    UIImageView * _zanIconView;
+    UIButton    * _commentZanIconView;
     UILabel     * _zanCountView;
 }
 @end
@@ -96,12 +96,20 @@
             .L_AddView(_actionView);
         }];
         
-        _zanIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-            imgv
-            .L_Event(YES)
-            .L_Click(self,@selector(commentZanClick))
+//        _zanIconView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+//            imgv
+//            .L_Event(YES)
+//            .L_Click(self,@selector(commentZanClick))
+//            .L_AddView(_actionView);
+//        }];
+        
+        _commentZanIconView = [UIButton ButtonInitWith:^(UIButton *btn) {
+            btn
+            .L_BtnImageName(@"dianzan",UIControlStateNormal)
+            .L_BtnImageName(@"selected_dianzan",UIControlStateSelected)
+            .L_TargetAction(self,@selector(commentZanClick),UIControlEventTouchUpInside)
             .L_AddView(_actionView);
-        }];
+        } buttonType:UIButtonTypeCustom];
         
         _zanCountView = [UILabel LabelinitWith:^(UILabel *la) {
             la
@@ -166,11 +174,15 @@
     _replyTitleView.frame = dynamicCommentFrame.replyTitleFrame;
     _replyTitleView.L_Text(@"回复");
     
-    _zanIconView.frame = dynamicCommentFrame.zanIconFrame;
-    _zanIconView.L_ImageName(@"dianzan");
+    _commentZanIconView.frame = dynamicCommentFrame.zanIconFrame;
+    if(dynamicCommentFrame.isCommentZan){
+        _commentZanIconView.selected = YES;
+    }else{
+       _commentZanIconView.selected = NO;
+    }
     
     _zanCountView.frame = dynamicCommentFrame.zanCountFrame;
-    _zanCountView.L_Text([NSString stringWithFormat:@"%@",dynamicCommentFrame.dynamicCommentDict[@"dc_zan_count"]]);
+    _zanCountView.L_Text([NSString stringWithFormat:@"%ld",(long)dynamicCommentFrame.commentZanCount]);
     
 }
 
@@ -179,7 +191,9 @@
 }
 
 -(void)commentZanClick {
-    [self.delegate commentZanClick:self];
+    if(!_commentZanIconView.isSelected){
+        [self.delegate commentZanClick:self];
+    }
 }
 
 -(void)headerClick {

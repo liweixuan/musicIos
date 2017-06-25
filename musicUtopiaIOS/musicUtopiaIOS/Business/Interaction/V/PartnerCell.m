@@ -28,6 +28,7 @@
     UIView      * _actionBoxView;
     UIButton    * _actionUserDetailView;
     UIButton    * _actionApplyView;
+    TagLabel    * _ageLabel;
 
 }
 @end
@@ -72,6 +73,16 @@
             .L_Font(ATTR_FONT_SIZE)
             .L_AddView(_cellBox);
         }];
+        
+        _ageLabel = [[TagLabel alloc] init];
+        _ageLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
+        _ageLabel.textColor = [UIColor whiteColor];
+        _ageLabel.textAlignment = NSTextAlignmentCenter;
+        _ageLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
+        _ageLabel.layer.masksToBounds = YES;
+        _ageLabel.layer.cornerRadius  = 5;
+        _ageLabel.insets = UIEdgeInsetsMake(2,5,2,5);
+        [_cellBox addSubview:_ageLabel];
         
         _nicknameView = [UILabel LabelinitWith:^(UILabel *la) {
             la
@@ -198,6 +209,9 @@
     //性别
     _sexView.frame     = partnerFrame.sexFrame;
     _sexView.L_Text(dataModel.sex);
+    
+    _ageLabel.frame = partnerFrame.ageFrame;
+    _ageLabel.text = [NSString stringWithFormat:@"%ld",(long)partnerFrame.partnerModel.userAge];
     
     //昵称
     _nicknameView.frame = partnerFrame.nickNameFrame;

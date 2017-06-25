@@ -13,5 +13,7 @@
 //获取会员信息
 +(void)getMemberInfo:(NSString *)username MemberEnd:(void(^)(NSDictionary * memberInfo))rsBlock;
 
+//更新会员信息
++(void)updateMemberInfo:(NSDictionary *)userDict;
 
 @end

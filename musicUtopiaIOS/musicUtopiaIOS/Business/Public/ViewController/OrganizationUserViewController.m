@@ -2,7 +2,7 @@
 #import "OrganizationUserCell.h"
 #import "UserDetailViewController.h"
 
-@interface OrganizationUserViewController ()<UITableViewDelegate,UITableViewDataSource>
+@interface OrganizationUserViewController ()<UITableViewDelegate,UITableViewDataSource,OrganizationUserCellDelegate>
 {
     Base_UITableView * _tableview;
     NSArray          * _tableData;
@@ -15,7 +15,7 @@
     [super viewDidLoad];
     self.title = @"团体成员";
     
-    //
+    //初始化数据
     [self initVar];
 
     //创建表视图
@@ -70,11 +70,12 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(15,0,0,0));
+        make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(10,0,0,0));
     }];
     
+    _tableview.marginBottom = 10;
+    
 }
-
 
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -92,7 +93,10 @@
     
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    
+    cell.delegate = self;
 
+    cell.isManagerUser = self.isShowManager;
     
     return cell;
     
@@ -107,11 +111,46 @@
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     NSDictionary * dictData = _tableData[indexPath.row];
-    
+
     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
     userDetailVC.userId   = [dictData[@"u_id"] integerValue];
     userDetailVC.username = dictData[@"u_username"];
+    userDetailVC.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:userDetailVC animated:YES];
+    
+    
+}
+
+//代理
+-(void)managerOrganizationUser:(OrganizationUserCell *)cell {
+    
+    NSIndexPath * indexPath = [_tableview indexPathForCell:cell];
+    NSDictionary * dictData = _tableData[indexPath.row];
+    NSLog(@"###%@",dictData);
+    
+    
+    //弹出管理菜单
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"管理用户" message:@"" preferredStyle: UIAlertControllerStyleActionSheet];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"踢出团体" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        
+        
+        
+        
+        
+    }];
+    UIAlertAction *archiveAction = [UIAlertAction actionWithTitle:@"用户禁言" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        
+        
+        
+    }];
+    
+    [alertController addAction:cancelAction];
+    [alertController addAction:deleteAction];
+    [alertController addAction:archiveAction];
+    
+    [self presentViewController:alertController animated:YES completion:nil];
     
     
 }

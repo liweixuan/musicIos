@@ -10,5 +10,6 @@
 
 @interface InputTextFieldViewController : Base_UIViewController
 @property(nonatomic,strong)NSString * VCTitle;
-@property(nonatomic,assign)NSInteger  inputTag;  //输入框标记，用于反回时告诉更改哪个输入框的值
+@property(nonatomic,assign)NSInteger  inputTag;    //输入框标记，用于反回时告诉更改哪个输入框的值
+@property(nonatomic,strong)NSString * defaultStr;  //默认输入框内容
 @end

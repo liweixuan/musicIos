@@ -11,6 +11,7 @@
 #import "SelectAddressView.h"
 #import "InputTextFieldViewController.h"
 #import "CreateTagViewController.h"
+#import "TextViewViewController.h"
 #import "CreateAskViewController.h"
 
 @interface CreatePartnerViewController ()<UITableViewDelegate,UITableViewDataSource,SelectAddressDelegate>
@@ -129,11 +130,20 @@
         
         inputTextFieldVC.VCTitle  = @"标题名称";
         inputTextFieldVC.inputTag = 0;
+        NSMutableDictionary * newDict = [_partnerArr[0] mutableCopy];
+        inputTextFieldVC.defaultStr = newDict[@"content"];
         [self.navigationController pushViewController:inputTextFieldVC animated:YES];
         
     }else if(indexPath.row == 1){
+
+        CreateTagViewController * createTagVC = [[CreateTagViewController alloc] init];
+        createTagVC.TAG_NAME    = @"CreatePartnerVC";
+        createTagVC.defaultTags = _tagStr;
+        createTagVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:createTagVC animated:YES];
         
-        PUSH_VC(CreateTagViewController, YES, @{@"TAG_NAME":@"CreatePartnerVC"});
+        
+        //PUSH_VC(CreateTagViewController, YES, @{@"TAG_NAME":@"CreatePartnerVC"});
 
         
     }else if(indexPath.row == 2){
@@ -145,20 +155,31 @@
         
         inputTextFieldVC.VCTitle  = @"详细地址";
         inputTextFieldVC.inputTag = 3;
+        NSMutableDictionary * newDict = [_partnerArr[3] mutableCopy];
+        inputTextFieldVC.defaultStr = newDict[@"content"];
         [self.navigationController pushViewController:inputTextFieldVC animated:YES];
     
     }else if(indexPath.row == 4){
-        
-        inputTextFieldVC.VCTitle  = @"描述信息";
-        inputTextFieldVC.inputTag = 4;
-        [self.navigationController pushViewController:inputTextFieldVC animated:YES];
+
+        TextViewViewController * textViewVC =  [[TextViewViewController alloc] init];
+        textViewVC.VCTitle  = @"描述信息";
+        NSMutableDictionary * newDict = [_partnerArr[4] mutableCopy];
+        textViewVC.defaultStr  = newDict[@"content"];
+        textViewVC.inputTag = 4;
+        [self.navigationController pushViewController:textViewVC animated:YES];
+
         
     }else if(indexPath.row == 5){
+        
         
         CreateAskViewController * createAskVC = [[CreateAskViewController alloc] init];
         createAskVC.VCTitle  = @"伙伴要求";
         createAskVC.inputTag = 5;
+        NSMutableDictionary * newDict = [_partnerArr[5] mutableCopy];
+        createAskVC.nowTags  = newDict[@"content"];
+        createAskVC.hidesBottomBarWhenPushed = YES;
         [self.navigationController pushViewController:createAskVC animated:YES];
+
         
     }
 }
@@ -176,7 +197,8 @@
     
     _locationData = locationDict;
     
-    NSString * locationStr = [NSString stringWithFormat:@"%@%@%@",locationDict[@"pName"],locationDict[@"cName"],locationDict[@"dName"]];
+
+    NSString * locationStr = [NSString stringWithFormat:@"%@%@%@",_locationData[@"pName"],_locationData[@"cName"],_locationData[@"dName"]];
     
     //更改数据源
     NSMutableDictionary * newDict = [_partnerArr[2] mutableCopy];
@@ -249,7 +271,25 @@
 -(void)createPartnerClick {
     
     
-    NSLog(@"%@",_locationData);
+    NSLog(@"%@",_partnerArr);
+    
+    for(int i = 0 ;i<_partnerArr.count;i++){
+        
+        NSString * keyName = _partnerArr[i][@"text"];
+        NSString * content = _partnerArr[i][@"content"];
+        
+        if([content isEqualToString:@"点击设置"]){
+            
+            NSString * msg = [NSString stringWithFormat:@"%@不能为空",keyName];
+            SHOW_HINT(msg);
+            return;
+            
+        }
+        
+        
+    }
+    
+    
     
     //新增找朋友信息
  

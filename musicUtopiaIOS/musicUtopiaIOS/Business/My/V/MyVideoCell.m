@@ -59,7 +59,7 @@
         
         _deleteBtn = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
             imgv
-            .L_ImageName(ICON_DEFAULT)
+            .L_ImageName(@"shanchu")
             .L_Event(YES)
             .L_Click(self,@selector(deleteBtnClick))
             .L_AddView(_cellBox);

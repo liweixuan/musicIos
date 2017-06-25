@@ -113,32 +113,32 @@
 }
 
 -(void)setDictData:(NSDictionary *)dictData {
-    
-    [MemberInfoData getMemberInfo:dictData[@"frl_sponsorUserName"] MemberEnd:^(NSDictionary *memberInfo) {
-        
-        NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,memberInfo[@"m_headerUrl"]];
-        _headerImageView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
-        
-        //昵称
-        _nicknameView.L_Text(memberInfo[@"m_nickName"]);
-        
-    }];
-    
-    if([dictData[@"frl_status"] integerValue] == 0){
-        _actionLabel.L_Text(@"请求成为您的好友");
-        _agreedToBtn.hidden  = NO;
-        _refusedToBtn.hidden = NO;
-    }else if([dictData[@"frl_status"] integerValue] == 1){
-        _actionLabel.L_Text(@"您同意了该用户的好友请求");
-        _agreedToBtn.hidden  = YES;
-        _refusedToBtn.hidden = YES;
 
-    }else if([dictData[@"frl_status"] integerValue] == 2){
-        _actionLabel.L_Text(@"您拒绝了该用户的好友请求");
-        _agreedToBtn.hidden  = YES;
-        _refusedToBtn.hidden = YES;
-    }
-    
+        [MemberInfoData getMemberInfo:dictData[@"frl_sponsorUserName"] MemberEnd:^(NSDictionary *memberInfo) {
+            
+            NSString * headerUrl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,memberInfo[@"m_headerUrl"]];
+            _headerImageView.L_ImageUrlName(headerUrl,HEADER_DEFAULT);
+            
+            //昵称
+            _nicknameView.L_Text(memberInfo[@"m_nickName"]);
+            
+        }];
+        
+        if([dictData[@"frl_status"] integerValue] == 0){
+            _actionLabel.L_Text(@"请求成为您的好友");
+            _agreedToBtn.hidden  = NO;
+            _refusedToBtn.hidden = NO;
+        }else if([dictData[@"frl_status"] integerValue] == 1){
+            _actionLabel.L_Text(@"您同意了该用户的好友请求");
+            _agreedToBtn.hidden  = YES;
+            _refusedToBtn.hidden = YES;
+            
+        }else if([dictData[@"frl_status"] integerValue] == 2){
+            _actionLabel.L_Text(@"您拒绝了该用户的好友请求");
+            _agreedToBtn.hidden  = YES;
+            _refusedToBtn.hidden = YES;
+        }
+
     
     
 }

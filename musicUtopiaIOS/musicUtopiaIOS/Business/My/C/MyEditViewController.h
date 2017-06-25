@@ -9,5 +9,5 @@
 #import "Base_UIViewController.h"
 
 @interface MyEditViewController : Base_UIViewController
-
+@property(nonatomic,strong)NSDictionary * userDict;
 @end

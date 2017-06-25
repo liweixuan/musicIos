@@ -3,6 +3,7 @@
 #import "HorizontalScrollPhotoView.h"
 #import "OrganizationUserViewController.h"
 #import "OrganizationPhotoImageViewController.h"
+#import "VideoPlayerViewController.h"
 
 @interface OrganizationDetailViewController ()<UITableViewDelegate,UITableViewDataSource,ViewEventDelegate>
 {
@@ -80,19 +81,37 @@
 //创建导航按钮
 -(void)createNavBtn {
     
-    /**
-    UIImageView * rightImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
-       imgv
+    UIImageView * moreAction = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+        imgv
         .L_Frame(CGRectMake(0,0,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-        .L_Click(self,@selector(collectClick))
-        .L_ImageName(ICON_DEFAULT);
+        .L_Click(self,@selector(moreActionClick))
+        .L_ImageName(@"gengduocaozuo");
     }];
     
-    UIBarButtonItem * rightBtn = [[UIBarButtonItem alloc] initWithCustomView:rightImage];
+    UIBarButtonItem * rightBtn = [[UIBarButtonItem alloc] initWithCustomView:moreAction];
     self.navigationItem.rightBarButtonItem = rightBtn;
-    **/
     
-    R_NAV_TITLE_BTN(@"R",@"申请加入", applyAddOrganization)
+
+    
+    //R_NAV_TITLE_BTN(@"R",@"申请加入", applyAddOrganization)
+}
+
+-(void)moreActionClick {
+    UIAlertController *videoAlertController = [UIAlertController alertControllerWithTitle:@"团体操作" message:@"对该团体的相关操作" preferredStyle: UIAlertControllerStyleActionSheet];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    [videoAlertController addAction:cancelAction];
+    
+
+    UIAlertAction *replyFriendAction = [UIAlertAction actionWithTitle:@"申请加入" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            
+            NSLog(@"申请加入团体");
+            [self applyAddOrganization];
+            
+    }];
+        
+    [videoAlertController addAction:replyFriendAction];
+  
+    [self presentViewController:videoAlertController animated:YES completion:nil];
 }
 
 //初始化表视图
@@ -116,7 +135,7 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view).with.insets(UIEdgeInsetsMake(15,0,0,0));
+        make.edges.equalTo(self.view).with.insets(UIEdgeInsetsMake(10,0,0,0));
     }];
     
     _tableview.marginBottom = 10;
@@ -125,7 +144,7 @@
 
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 10;
+    return 11;
 }
 
 //行内容
@@ -474,17 +493,78 @@
                 .L_textAlignment(NSTextAlignmentCenter)
                 .L_AddView(photoBoxView);
             }];
+        }
+    }else if(indexPath.row == 10){
+        
+        UIImageView * icon = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+            imgv
+            .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,CONTENT_PADDING_TOP,SMALL_ICON_SIZE,SMALL_ICON_SIZE))
+            .L_ImageName(@"send_video_high")
+            .L_AddView(cell.contentView);
+        }];
+        
+        [UILabel LabelinitWith:^(UILabel *la) {
+            la
+            .L_Frame(CGRectMake([icon right] + INLINE_CELL_ICON_LEFT,[icon top],100,ATTR_FONT_SIZE))
+            .L_Text(@"宣传视频")
+            .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
+            .L_Font(ATTR_FONT_SIZE)
+            .L_AddView(cell.contentView);
+        }];
+        
+        //相册容器
+        UIView * videoBoxView = [UIView ViewInitWith:^(UIView *view) {
+            view
+            .L_Frame(CGRectMake(INLINE_CELL_PADDING_LEFT,[icon bottom]+CONTENT_PADDING_TOP, D_WIDTH - CARD_MARGIN_LEFT * 2 - INLINE_CELL_ICON_LEFT * 2,220))
+            .L_BgColor([UIColor orangeColor])
+            .L_AddView(cell.contentView);
+        }];
+        
+        if(_organizationDetail[@"o_video_url"] == nil || [_organizationDetail[@"o_video_url"] isEqualToString:@""]){
+            
+            [UILabel LabelinitWith:^(UILabel *la) {
+                la
+                .L_Frame(CGRectMake([videoBoxView width]/2 - 100/2,[videoBoxView height]/2 - 30/2 - 5, 100,30))
+                .L_Font(12)
+                .L_Text(@"未上传宣传视频")
+                .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
+                .L_textAlignment(NSTextAlignmentCenter)
+                .L_AddView(videoBoxView);
+            }];
+            
+            
+        }else{
+            
+            NSString * videourl = [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,_organizationDetail[@"o_video_image"]];
+            
+            UIImageView * videoImage = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+                imgv
+                .L_Frame(CGRectMake(0,0,[videoBoxView width],[videoBoxView height]))
+                .L_ImageMode(UIViewContentModeScaleAspectFill)
+                .L_Event(YES)
+                .L_ImageUrlName(videourl,IMAGE_DEFAULT)
+                .L_radius(5)
+                .L_AddView(videoBoxView);
+            }];
+            
+            [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
+                imgv
+                .L_Frame(CGRectMake(D_WIDTH/2 - 60/2,[videoImage height]/2 - 60/2, 60, 60))
+                .L_Event(YES)
+                .L_Click(self,@selector(playerVideoClick))
+                .L_ImageName(@"bofang")
+                .L_radius(30)
+                .L_AddView(videoImage);
+            }];
             
         }
         
-        
-        
-        
+            
+    }
+       
 //        UIView * photoView = (UIView *)[HorizontalScrollPhotoView createHorizontalScrollPhotoView:_organizationPhoto ViewSize:CGSizeMake([imageBoxView width], [imageBoxView height])];
 //        [imageBoxView addSubview:photoView];
-        
-     
-    }
+   
     
     //禁止点击
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -514,9 +594,23 @@
         
         return 170;
         
+    }else if(indexPath.row == 10){
+        return 270;
     }
 
     return NORMAL_CELL_HIEGHT;
+}
+
+//视频播放按钮
+-(void)playerVideoClick {
+    NSLog(@"视频播放...");
+    
+    NSString *videoUrl= [NSString stringWithFormat:@"%@%@",IMAGE_SERVER,_organizationDetail[@"o_video_url"]];
+    VideoPlayerViewController * videoPlayerVC = [[VideoPlayerViewController alloc] init];
+    videoPlayerVC.videoUrl = videoUrl;
+    
+    videoPlayerVC.modalPresentationStyle = UIModalTransitionStyleCrossDissolve;
+    [self presentViewController:videoPlayerVC animated:YES completion:nil];
 }
 
 

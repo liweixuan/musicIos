@@ -2,7 +2,7 @@
 #import "VideoRecordingViewController.h"
 #import "ChatView.h"
 
-@interface PrivateChatViewController ()<ChatViewDelegate,VideoRecordingDelegate>
+@interface PrivateChatViewController ()<ChatViewDelegate,VideoRecordingDelegate,UINavigationControllerDelegate>
 {
     ChatView       * _chatView;     //聊天视图
     NSMutableArray * _messageData;  //聊天数据
@@ -14,7 +14,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"私聊";
-    
+
     //初始化变量
     [self initVar];
 
@@ -33,6 +33,10 @@
     
 }
 
+-(void)goBack {
+    NSLog(@"后退...");
+}
+
 //初始化变量
 -(void)initVar {
     _messageData = [NSMutableArray array];
@@ -43,10 +47,10 @@
 -(void)initData {
 
     //获取当前会话的消息数据
-    NSArray * tempData = [[RongCloudData getCoversationMessage:self.conversation.targetId ConversationType:self.conversation.conversationType Count:20] mutableCopy];
+    NSArray * tempData = [[RongCloudData getCoversationMessage:self.target ConversationType:ConversationType_PRIVATE Count:20] mutableCopy];
     
     //修改消息状态为已读
-    [RongCloudData readConversationAllMessage:self.conversation.targetId ConversationType:self.conversation.conversationType];
+    [RongCloudData readConversationAllMessage:self.target ConversationType:ConversationType_PRIVATE];
     
     //模拟获取聊天数据
     for(int i = 0;i<tempData.count;i++){
@@ -104,7 +108,7 @@
     }
     
     
-    NSArray * tempArr = [[RongCloudData getCoversationHistroyMessage:self.conversation.targetId ConversationType:self.conversation.conversationType oldestMessageId:messageId Count:20] mutableCopy];
+    NSArray * tempArr = [[RongCloudData getCoversationHistroyMessage:self.target ConversationType:ConversationType_PRIVATE oldestMessageId:messageId Count:20] mutableCopy];
     
     if(tempArr.count<=0){
         SHOW_HINT(@"已无更多历史消息");
@@ -133,7 +137,7 @@
     textMessage.content         = messageStr;
     
     //发送消息
-    [[RCIMClient sharedRCIMClient] sendMessage:self.conversation.conversationType targetId:self.conversation.targetId content:textMessage pushContent:nil pushData:nil success:^(long messageId) {
+    [[RCIMClient sharedRCIMClient] sendMessage:ConversationType_PRIVATE targetId:self.target content:textMessage pushContent:nil pushData:nil success:^(long messageId) {
        
         NSLog(@"%ld",messageId);
         
@@ -179,7 +183,7 @@
         RCImageMessage * imageMessage = [RCImageMessage messageWithImage:images[i]];
         
         //发送消息
-        [[RCIMClient sharedRCIMClient] sendMessage:self.conversation.conversationType targetId:self.conversation.targetId content:imageMessage pushContent:nil pushData:nil success:^(long messageId) {
+        [[RCIMClient sharedRCIMClient] sendMessage:ConversationType_PRIVATE targetId:self.target content:imageMessage pushContent:nil pushData:nil success:^(long messageId) {
             
             NSLog(@"%ld",messageId);
             long nowTime = [[NSDate date] timeIntervalSince1970];
@@ -219,7 +223,7 @@
 
     
     //发送消息
-    [[RCIMClient sharedRCIMClient] sendMessage:self.conversation.conversationType targetId:self.conversation.targetId content:voiceMessage pushContent:nil pushData:nil success:^(long messageId) {
+    [[RCIMClient sharedRCIMClient] sendMessage:ConversationType_PRIVATE targetId:self.target content:voiceMessage pushContent:nil pushData:nil success:^(long messageId) {
         
         NSLog(@"%ld",messageId);
         long nowTime = [[NSDate date] timeIntervalSince1970];
@@ -267,7 +271,7 @@
 
 -(void)clearMessage {
     NSLog(@"清除消息...");
-    [RongCloudData removeConversationAllMessage:self.conversation.targetId ConversationType:self.conversation.conversationType];
+    [RongCloudData removeConversationAllMessage:self.target ConversationType:ConversationType_PRIVATE];
     
     [_messageData removeAllObjects];
     _chatView.messageData = _messageData;

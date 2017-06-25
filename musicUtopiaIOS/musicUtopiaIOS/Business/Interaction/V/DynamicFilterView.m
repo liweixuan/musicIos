@@ -9,11 +9,17 @@
 #import "DynamicFilterView.h"
 #import "MusciCategorySelectView.h"
 
-@interface DynamicFilterView()
+@interface DynamicFilterView()<MusciCategorySelectViewDelegate>
 {
     CGFloat _typeItemMaxY; //动态类型最大Y轴
     
     UIScrollView * _filterScrollView;  //滚动区域
+    
+    NSMutableArray * _typeBtnArr;
+    
+    NSMutableDictionary * _dynamicFilterParams; //筛选条件
+    
+    MusciCategorySelectView * _musicCategorySelectView;
 }
 @end
 
@@ -37,7 +43,8 @@
 
 
 -(void)initVar {
-    
+    _typeBtnArr          = [NSMutableArray array];
+    _dynamicFilterParams = [NSMutableDictionary dictionary];
 }
 
 
@@ -93,6 +100,7 @@
         .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,50/2-35/2,[btnView width]/2 - CONTENT_PADDING_LEFT * 2,35))
         .L_Title(@"重置",UIControlStateNormal)
         .L_TitleColor(HEX_COLOR(APP_MAIN_COLOR),UIControlStateNormal)
+        .L_TargetAction(self,@selector(filterReset),UIControlEventTouchUpInside)
         .L_Radius(5)
         .L_borderWidth(1)
         .L_borderColor(HEX_COLOR(APP_MAIN_COLOR))
@@ -108,6 +116,7 @@
         btn
         .L_Frame(CGRectMake([btnView width]/2 + CONTENT_PADDING_LEFT,50/2-35/2,[btnView width]/2 - CONTENT_PADDING_LEFT * 2,35))
         .L_Title(@"搜索",UIControlStateNormal)
+        .L_TargetAction(self,@selector(filterSubmit),UIControlEventTouchUpInside)
         .L_BgColor(HEX_COLOR(APP_MAIN_COLOR))
         .L_Radius(5)
         .L_AddView(btnView);
@@ -124,7 +133,7 @@
         
         imgv
         .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,_typeItemMaxY + 20,BIG_ICON_SIZE, BIG_ICON_SIZE))
-        .L_ImageName(IMAGE_DEFAULT)
+        .L_ImageName(@"yueqileixing")
         .L_AddView(_filterScrollView);
         
     }];
@@ -133,7 +142,7 @@
     [UILabel LabelinitWith:^(UILabel *la) {
         la
         .L_Frame(CGRectMake([musciTypeIcon right] + CONTENT_MARGIN_LEFT,[musciTypeIcon top],200,BIG_ICON_SIZE))
-        .L_Text(@"乐器类型")
+        .L_Text(@"动态类型")
         .L_Font(TITLE_FONT_SIZE)
         .L_TextColor(HEX_COLOR(APP_MAIN_COLOR))
         .L_AddView(_filterScrollView);
@@ -143,8 +152,9 @@
     //乐器类别数据
     NSArray * categoryArr = [LocalData getMusicCategory];
     
-    MusciCategorySelectView * musicCategorySelectView = [[MusciCategorySelectView alloc] init];
-    NSDictionary * musicCategoryDict = [musicCategorySelectView createViewBoxWidth:[self width] - CONTENT_PADDING_LEFT * 2  CategoryArr:categoryArr];
+    _musicCategorySelectView = [[MusciCategorySelectView alloc] init];
+    _musicCategorySelectView.delegate = self;
+    NSDictionary * musicCategoryDict = [_musicCategorySelectView createViewBoxWidth:[self width] - CONTENT_PADDING_LEFT * 2  CategoryArr:categoryArr];
     
     //创建乐器选择视图
     UIView * cView = [[UIView alloc] initWithFrame:CGRectMake(CONTENT_PADDING_LEFT,[musciTypeIcon bottom]+CONTENT_MARGIN_TOP,[self width] - CONTENT_PADDING_LEFT * 2,[musicCategoryDict[@"height"] floatValue])];
@@ -173,7 +183,7 @@
        
         imgv
         .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,0,BIG_ICON_SIZE, BIG_ICON_SIZE))
-        .L_ImageName(ICON_DEFAULT)
+        .L_ImageName(@"dongtai")
         .L_AddView(_filterScrollView);
         
     }];
@@ -191,17 +201,16 @@
     
     //类型项
     NSArray * typeArr = @[
-              @{@"icon":IMAGE_DEFAULT,@"text":@"文字"},
-              @{@"icon":IMAGE_DEFAULT,@"text":@"图片"},
-              @{@"icon":IMAGE_DEFAULT,@"text":@"音频"},
-              @{@"icon":IMAGE_DEFAULT,@"text":@"视频"}
+              @{@"icon":@"shaixuanwenzi",@"text":@"文字"},
+              @{@"icon":@"shaixuantupian",@"text":@"图片"},
+              @{@"icon":@"shaixuanshipin",@"text":@"视频"}
     ];
     
     //y轴
     CGFloat typeItemY = [typeIcon bottom]+15;
     
     
-    for(int i =0;i<4;i++){
+    for(int i =0;i<3;i++){
         
         //数据
         NSDictionary * dictData = typeArr[i];
@@ -212,6 +221,8 @@
             .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,typeItemY,[self width] - CONTENT_PADDING_LEFT * 2,42))
             .L_BgColor([UIColor whiteColor])
             .L_ShadowColor([UIColor grayColor])
+            .L_tag(i)
+            .L_Click(self,@selector(dynamicTypeClick:))
             .L_shadowOffset(CGSizeMake(2,2))
             .L_shadowOpacity(0.2)
             .L_radius_NO_masksToBounds(5)
@@ -221,7 +232,7 @@
         //图标
         UIImageView * iconImageView = [UIImageView ImageViewInitWith:^(UIImageView *imgv) {
            imgv
-            .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,42/2-SMALL_ICON_SIZE/2,SMALL_ICON_SIZE, SMALL_ICON_SIZE))
+            .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,42/2-MIDDLE_ICON_SIZE/2,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
             .L_ImageName(dictData[@"icon"])
             .L_AddView(typeItemView);
         }];
@@ -238,15 +249,17 @@
         }];
         
         //默认未选中图标
-        [UIButton ButtonInitWith:^(UIButton *btn) {
+        UIButton * typeBtn = [UIButton ButtonInitWith:^(UIButton *btn) {
             
             btn
             .L_Frame(CGRectMake([typeItemView width] - CONTENT_PADDING_LEFT * 2 - CONTENT_PADDING_LEFT ,45/2-MIDDLE_ICON_SIZE/2,MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE))
-            .L_BgColor([UIColor grayColor])
-            .L_BtnImageName(ICON_DEFAULT,UIControlStateNormal)
+            .L_BtnImageName(@"weixuanzhong",UIControlStateNormal)
+            .L_BtnImageName(@"xuanzhong",UIControlStateSelected)
             .L_AddView(typeItemView);
             
         } buttonType:UIButtonTypeCustom];
+        
+        [_typeBtnArr addObject:typeBtn];
         
         typeItemY = [typeItemView bottom] + 6;
         
@@ -256,4 +269,60 @@
     
 }
 
+//选择类型
+-(void)dynamicTypeClick:(UITapGestureRecognizer *)tap {
+    NSInteger tagValue = tap.view.tag;
+    
+    for(int i = 0;i<_typeBtnArr.count;i++){
+        
+        UIButton * tempBtn = _typeBtnArr[i];
+        if(tagValue == i){
+            tempBtn.selected = YES;
+            
+            [_dynamicFilterParams setObject:@(i) forKey:@"d_type"];
+            
+        }else{
+            tempBtn.selected = NO;
+        }
+    }
+
+}
+
+//开始搜索
+-(void)filterSubmit {
+    NSLog(@"%@",_dynamicFilterParams);
+    
+    if([_dynamicFilterParams allKeys].count<=0){
+        SHOW_HINT(@"您未选择任何条件");
+    }
+
+    
+    [self.delegate dynamicFilterResult:_dynamicFilterParams];
+ 
+    //重置条件
+    [self filterReset];
+    
+    
+}
+
+//条件重置
+-(void)filterReset {
+    
+    [_dynamicFilterParams removeAllObjects];
+    
+    for(int i = 0;i<_typeBtnArr.count;i++){
+        UIButton * tempBtn = _typeBtnArr[i];
+        tempBtn.selected = NO;
+    }
+    
+    [_musicCategorySelectView resetCategorySelectView];
+    
+}
+
+//选择乐器类别
+-(void)categoryClick:(NSString *)c_name Cid:(NSInteger)c_id {
+    
+    [_dynamicFilterParams setObject:@(c_id) forKey:@"d_cid"];
+ 
+}
 @end

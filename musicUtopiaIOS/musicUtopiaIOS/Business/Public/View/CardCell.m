@@ -77,7 +77,8 @@
     
     //行容器大小
     _cellBox.frame = CGRectMake(CARD_MARGIN_LEFT,INLINE_CARD_MARGIN,[self.contentView width] - CARD_MARGIN_LEFT * 2,[self.contentView height] - INLINE_CARD_MARGIN*2);
-
+    
+    
     _leftIcon.frame = CGRectMake(CONTENT_PADDING_LEFT,[_cellBox height]/2 - SMALL_ICON_SIZE/2,SMALL_ICON_SIZE, SMALL_ICON_SIZE);
     
     _mustHint.frame = CGRectMake([_leftIcon right]+ICON_MARGIN_CONTENT, [_cellBox height]/2 - 15/2 + 2,10,15);
@@ -98,7 +99,7 @@
 -(void)setDictData:(NSDictionary *)dictData {
 
     _leftIcon.L_ImageName(dictData[@"icon"]);
-    
+
     _textLabel.L_Text(dictData[@"text"]);
     
     _rightIcon.L_ImageName(@"fanhui");
@@ -109,6 +110,8 @@
     }else{
         _isMust = NO;
     }
+    
+    
     
     _contentLabel.L_Text(dictData[@"content"]);
     

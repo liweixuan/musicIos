@@ -152,4 +152,17 @@
     return @{ @"view" : boxView , @"height" : @([boxView height]) };
     
 }
+
+-(void)resetCategorySelectView {
+    
+    
+    for(int i = 0 ;i<_categoryBtnArr.count;i++){
+        
+        UIButton * btn = _categoryBtnArr[i];
+        
+        btn.selected = NO;
+        
+    }
+    
+}
 @end

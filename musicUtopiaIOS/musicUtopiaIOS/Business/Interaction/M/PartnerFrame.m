@@ -31,9 +31,11 @@
         //性别内容
         self.sexFrame = CGRectMake(CGRectGetMaxX(self.sexIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.sexIconFrame),30,ATTR_FONT_SIZE);
         
+        self.ageFrame = CGRectMake(CGRectGetMaxX(self.sexFrame), CGRectGetMinY(self.sexFrame)-1,30,15);
+        
         //用户昵称
         CGSize nicknameSize = [G labelAutoCalculateRectWith:self.partnerModel.nickname FontSize:TITLE_FONT_SIZE MaxSize:CGSizeMake(D_WIDTH,1000)];
-        self.nickNameFrame = CGRectMake(CGRectGetMaxX(self.sexFrame),CGRectGetMinY(self.sexIconFrame)-2,nicknameSize.width,TITLE_FONT_SIZE);
+        self.nickNameFrame = CGRectMake(CGRectGetMaxX(self.ageFrame)+5,CGRectGetMinY(self.ageFrame)-1,nicknameSize.width,TITLE_FONT_SIZE);
 
         //位置图标
         self.locationIconFrame = CGRectMake(CGRectGetMinX(self.sexIconFrame), CGRectGetMaxY(self.sexIconFrame)+CONTENT_PADDING_TOP,SMALL_ICON_SIZE, SMALL_ICON_SIZE);

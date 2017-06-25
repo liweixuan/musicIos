@@ -7,6 +7,8 @@
 {
     Base_UITableView * _tableview;
     NSMutableArray   * _tableData;
+    
+    NSInteger          _skip;
 }
 @end
 
@@ -14,45 +16,92 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"我的演奏集";
+    self.title = @"视频演奏集";
     
     //初始化数据
     [self initVar];
     
     //创建导航菜单
-    [self createNav];
+    if(self.userid == [UserData getUserId]){
+        [self createNav];
+    }
     
     //创建演奏集列表
     [self createTableview];
+
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     
     //获取数据
-    [self initData];
+    [self initData:@"init"];
 }
 
 -(void)initVar {
     
     _tableData = [NSMutableArray array];
+    _skip      = 0;
     
 }
 
--(void)initData {
+-(void)initData:(NSString *)type {
     
-    [self startLoading];
+    if([type isEqualToString:@"init"]){
+        [self startLoading];
+    }
+    
     
     NSInteger userID = [UserData getUserId];
     if(self.userid != 0){
         userID = self.userid;
     }
     
-    NSArray * params = @[@{@"key":@"upv_uid",@"value":@(userID)}];
+    NSArray * params = @[
+                         @{@"key":@"upv_uid",@"value":@(userID)},
+                         @{@"key":@"skip",@"value":@(_skip)},
+                         @{@"key":@"limit",@"value":@(PAGE_LIMIT)}
+  ];
     NSString * url   = [G formatRestful:API_USER_PLAY_VIDEO_SEARCH Params:params];
     
     [NetWorkTools GET:url params:nil successBlock:^(NSArray *array) {
-        [self endLoading];
         
-        NSLog(@"加载完毕...");
+        if([type isEqualToString:@"init"]){
+             [self endLoading];
+            
+            if(array.count < PAGE_LIMIT){
+                [_tableview footerEndRefreshingNoData];
+                _tableview.mj_footer.hidden = YES;
+            }
+        }
+       
+        if([type isEqualToString:@"reload"]){
+            [_tableData removeAllObjects];
+            [_tableview headerEndRefreshing];
+            _tableview.mj_footer.hidden = NO;
+            [_tableview resetNoMoreData];
+        }
 
-        _tableData = [array mutableCopy];
+        if([type isEqualToString:@"more"] && array.count <= 0){
+            [_tableview footerEndRefreshingNoData];
+            _tableview.mj_footer.hidden = YES;
+            SHOW_HINT(@"已无更多演奏视频");
+            return;
+        }
+        
+        
+        if([type isEqualToString:@"more"]){
+            [_tableData addObjectsFromArray:[array mutableCopy]];
+            [_tableview footerEndRefreshing];
+        }else{
+            
+            //更新数据数据
+            _tableData = [array mutableCopy];
+            
+        }
+        
+        
         
         [_tableview reloadData];
         
@@ -107,11 +156,18 @@
 }
 
 -(void)loadNewData {
-    [_tableview headerEndRefreshing];
+    
+    _skip = 0;
+    [self initData:@"reload"];
+    
+    
 }
 
 -(void)loadMoreData {
-    [_tableview footerEndRefreshing];
+    
+    _skip += PAGE_LIMIT;
+    [self initData:@"more"];
+    
 }
 
 #pragma mark - 代理
@@ -160,28 +216,40 @@
 
 -(void)deletePlayVideoBtn:(MyVideoCell *)cell {
     
-    NSIndexPath * indexPath = [_tableview indexPathForCell:cell];
-    NSDictionary * dictData = _tableData[indexPath.row];
+
+    //确定删除
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"确认操作" message:@"确定要删除该条演奏视频吗？" preferredStyle:UIAlertControllerStyleAlert];
     
-    NSDictionary * params = @{@"upv_id":dictData[@"upv_id"]};
-    
-    [self startActionLoading:@"正在删除视频..."];
-    [NetWorkTools POST:API_USER_PLAY_VIDEO_DELETE params:params successBlock:^(NSArray *array) {
-        [self endActionLoading];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
-        SHOW_HINT(@"视频删除成功");
+        NSIndexPath * indexPath = [_tableview indexPathForCell:cell];
+        NSDictionary * dictData = _tableData[indexPath.row];
         
-        [_tableData removeObjectAtIndex:indexPath.row];
-        [_tableview reloadData];
+        NSDictionary * params = @{@"upv_id":dictData[@"upv_id"]};
+        [self startActionLoading:@"正在删除视频..."];
+        [NetWorkTools POST:API_USER_PLAY_VIDEO_DELETE params:params successBlock:^(NSArray *array) {
+            [self endActionLoading];
+            
+            SHOW_HINT(@"视频删除成功");
+            
+            [_tableData removeObjectAtIndex:indexPath.row];
+            [_tableview reloadData];
+            
+        } errorBlock:^(NSString *error) {
+            [self endActionLoading];
+            SHOW_HINT(error);
+        }];
         
-    } errorBlock:^(NSString *error) {
-        [self endActionLoading];
-        SHOW_HINT(error);
+        
+        
     }];
     
-    NSLog(@"%@",dictData);
+    [alertController addAction:cancelAction];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
     
     
-    
+   
 }
 @end

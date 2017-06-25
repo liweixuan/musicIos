@@ -15,6 +15,7 @@
         self.partnerId           = [dict[@"fp_id"] integerValue];
         self.partnerTitle        = dict[@"fp_title"];
         self.userId              = [dict[@"fp_uid"] integerValue];
+        self.userAge             = [dict[@"u_age"] integerValue];
         self.partnerStatus       = [dict[@"fp_status"] integerValue]; //信息状态 0-未关闭 1-已关闭
         self.partnerTags         = dict[@"fp_tag"];
         self.partnerProvinceName = dict[@"fp_province_name"];

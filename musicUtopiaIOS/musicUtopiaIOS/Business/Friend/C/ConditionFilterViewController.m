@@ -179,7 +179,7 @@
     
     //设置布局
     [_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(15,0,0,0));
+        make.edges.equalTo(self.view ).with.insets(UIEdgeInsetsMake(10,0,0,0));
     }];
     
     _tableview.marginBottom = 10;
@@ -214,7 +214,7 @@
 //行高
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
 
-    return 65;
+    return 60;
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {

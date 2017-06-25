@@ -7,6 +7,7 @@
 #import "CreateAskViewController.h"
 #import "VideoViewController.h"
 #import <AVFoundation/AVFoundation.h>
+#import "VideoPlayerViewController.h"
 
 
 @interface CreateOrganizationViewController ()<UITableViewDelegate,UITableViewDataSource,TZImagePickerControllerDelegate,SelectAddressDelegate,VideoDelegate>
@@ -190,6 +191,7 @@
             imgv
             .L_Frame(CGRectMake(cellW - CONTENT_PADDING_LEFT - CARD_MARGIN_LEFT - CONTENT_PADDING_LEFT - 40, 15,50,50))
             .L_Image(_logoImage)
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_radius(5)
             .L_AddView(cell.contentView);
         }];
@@ -239,6 +241,7 @@
             imgv
             .L_Frame(CGRectMake(CARD_MARGIN_LEFT,2,D_WIDTH - CARD_MARGIN_LEFT * 2,250))
             .L_Image(_videoImage)
+            .L_ImageMode(UIViewContentModeScaleAspectFill)
             .L_radius(5)
             .L_AddView(cell.contentView);
         }];
@@ -256,6 +259,8 @@
             imgv
             .L_Frame(CGRectMake(D_WIDTH/2 - 60/2,250/2 - 60/2 - 20, 60, 60))
             .L_ImageName(@"bofang")
+            .L_Event(YES)
+            .L_Click(self,@selector(playerVideoClick))
             .L_radius(30)
             .L_AddView(cell.contentView);
         }];
@@ -385,6 +390,19 @@
     _selectAddressView.delegate = self;
     _selectAddressView.hidden = YES;
     [self.navigationController.view addSubview:_selectAddressView];
+}
+
+//播放视频
+-(void)playerVideoClick {
+    NSLog(@"播放视频...");
+    
+    VideoPlayerViewController * videoPlayerVC = [[VideoPlayerViewController alloc] init];
+    videoPlayerVC.videoUrl = [_videoUrl absoluteString];
+    
+    videoPlayerVC.modalPresentationStyle = UIModalTransitionStyleCrossDissolve;
+    [self presentViewController:videoPlayerVC animated:YES completion:nil];
+    
+    
 }
 
 //上传封面
@@ -559,7 +577,7 @@
 
 #pragma mark - 创建团体操作
 -(void)createOrganizationClick {
-    
+
     //数据验证
     if([_coverImageUrl isEqualToString:@""]){
         SHOW_HINT(@"请上传团体封面");
@@ -670,39 +688,66 @@
 
 -(void)organizationAdd {
     
+    //判断是否有视频上传，有则上传第一帧图片
+    if(_videoEndUrl != nil || ![_videoEndUrl isEqualToString:@""]){
+        
+        [self startActionLoading:@"正在创建团体..."];
 
+        [NetWorkTools uploadImage:@{@"image":_videoCover.image,@"imageDir":@"organizationVideo"} Result:^(BOOL results, NSString *fileName) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                //创建参数
+                NSDictionary * params = @{
+                                          @"o_name"           : _createOrganizationArr[0][@"content"],
+                                          @"o_logo"           : _logoImageUrl,
+                                          @"o_cover"          : _coverImageUrl,
+                                          @"o_province"       : _locationData[@"pid"],
+                                          @"o_city"           : _locationData[@"cid"],
+                                          @"o_district"       : _locationData[@"did"],
+                                          @"o_type"           : _createOrganizationArr[3][@"content"],
+                                          @"o_create_userid"  : @([UserData getUserId]),
+                                          @"o_create_username": [UserData getUsername],
+                                          @"o_address"        : _createOrganizationArr[2][@"content"],
+                                          @"o_motto"          : _createOrganizationArr[6][@"content"],
+                                          @"o_desc"           : _createOrganizationArr[4][@"content"],
+                                          @"o_ask"            : _createOrganizationArr[5][@"content"],
+                                          @"o_video_url"      : _videoEndUrl,
+                                          @"o_video_image"    : fileName
+                                          };
+                
+                [NetWorkTools POST:API_ORGANIZATION_ADD params:params successBlock:^(NSArray *array) {
+                    [self endActionLoading];
+                    
+                    SHOW_HINT(@"恭喜您,团体创建成功");
+                    
+                    [self.navigationController popViewControllerAnimated:YES];
+                    
+                } errorBlock:^(NSString *error) {
+                    SHOW_HINT(error);
+                    [self endActionLoading];
+                }];
+                
+               
+                
+            });
+            
+            
+        }];
+        
+        
+        
+    }
 
-    //创建参数
-    NSDictionary * params = @{
-                              @"o_name"           : _createOrganizationArr[0][@"content"],
-                              @"o_logo"           : _logoImageUrl,
-                              @"o_cover"          : _coverImageUrl,
-                              @"o_province"       : _locationData[@"pid"],
-                              @"o_city"           : _locationData[@"cid"],
-                              @"o_district"       : _locationData[@"did"],
-                              @"o_type"           : _createOrganizationArr[3][@"content"],
-                              @"o_create_userid"  : @([UserData getUserId]),
-                              @"o_create_username": [UserData getUsername],
-                              @"o_address"        : _createOrganizationArr[2][@"content"],
-                              @"o_motto"          : _createOrganizationArr[6][@"content"],
-                              @"o_desc"           : _createOrganizationArr[4][@"content"],
-                              @"o_ask"            : _createOrganizationArr[5][@"content"],
-                              @"o_video_url"      : _videoEndUrl
-                              };
+ 
     
-    NSLog(@"%@",params);
     
-    [self startActionLoading:@"正在创建团体..."];
-    [NetWorkTools POST:API_ORGANIZATION_ADD params:params successBlock:^(NSArray *array) {
-        [self endActionLoading];
-        
-        SHOW_HINT(@"恭喜您,团体创建成功");
-        
-        
-    } errorBlock:^(NSString *error) {
-        SHOW_HINT(error);
-        [self endActionLoading];
-    }];
+    
+    
+    
+ 
+    
+    
     
 }
 @end

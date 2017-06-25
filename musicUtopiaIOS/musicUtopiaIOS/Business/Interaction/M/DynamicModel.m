@@ -8,6 +8,7 @@
         self.headerUrl    = dict[@"u_header_url"];
         self.userId       = [dict[@"d_uid"] integerValue];
         self.dynamicType  = [dict[@"d_type"] integerValue];
+        self.userAge      = [dict[@"u_age"] integerValue];
         self.images       = dict[@"images"];
         self.videoType    = [dict[@"d_video_type"] integerValue];
         self.videoUrl     = [BusinessEnum getEmptyString:dict[@"d_video_url"]];

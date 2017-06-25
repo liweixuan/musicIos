@@ -182,6 +182,8 @@
 }
 
 -(void)commentZanClick {
+    
+    
     [self.delegate commentZanClick:self];
 }
 

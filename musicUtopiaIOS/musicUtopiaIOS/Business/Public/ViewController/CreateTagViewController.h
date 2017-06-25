@@ -10,4 +10,5 @@
 
 @interface CreateTagViewController : Base_UIViewController
 @property(nonatomic,strong)NSString * TAG_NAME;
+@property(nonatomic,strong)NSString * defaultTags;
 @end

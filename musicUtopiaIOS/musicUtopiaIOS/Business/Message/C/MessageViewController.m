@@ -56,8 +56,7 @@
 
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
-    
+
     [self initData];
 }
 
@@ -306,8 +305,16 @@
     RCConversation * rcc = _tableData[indexPath.row];
     
     if([rcc.targetId isEqualToString:@"ADD_FRIEND_SYSTEM_USER"]){
-        PUSH_VC(ApplyFriendViewController,YES,@{});
         
+        RCMessageContent * rccontent = rcc.lastestMessage;
+        RCTextMessage * textMessage  = (RCTextMessage *)rccontent;
+        NSString * jsonStr           = textMessage.content;
+        NSDictionary * dictData      = [G dictionaryWithJsonString:jsonStr];
+        
+        if(![dictData[@"operation"] isEqualToString:@"AGREE_FRIEND_ACTION"]){
+           PUSH_VC(ApplyFriendViewController,YES,@{});
+        }
+
     }else if([rcc.targetId isEqualToString:@"JOIN_ORGANIZATION_SYSTEM_USER"]){
         PUSH_VC(ApplyOrganizationViewController,YES,@{});
     
@@ -316,7 +323,7 @@
         PUSH_VC(GroupChatViewController,YES,@{});
         
     }else{
-        PUSH_VC(PrivateChatViewController,YES,@{@"conversation":rcc});
+        PUSH_VC(PrivateChatViewController,YES,@{@"target":rcc.targetId});
     }
     
     
@@ -416,8 +423,25 @@
 //忽略消息
 -(void)ignoreunMessage {
     NSLog(@"忽略未读消息");
-    [RongCloudData ignoreunAllMessage];
-    [_tableview reloadData];
+    
+    
+    //判断是否强制更新
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"提示信息" message:@"确定忽略所有未读消息吗？" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        [RongCloudData ignoreunAllMessage];
+        [_tableview reloadData];
+        
+        
+    }];
+    
+    [alertController addAction:okAction];
+    [alertController addAction:cancelAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+    
+    
     
 }
 

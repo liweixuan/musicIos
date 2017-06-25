@@ -24,11 +24,13 @@
         self.sexIconFrame = CGRectMake(CGRectGetMaxX(self.headerUrlFrame) + CONTENT_MARGIN_LEFT,CGRectGetMinY(self.headerUrlFrame) + 12,SMALL_ICON_SIZE,SMALL_ICON_SIZE);
         
         //性别内容
-        self.sexFrame = CGRectMake(CGRectGetMaxX(self.sexIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.sexIconFrame),30,ATTR_FONT_SIZE);
+        self.sexFrame = CGRectMake(CGRectGetMaxX(self.sexIconFrame)+ICON_MARGIN_CONTENT, CGRectGetMinY(self.sexIconFrame),20,ATTR_FONT_SIZE);
+        
+        self.ageFrame = CGRectMake(CGRectGetMaxX(self.sexFrame), CGRectGetMinY(self.sexFrame)-1,30,15);
         
         //用户昵称
         CGSize nicknameSize = [G labelAutoCalculateRectWith:self.dynamicModel.nickname FontSize:TITLE_FONT_SIZE MaxSize:CGSizeMake(D_WIDTH,1000)];
-        self.nickNameFrame = CGRectMake(CGRectGetMaxX(self.sexFrame),CGRectGetMinY(self.sexIconFrame)-2,nicknameSize.width,TITLE_FONT_SIZE);
+        self.nickNameFrame = CGRectMake(CGRectGetMaxX(self.ageFrame)+5,CGRectGetMinY(self.ageFrame)-1,nicknameSize.width,TITLE_FONT_SIZE);
         
         //动态类型图标
         self.categoryIconFrame = CGRectMake(D_WIDTH-(CARD_MARGIN_LEFT*2)-20-MIDDLE_ICON_SIZE/2,CGRectGetMinY(self.headerUrlFrame), MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
@@ -99,9 +101,9 @@
         }else if(self.dynamicModel.dynamicType == 2){
             
             if(self.dynamicModel.videoType == 0){
-                self.videoBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+CONTENT_MARGIN_TOP, (cardWidth - CONTENT_PADDING_LEFT * 2)/2, (cardWidth - CONTENT_PADDING_LEFT * 2)*0.9);
+                self.videoBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+5, (cardWidth - CONTENT_PADDING_LEFT * 2)/3, (cardWidth - CONTENT_PADDING_LEFT * 2)*0.6);
             }else{
-                self.videoBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+CONTENT_MARGIN_TOP, cardWidth - CONTENT_PADDING_LEFT * 2, (cardWidth - CONTENT_PADDING_LEFT * 2)*0.7);
+                self.videoBoxFrame = CGRectMake(CONTENT_PADDING_LEFT, CGRectGetMaxY(self.contentFrame)+5, cardWidth - CONTENT_PADDING_LEFT * 2, (cardWidth - CONTENT_PADDING_LEFT * 2)*0.7);
             }
             
             //播放按钮
@@ -153,7 +155,7 @@
         self.zanBoxFrame = CGRectMake(self.actionBoxFrame.size.width/3,0,self.actionBoxFrame.size.width/3,30);
         
         //点赞图标
-        self.zanIconFrame = CGRectMake(0, 30/2-MIDDLE_ICON_SIZE/2, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
+        self.zanIconFrame = CGRectMake(0, 30/2-MIDDLE_ICON_SIZE/2 - 1, MIDDLE_ICON_SIZE, MIDDLE_ICON_SIZE);
         
         //点赞内容
         self.zanCountFrame = CGRectMake(CGRectGetMaxX(self.zanIconFrame) + ICON_MARGIN_CONTENT,0,100,30);

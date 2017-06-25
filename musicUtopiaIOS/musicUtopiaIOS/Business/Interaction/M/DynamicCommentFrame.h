@@ -22,5 +22,8 @@
 @property(nonatomic,assign)CGRect zanCountFrame;    //点赞数量
 @property(nonatomic,assign)CGFloat cellHeight;      //行高度
 
+@property(nonatomic,assign)BOOL      isCommentZan;
+@property(nonatomic,assign)NSInteger commentZanCount;
+
 -(instancetype)initWithDynamicComment:(NSDictionary *)dictData;
 @end

@@ -61,7 +61,8 @@
     NSMutableArray  * getParams = [NSMutableArray array];
     [getParams addObject:@{@"key":@"skip",@"value":@(_skip)}];
     [getParams addObject:@{@"key":@"limit",@"value":@(PAGE_LIMIT)}];
-    
+    [getParams addObject:@{@"key":@"m_status",@"value":@(1)}];
+
     
     NSString * url = [G formatRestful:API_MATCH_SEARCH Params:getParams];
     

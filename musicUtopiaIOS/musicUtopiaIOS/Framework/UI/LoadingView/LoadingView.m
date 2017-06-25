@@ -8,7 +8,7 @@
     loadingView.backgroundColor = HEX_COLOR(@"#F0F0F0");
     
     //创建图片视图
-    UIImageView *animateImageView = [[UIImageView alloc] initWithFrame:CGRectMake(D_WIDTH/2-100/2,100,100,100)];
+    UIImageView *animateImageView = [[UIImageView alloc] initWithFrame:CGRectMake(D_WIDTH/2-100/2,120,100,100)];
     animateImageView.contentMode  = UIViewContentModeScaleAspectFit;
     [loadingView addSubview:animateImageView];
     

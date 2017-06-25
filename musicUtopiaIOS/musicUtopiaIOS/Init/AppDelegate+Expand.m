@@ -2,14 +2,14 @@
 #import "MenuTabBarController.h"
 #import "CustomNavigationController.h"
 #import "LaunchScreenViewController.h"
-#import <AMapFoundationKit/AMapFoundationKit.h>
-#import <AMapLocationKit/AMapLocationKit.h>
 #import "ConditionFilterViewController.h"
 
 #import "UserDetailViewController.h"
 #import "PartakeMatchViewController.h"
 #import "MatchUserVideoViewController.h"
 #import "InstrumentEvaluationViewController.h"
+#import "MatchPrizeDetailViewController.h"
+#import "RandomViewController.h"
 
 
 @implementation AppDelegate (Expand)
@@ -28,7 +28,7 @@
     menuTabController.selectedIndex = DEFAULT_TAB_INDEX;
     self.window.rootViewController = menuTabController;
 
-//    InstrumentEvaluationViewController * cc = [[InstrumentEvaluationViewController alloc] init];
+//    RandomViewController * cc = [[RandomViewController alloc] init];
 //    CustomNavigationController * nav = [[CustomNavigationController alloc] initWithRootViewController:cc];
 //    self.window.rootViewController = nav;
     
@@ -218,19 +218,19 @@
     
     NSLog(@"更新当前位置");
     //初始化操作对象
-    AMapLocationManager * locationManager = [[AMapLocationManager alloc] init];
+    AMapLocationManager * appLocationManager = [[AMapLocationManager alloc] init];
     
     //带逆地理信息的一次定位（返回坐标和地址信息）
-    [locationManager setDesiredAccuracy:kCLLocationAccuracyBest];
+    [appLocationManager setDesiredAccuracy:kCLLocationAccuracyBest];
     
     //定位超时时间，最低2s，此处设置为2s
-    locationManager.locationTimeout = 10;
+    appLocationManager.locationTimeout = 10;
     
     //逆地理请求超时时间，最低2s，此处设置为2s
-    locationManager.reGeocodeTimeout = 10;
+    appLocationManager.reGeocodeTimeout = 10;
     
     // 带逆地理（返回坐标和地址信息）。将下面代码中的 YES 改成 NO ，则不会返回地址信息。
-    [locationManager requestLocationWithReGeocode:NO completionBlock:^(CLLocation *location, AMapLocationReGeocode *regeocode, NSError *error) {
+    [appLocationManager requestLocationWithReGeocode:NO completionBlock:^(CLLocation *location, AMapLocationReGeocode *regeocode, NSError *error) {
         
         if (error)
         {
@@ -250,6 +250,7 @@
         
         NSString * lcStr = [NSString stringWithFormat:@"%f,%f",lc.longitude,lc.latitude];
         NSDictionary * userInfo = [UserData getUserInfo];
+        NSLog(@"!!!!%@",userInfo);
         NSDictionary * updateLocationParams = @{
                                                     @"userid"    : userInfo[@"u_id"],
                                                     @"username"  : userInfo[@"u_username"],
@@ -258,7 +259,9 @@
                                                     @"sex"       : userInfo[@"u_sex"],
                                                     @"userGoodInstrument" : userInfo[@"u_good_instrument"],
                                                     @"longitude" : @(lc.longitude),
-                                                    @"latitude"  : @(lc.latitude)
+                                                    @"latitude"  : @(lc.latitude),
+                                                    @"age"       : userInfo[@"u_age"],
+                                                    @"sign"      : userInfo[@"u_sign"] == nil ? @"" : userInfo[@"u_sign"]
         };
         [NetWorkTools POST:API_USER_UPDATE_LOCATION params:updateLocationParams successBlock:^(NSArray *array) {
             NSLog(@"用户位置更新成功");

@@ -61,7 +61,7 @@
 //行数
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if(section == 0){
-        return 1;
+        return 5;
     }
     return 0;
 }
@@ -76,9 +76,45 @@
     
     //判断相应列给予相应数据
     if(indexPath.section == 0){
-        NSDictionary * dict = @{@"icon":@"",@"text":@"退出当前帐号",@"content":@"",@"isMust":@NO};
-        cell.dictData       = dict;
-        return cell;
+        
+        if(indexPath.row == 0){
+            
+            NSDictionary * dict = @{@"icon":@"",@"text":@"修改密码",@"content":@"",@"isMust":@NO};
+            cell.dictData       = dict;
+            return cell;
+            
+        }else if(indexPath.row == 1){
+            
+            NSDictionary * dict = @{@"icon":@"",@"text":@"消息通知",@"content":@"静音",@"isMust":@NO};
+            cell.dictData       = dict;
+            return cell;
+            
+        }else if(indexPath.row == 2){
+            
+            NSDictionary * dict = @{@"icon":@"",@"text":@"清除缓存空间",@"content":@"",@"isMust":@NO};
+            cell.dictData       = dict;
+            return cell;
+            
+            
+            
+        }else if(indexPath.row == 3){
+            
+            NSDictionary * dict = @{@"icon":@"",@"text":@"帮助",@"content":@"",@"isMust":@NO};
+            cell.dictData       = dict;
+            return cell;
+            
+            
+            
+        }else if(indexPath.row == 4){
+            
+            NSDictionary * dict = @{@"icon":@"",@"text":@"退出当前帐号",@"content":@"",@"isMust":@NO};
+            cell.dictData       = dict;
+            return cell;
+            
+            
+            
+        }
+        
     }
     return nil;
     
@@ -93,7 +129,9 @@
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if(indexPath.section == 0){
-        if(indexPath.row == 0){
+        
+        
+        if(indexPath.row == 1){
             
    
             //确认退出框

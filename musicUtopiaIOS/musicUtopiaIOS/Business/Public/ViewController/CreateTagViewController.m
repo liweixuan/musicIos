@@ -17,7 +17,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"创建标签";
-    
+
     //初始化变量
     [self initVar];
     
@@ -29,6 +29,8 @@
     
     //预览显示标签容器
     [self createTagBox];
+    
+    [self initCreateTag];
     
 }
 
@@ -132,8 +134,53 @@
   
 }
 
+-(void)initCreateTag {
+    NSArray * tagArrData = [NSArray array];
+    if(![self.defaultTags isEqualToString:@""] && self.defaultTags != nil){
+        tagArrData = [self.defaultTags componentsSeparatedByString:@"|"];
+    }
+    
+    _tagArr = [tagArrData mutableCopy];
+    
+    CGFloat nowX = 0.0;
+    
+    for(int i =0;i<tagArrData.count;i++){
+        
+        //内容大小
+        CGSize s = [G labelAutoCalculateRectWith:tagArrData[i] FontSize:ATTR_FONT_SIZE MaxSize:CGSizeMake(1000, 1000)];
+        
+        //创建UILabel
+        TagLabel * tagLabel = [[TagLabel alloc] initWithFrame:CGRectMake(nowX,5,s.width + 30 + 15,30)];
+        tagLabel.backgroundColor = HEX_COLOR(APP_MAIN_COLOR);
+        tagLabel.text = tagArrData[i];
+        tagLabel.textColor = [UIColor whiteColor];
+        tagLabel.font = [UIFont systemFontOfSize:ATTR_FONT_SIZE];
+        tagLabel.layer.masksToBounds = YES;
+        tagLabel.layer.cornerRadius = 15;
+        tagLabel.insets = UIEdgeInsetsMake(0,15, 0,30);
+        [_tagBox addSubview:tagLabel];
+        
+        //X轴位置变化
+        nowX += s.width + 30 + 10 + 15;
+        
+        //删除按钮
+        [UIButton ButtonInitWith:^(UIButton *btn) {
+            btn
+            .L_Frame(CGRectMake([tagLabel right] - 25, [tagLabel top]+5,20,20))
+            .L_BtnImageName(@"shanchu",UIControlStateNormal)
+            .L_TargetAction(self,@selector(deleteTagClick:),UIControlEventTouchUpInside)
+            .L_tag(i)
+            .L_AddView(_tagBox);
+        } buttonType:UIButtonTypeCustom];
+        
+    }
+    
+    _tagInput.text = @"";
+}
+
 -(void)createTag {
     
+
     CGFloat nowX = 0.0;
     
     for(int i =0;i<_tagArr.count;i++){

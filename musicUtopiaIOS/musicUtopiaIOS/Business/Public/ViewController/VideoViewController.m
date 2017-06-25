@@ -11,7 +11,7 @@
 #import <AVFoundation/AVAssetImageGenerator.h>
 #import <AVFoundation/AVTime.h>
 
-@interface VideoViewController ()
+@interface VideoViewController ()<UINavigationControllerDelegate>
 {
     UIImagePickerController *_albumController;
 }
@@ -112,7 +112,7 @@
 }
 
 - (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated{
-    viewController.navigationItem.rightBarButtonItem.tintColor = [UIColor whiteColor];
+    viewController.navigationItem.rightBarButtonItem.tintColor = [UIColor grayColor];
     viewController.navigationItem.title = @"相册";
 }
 
@@ -122,9 +122,7 @@
     }];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+
+
 
 @end

@@ -93,6 +93,7 @@
        imgv
         .L_Frame(CGRectMake(CONTENT_PADDING_LEFT,10,120,[headerBox height] - 20))
         .L_ImageName(@"test_faxian.jpeg")
+        .L_radius(5)
         .L_AddView(headerBox);
     }];
     
@@ -110,7 +111,7 @@
     [UILabel LabelinitWith:^(UILabel *la) {
         la
         .L_Frame(CGRectMake([hintImageView right]+CONTENT_PADDING_LEFT,[hintTitle top]+20,[headerBox width] - [hintImageView right] - CONTENT_PADDING_LEFT,CONTENT_FONT_SIZE))
-        .L_Text(@"发现您身边的好友...")
+        .L_Text(@"发现与您志同道合的好友...")
         .L_TextColor(HEX_COLOR(CONTENT_FONT_COLOR))
         .L_Font(CONTENT_FONT_SIZE)
         .L_AddView(headerBox);
@@ -301,7 +302,7 @@
         UILabel * hintTitle = [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([leftIcon right]+CONTENT_PADDING_LEFT,[leftIcon top]-5,100,SUBTITLE_FONT_SIZE))
-            .L_Text(@"听朋友")
+            .L_Text(@"视频交友")
             .L_TextColor(HEX_COLOR(SUBTITLE_FONT_COLOR))
             .L_Font(SUBTITLE_FONT_SIZE)
             .L_AddView(cell.contentView);
@@ -311,7 +312,7 @@
         [UILabel LabelinitWith:^(UILabel *la) {
             la
             .L_Frame(CGRectMake([leftIcon right]+CONTENT_PADDING_LEFT,[hintTitle bottom]+5,[cell.contentView width] - [leftIcon right] - CONTENT_PADDING_LEFT,ATTR_FONT_SIZE))
-            .L_Text(@"用耳朵去发现你的朋友")
+            .L_Text(@"看看他/她提供的交友视频")
             .L_TextColor(HEX_COLOR(ATTR_FONT_COLOR))
             .L_Font(ATTR_FONT_SIZE)
             .L_AddView(cell.contentView);

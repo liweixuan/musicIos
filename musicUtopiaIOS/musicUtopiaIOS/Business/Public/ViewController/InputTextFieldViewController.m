@@ -33,9 +33,16 @@
     //创建输入容器框
     UIView * inputBox = [UIView ViewInitWith:^(UIView *view) {
         view
-        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,20,D_WIDTH - CARD_MARGIN_LEFT *2,80))
+        .L_Frame(CGRectMake(CARD_MARGIN_LEFT,15,D_WIDTH - CARD_MARGIN_LEFT *2,80))
         .L_AddView(self.view);
     }];
+    
+    NSString * inputStr = @"";
+    if(self.defaultStr == nil || [self.defaultStr isEqualToString:@""]  || [self.defaultStr isEqualToString:@"点击设置"]){
+        inputStr = @"";
+    }else{
+        inputStr = self.defaultStr;
+    }
     
     //昵称输入框
     _valueInput = [UITextField TextFieldInitWith:^(UITextField *text) {
@@ -45,6 +52,7 @@
         .L_BgColor([UIColor whiteColor])
         .L_Font(TEXTFIELD_FONT_SIZE)
         .L_PaddingLeft(15)
+        .L_Text(inputStr)
         .L_shadowOffset(CGSizeMake(3,3))
         .L_ShadowColor([UIColor grayColor])
         .L_shadowOpacity(0.2)

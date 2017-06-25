@@ -110,7 +110,7 @@
         if([type isEqualToString:@"more"] && array.count <= 0){
             [_tableview footerEndRefreshingNoData];
             _tableview.mj_footer.hidden = YES;
-            SHOW_HINT(@"已无更多评论信息");
+            SHOW_HINT(@"已无更多视频信息");
             return;
         }
         

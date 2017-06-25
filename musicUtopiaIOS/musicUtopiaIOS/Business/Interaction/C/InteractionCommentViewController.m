@@ -261,6 +261,8 @@
         cell.dynamicFrame   = self.dynamicFrame;
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         cell.delegate       = self;
+        cell.isDeleteBtn    = self.isDeleteBtn;
+        
         
         return cell;
     }else{
@@ -425,6 +427,7 @@
      UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
      userDetailVC.userId   = self.dynamicFrame.dynamicModel.userId;
      userDetailVC.username = self.dynamicFrame.dynamicModel.username;
+     userDetailVC.hidesBottomBarWhenPushed = YES;
      [self.navigationController pushViewController:userDetailVC animated:YES];
 
 }
@@ -437,6 +440,7 @@
     UserDetailViewController * userDetailVC = [[UserDetailViewController alloc] init];
     userDetailVC.userId   = [dcFrame.dynamicCommentDict[@"dc_uid"] integerValue];
     userDetailVC.username = dcFrame.dynamicCommentDict[@"u1_username"];
+    userDetailVC.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:userDetailVC animated:YES];
 
     
@@ -456,6 +460,12 @@
     [NetWorkTools POST:API_DYNAMIC_COMMENT_ZAN params:params successBlock:^(NSArray *array) {
         [self endActionLoading];
         SHOW_HINT(@"点赞成功");
+        
+        dcFrame.isCommentZan = YES;
+        dcFrame.commentZanCount = dcFrame.commentZanCount + 1;
+        
+        [_tableview reloadData];
+        
     } errorBlock:^(NSString *error) {
         SHOW_HINT(error);
     }];
@@ -475,6 +485,39 @@
     _replyUid = [dcFrame.dynamicCommentDict[@"dc_uid"] integerValue];
     
     [_inputTextView becomeFirstResponder];
+    
+    
+}
+
+-(void)deleteBtnClick:(DynamicContentCell *)cell {
+    
+
+    //确定删除
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"确认操作" message:@"确定要删除该条动态吗？" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"好的" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        NSDictionary * parmas = @{@"d_id":@(self.dynamicFrame.dynamicModel.dynamicId)};
+        [self startActionLoading:@"正在删除动态..."];
+        [NetWorkTools POST:API_DYNAMIC_DELETE params:parmas successBlock:^(NSArray *array) {
+            [self endActionLoading];
+            SHOW_HINT(@"动态删除成功");
+            
+            [self.navigationController popViewControllerAnimated:YES];
+            
+        } errorBlock:^(NSString *error) {
+            [self endActionLoading];
+            SHOW_HINT(error);
+        }];
+        
+        
+        
+    }];
+    
+    [alertController addAction:cancelAction];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
     
     
 }
@@ -513,8 +556,58 @@
     [UIView animateWithDuration:0.4 animations:^{
         _maskView.alpha = 0.0;
     }];
+    
+    _inputTextView.text = @"";
+    _inputPlaceholderLabel.hidden = NO;
 }
 
 
+//点赞
+-(void)zanClick:(DynamicContentCell *)cell NowView:(UILabel *)label {
+    
+    [self startActionLoading:@"处理中..."];
+    
+    NSDictionary * params = @{@"d_id":@(self.dynamicFrame.dynamicModel.dynamicId)};
+    [NetWorkTools POST:API_DYNAMIC_ZAN params:params successBlock:^(NSArray *array) {
+        
+        [self endActionLoading];
+        SHOW_HINT(@"点赞成功");
+        
+        //获取当前动态ID
+        self.dynamicFrame.dynamicModel.zanCount = self.dynamicFrame.dynamicModel.zanCount + 1;
+        self.dynamicFrame.dynamicModel.isZan = YES;
+        [_tableview reloadData];
+        
+    } errorBlock:^(NSString *error) {
+         [self endActionLoading];
+        SHOW_HINT(@"点赞失败");
+        NSLog(@"%@",error);
+    }];
 
+    
+}
+
+//关注
+-(void)concernClick:(DynamicContentCell *)cell {
+    
+    [self startActionLoading:@"处理中..."];
+    
+    NSDictionary * params = @{@"uc_uid":@([UserData getUserId]),@"uc_concern_id":@(self.dynamicFrame.dynamicModel.userId)};
+    [NetWorkTools POST:API_USER_CONCERN params:params successBlock:^(NSArray *array) {
+        
+        [self endActionLoading];
+        SHOW_HINT(@"关注成功");
+        
+        self.dynamicFrame.dynamicModel.isGuanZhu = YES;
+        [_tableview reloadData];
+        
+    } errorBlock:^(NSString *error) {
+        
+        [self endActionLoading];
+        SHOW_HINT(error);
+    }];
+    
+    
+    
+}
 @end

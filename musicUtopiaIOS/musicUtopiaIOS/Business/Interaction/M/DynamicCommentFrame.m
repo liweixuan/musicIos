@@ -16,6 +16,8 @@
         
         self.dynamicCommentDict = dictData;
         
+        self.commentZanCount = [self.dynamicCommentDict[@"dc_zan_count"] integerValue];
+        
         //获取卡片宽度
         CGFloat cardWidth = D_WIDTH - CARD_MARGIN_LEFT * 2;
 

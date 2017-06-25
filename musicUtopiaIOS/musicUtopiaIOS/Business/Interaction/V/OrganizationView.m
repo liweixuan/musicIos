@@ -93,6 +93,7 @@
     
     //创建加载中遮罩
     if([type isEqualToString:@"init"]){
+        _skip = 0;
         _loadView = [LoadingView createDataLoadingView];
         [self addSubview:_loadView];
     }

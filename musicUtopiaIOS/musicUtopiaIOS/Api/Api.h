@@ -22,6 +22,7 @@ extern NSString * const API_ORGANIZATION_APPLY_SEARCH;    //获取团体请求�
 extern NSString * const API_PARTNER_ADD;                  //新增找伙伴信息
 extern NSString * const API_ORGANIZATION_AGREE_OR_REFUSE; //同意或拒绝团体请求
 extern NSString * const API_ORGANIZATION_PHOTOS;          //获取团体某相册下所有照片
+extern NSString * const API_ORGANIZATION_UPDATE;          //更新团体信息
 
 /***** 通用相关 ******/
 extern NSString * const API_OFFICIAL_CATEGORY;       //获取官方乐器分类课程
@@ -52,6 +53,8 @@ extern NSString * const API_USER_ALL_INSTRUMENT_LEVEL; //获取当前用户的�
 extern NSString * const API_USER_UPGRADE_MUSIC_SCORE;  //获取升级演奏的曲谱
 extern NSString * const API_USER_UPGRADE_APPLY;        //新增升级评测申请
 extern NSString * const API_USER_UPGRADE_VIDEO;        //获取用户升级时所演奏的视频
+extern NSString * const API_USER_UPDATE_INFO;          //修改用户资料
+extern NSString * const API_USER_CREATE_USER_ORGANIZATION; //获取用户为团长的团体
 
 /***** 注册相关 ******/
 extern NSString * const API_SMS_REGISTER_CODE;       //发送注册短信验证码
@@ -65,6 +68,7 @@ extern NSString * const API_FRIENDS_SEARCH;          //获取好友列表
 extern NSString * const API_APPLY_FRIENDS_SEARCH;    //获取好友请求列表
 extern NSString * const API_APPLY_FRIENDS;           //申请成为好友
 extern NSString * const API_AGREE_OR_REFUSE;         //好友请求同意或拒绝
+extern NSString * const API_DELETE_FRIEND;           //删除好友
 
 /***** 比赛相关 ******/
 extern NSString * const API_MATCH_PARTAKE;           //参与比赛
